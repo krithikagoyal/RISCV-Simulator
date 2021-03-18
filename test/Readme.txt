@@ -1,0 +1,1 @@
+End termination codes pending to specify end of different memory segments.
