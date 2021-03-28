@@ -96,17 +96,19 @@ def fetch():
 
 # Reads the instruction register, operand1 and operand2 from register file; decides the operation to be performed in execute stage
 def decode():
-  bin_instruction = bin(int(instruction_word,16))[2:]
+  bin_instruction = bin(int(instruction_word[2:],16))[2:]
 
   bin_instruction = (32 - len(bin_instruction)) * '0' + bin_instruction
   opcode = int(bin_instruction[25:32], 2)
   func3 = int(bin_instruction[17:20], 2)
   func7 = int(bin_instruction[0:7], 2)
+
   f = open('Instruction_Set_List.csv')
   instruction_set_list = list(csv.reader(f))
   f.close()
   match_found = False
   track = 0
+
   for ins in instruction_set_list:
       if track == 0:
           match_found = False
@@ -120,6 +122,7 @@ def decode():
           break
       track += 1
   op_type = instruction_set_list[track][0]
+  operation = instruction_set_list[track][1]
   if op_type == 'R':
     rs2 = bin_instruction[7:12]
     rs1 = bin_instruction[12:17]
@@ -151,7 +154,7 @@ def decode():
 
 # executes the ALU operation based on ALUop
 def execute():
-
+  #akhil and rhythm, use variables imm, rs1, rs2, rd, operation they are predefined. Now execute
 
 # Performs the memory operations
 def mem():
