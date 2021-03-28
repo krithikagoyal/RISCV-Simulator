@@ -92,15 +92,17 @@ def fetch():
 
 #reads the instruction register, reads operand1, operand2 from register file, decides the operation to be performed in execute stage
 def decode():
-  #0110111-> LUI
-  #0010111-> AUIPC
-  #1101111-> JAL
-  #1100111-> JALR
-  #1100011-> BEQ(f3 = 000) BNE(f3 = 001) BLT(f3 = 100) BGE(f3 = 101)
-  #0000011-> LB(f3 = 000) LH(f3 = 001) LW(f3 = 010)
-  #0100011-> SB(f3 = 000) SH(f3 = 001) SW(f3 = 010)
-  #0010011-> ORI(f3 = 110) ANDI(f3 = 111)
-  #0110011->(f7 = 0)[SLL]
+  bin_instruction = bin(int(instruction_word,16))[2:]
+  '''
+  Krithika code here to identify operation and optype,
+  and fill the operand1 and operand2 global variables (whereable applicable)
+  '''
+  op_type = ''
+  if op_type == 'R':
+    rs2 = bin_instruction[7:12]
+    rs1 = bin_instruction[12:17]
+    rd = bin_instruction[]
+
 #executes the ALU operation based on ALUop
 def execute():
 
