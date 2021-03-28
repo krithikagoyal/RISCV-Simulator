@@ -22,8 +22,8 @@ R = [0]*32
 N = C = V = Z = 0
 
 # memory
-static unsigned char MEM[4000];
-MEM = ['']*4000
+# static unsigned char MEM[4000];
+MEM = ['NAN']*1000
 
 # intermediate datapath and control path signals
 instruction_word = 0
@@ -42,74 +42,68 @@ def run_RISCVsim():
 
 # it is used to set the reset values
 #reset all registers and memory content to 0
-void reset_proc() {
+def reset_proc():
 
-}
+
 
 #load_program_memory reads the input memory, and pupulates the instruction 
 # memory
-void load_program_memory(char *file_name) {
-  FILE *fp;
-  unsigned int address, instruction;
-  fp = fopen(file_name, "r");
-  if(fp == NULL) {
-    printf("Error opening input mem file\n");
-    exit(1);
-  }
-  while(fscanf(fp, "%x %x", &address, &instruction) != EOF) {
-    write_word(MEM, address, instruction);
-  }
-  fclose(fp);
-}
+def load_program_memory(string file_name):
+  #address, instruction;
+  try:
+    fp = open(file_name, 'r')
+    for line in fp:
+        tmp = line.split()
+        if len(tmp) == 2:
+            address, instruction = tmp[0], tmp[1]
+            write_word(address, instruction)
+    fp.close()
+  except:
+    print("Error opening input mem file\n")
+    exit(1)
+
 
 #writes the data memory in "data_out.mem" file
-void write_data_memory() {
-  FILE *fp;
-  unsigned int i;
-  fp = fopen("data_out.mem", "w");
-  if(fp == NULL) {
-    printf("Error opening dataout.mem file for writing\n");
-    return;
-  }
-  
-  for(i=0; i < 4000; i = i+4){
-    fprintf(fp, "%x %x\n", i, read_word(MEM, i));
-  }
-  fclose(fp);
-}
+def write_data_memory():
+  try:
+    fp = open("data_out.mem", "w")
+    out_tmp = []
+    for i in range(4000,4):
+        if MEM[i/4] != 'untouched':
+            out_tmp.append(hex(i) + ' ' + MEM[i/4])
+    fp.writelines(out_tmp)
+    fp.close()
+  except:
+      print("Error opening dataout.mem file for writing\n")
+      
+
+
 
 #should be called when instruction is swi_exit
-void swi_exit() {
-  write_data_memory();
-  exit(0);
-}
+def swi_exit():
+  write_data_memory()
+  exit(0)
+
 
 
 #reads from the instruction memory and updates the instruction register
-def fetch() {
-}
+def fetch():
+
 #reads the instruction register, reads operand1, operand2 fromo register file, decides the operation to be performed in execute stage
-def decode() {
-}
+def decode():
+
 #executes the ALU operation based on ALUop
-def execute() {
-}
+def execute():
+
 #perform the memory operation
-def mem() {
-}
+def mem():
+
 #writes the results back to register file
-def write_back() {
-}
+def write_back():
 
 
-int read_word(char *mem, unsigned int address) {
-  int *data;
-  data =  (int*) (mem + address);
-  return *data;
-}
 
-void write_word(char *mem, unsigned int address, unsigned int data) {
-  int *data_p;
-  data_p = (int*) (mem + address);
-  *data_p = data;
+def write_word(address, instruction) {
+  idx = int(address[2:],16)
+  MEM[idx] = instruction
 }
