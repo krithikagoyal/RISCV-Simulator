@@ -110,7 +110,7 @@ def write_back():
 
 
 
-def write_word(address, instruction) {
+def write_word(address, instruction):
   idx = int(address[2:],16)
   MEM[idx] = instruction
-}
+
