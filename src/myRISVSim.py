@@ -107,8 +107,8 @@ def decode():
     rs1 = bin_instruction[12:17]
     rd = bin_instruction[]
 
-#executes the ALU operation based on ALUop
 
+# executes the ALU operation based on ALUop
 def execute():
 
 
