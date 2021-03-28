@@ -101,7 +101,30 @@ def decode():
   if op_type == 'R':
     rs2 = bin_instruction[7:12]
     rs1 = bin_instruction[12:17]
-    rd = bin_instruction[]
+    rd = bin_instruction[20:25]
+  elif op_type == 'I':
+    rs2 = bin_instruction[7:12]
+    rs1 = bin_instruction[12:17]
+    imm = bin_instruction[0:7] + bin_instruction[20:25]
+  elif op_type == 'S':
+    rs2 = bin_instruction[7:12]
+    rs1 = bin_instruction[12:17]
+    imm = bin_instruction[0:7] + bin_instruction[20:25]
+  elif op_type == 'B':
+    rs2 = bin_instruction[7:12]
+    rs1 = bin_instruction[12:17]
+    imm = bin_instruction[0] + bin_instruction[24] +bin_instruction[1:7] + bin_instruction[20:24] + '0'
+  elif op_type == 'U':
+    rd = bin_instruction[20:25]
+    imm = bin_instruction[0:20] + '0'*12
+  elif op_type == 'J':
+    rd = bin_instruction[20:25]
+    imm = bin_instruction[0] + bin_instruction[12:20] + bin_instruction[11] + bin_instruction[1:11] + '0'
+  else:
+    print("Unidentifiable machine code!")
+    swi_exit()
+  
+  
 
 #executes the ALU operation based on ALUop
 def execute():
