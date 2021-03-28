@@ -155,6 +155,23 @@ def decode():
 # executes the ALU operation based on ALUop
 def execute():
   #akhil and rhythm, use variables imm, rs1, rs2, rd, operation they are predefined. Now execute
+  #doing 4 for example
+  if operation == 'add':
+    operand1 = R[int(rs1,2)]
+    operand2 = R[int(rs2,2)]
+    R[int(rd,2)] = operand1 + operand2
+  else if operation == 'sub':
+    operand1 = R[int(rs1,2)]
+    operand2 = R[int(rs2,2)]
+    R[int(rd,2)] = operand1 + operand2
+  else if operation == 'and':
+    operand1 = R[int(rs1,2)]
+    operand2 = R[int(rs2,2)]
+    R[int(rd,2)] = operand1 & operand2
+  else if operation == 'or':
+    operand1 = R[int(rs1,2)]
+    operand2 = R[int(rs2,2)]
+    R[int(rd,2)] = operand1 | operand2
 
 # Performs the memory operations
 def mem():
