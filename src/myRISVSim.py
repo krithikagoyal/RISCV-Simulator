@@ -16,8 +16,6 @@
 # myRISCVSim.py
 # Purpose of this file: implementation file for myRISCVSim
 
-from myRISCVSim import *
-
 # Register file
 R = [0]*32
 
@@ -78,7 +76,7 @@ def write_data_memory():
     fp = open("data_out.mem", "w")
     out_tmp = []
     for i in range(4000,4):
-        if MEM[i/4] != 'untouched':
+        if MEM[i/4] != 'NAN':
             out_tmp.append(hex(i) + ' ' + MEM[i/4])
     fp.writelines(out_tmp)
     fp.close()
