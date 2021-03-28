@@ -21,6 +21,9 @@ R = [0]*32
 # flags
 N = C = V = Z = 0
 
+#Program Counter
+PC = 0
+
 # memory
 # static unsigned char MEM[4000];
 MEM = ['NAN']*1000
@@ -43,7 +46,10 @@ def run_RISCVsim():
 # it is used to set the reset values
 #reset all registers and memory content to 0
 def reset_proc():
-
+  for i in range(32):
+    R[i] = '0x00000000'
+  R[2] = '0x7FFFFFF0'
+  R[3] = '0x10000000'
 
 
 #load_program_memory reads the input memory, and pupulates the instruction 
@@ -74,8 +80,7 @@ def write_data_memory():
     fp.writelines(out_tmp)
     fp.close()
   except:
-      print("Error opening dataout.mem file for writing\n")
-      
+    print("Error opening dataout.mem file for writing\n")
 
 
 
@@ -88,10 +93,12 @@ def swi_exit():
 
 #reads from the instruction memory and updates the instruction register
 def fetch():
+  instruction_word = MEM[PC/4]
+  PC += 4
 
-#reads the instruction register, reads operand1, operand2 fromo register file, decides the operation to be performed in execute stage
+#reads the instruction register, reads operand1, operand2 from register file, decides the operation to be performed in execute stage
 def decode():
-
+  
 #executes the ALU operation based on ALUop
 def execute():
 
