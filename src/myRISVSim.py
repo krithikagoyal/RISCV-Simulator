@@ -97,14 +97,11 @@ def fetch():
 # Reads the instruction register, operand1 and operand2 from register file; decides the operation to be performed in execute stage
 def decode():
   bin_instruction = bin(int(instruction_word,16))[2:]
-  '''
-  Krithika code here to identify operation and optype,
-  and fill the operand1 and operand2 global variables (whereable applicable)
-  '''
-  instruction = (32 - len(bin_instruction)) * '0' + bin_instruction
-  opcode = int(instruction[25:32], 2)
-  func3 = int(instruction[17:20], 2)
-  func7 = int(instruction[0:7], 2)
+
+  bin_instruction = (32 - len(bin_instruction)) * '0' + bin_instruction
+  opcode = int(bin_instruction[25:32], 2)
+  func3 = int(bin_instruction[17:20], 2)
+  func7 = int(bin_instruction[0:7], 2)
   f = open('Instruction_Set_List.csv')
   instruction_set_list = list(csv.reader(f))
   f.close()
