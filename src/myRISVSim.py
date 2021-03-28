@@ -9,12 +9,6 @@
 # myRISCVSim.cpp
 # Purpose of this file: implementation file for myRISCVSim
 
-#include "myRISCVSim.h"
-#include <stdlib.h>
-#include <stdio.h>
-from myRISCVSim import *
-
-
 # Register file
 R = [0]*32
 
