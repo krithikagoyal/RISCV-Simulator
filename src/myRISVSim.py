@@ -1,19 +1,22 @@
 # The project is developed as part of Computer Architecture class
 # Project Name: Functional Simulator for subset of RISCV Processor
 
-# Developer's Name:
-# Developer's Email id:
-# Date: 
+"""
+-------------------------------------------------
+| Developer's Name   | Developer's Email ID     |
+|-----------------------------------------------|
+| Akhil Arya         | 2019csb1066@iitrpr.ac.in |
+| Harshwardhan Kumar | 2019csb1089@iitrpr.ac.in |
+| Krithika Goyal     | 2019csb1094@iitrpr.ac.in |
+| Rhythm Jain        | 2019csb1111@iitrpr.ac.in |
+| Tarun Singla       | 2019csb1126@iitrpr.ac.in |
+-------------------------------------------------
+"""
 
-
-# myRISCVSim.cpp
+# myRISCVSim.py
 # Purpose of this file: implementation file for myRISCVSim
 
-#include "myRISCVSim.h"
-#include <stdlib.h>
-#include <stdio.h>
 from myRISCVSim import *
-
 
 # Register file
 R = [0]*32
@@ -52,7 +55,7 @@ def reset_proc():
   R[3] = '0x10000000'
 
 
-#load_program_memory reads the input memory, and pupulates the instruction 
+#load_program_memory reads the input memory, and pupulates the instruction
 # memory
 def load_program_memory(string file_name):
   #address, instruction;
@@ -98,7 +101,7 @@ def fetch():
 
 #reads the instruction register, reads operand1, operand2 from register file, decides the operation to be performed in execute stage
 def decode():
-  
+
 #executes the ALU operation based on ALUop
 def execute():
 
@@ -113,4 +116,3 @@ def write_back():
 def write_word(address, instruction):
   idx = int(address[2:],16)
   MEM[idx] = instruction
-
