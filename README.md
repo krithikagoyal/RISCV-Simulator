@@ -1,4 +1,4 @@
-# Functional Simulator for RISCV Processor
+# Functional Simulator for RISC-V Processor
 ### *This project is developed as part of Computer Architecture class and is build in 3 phases.*
 
 ## PHASE: 1 (Single cycle execution)
