@@ -1,0 +1,24 @@
+Design and implement the function simulator in C/C++/Java for 32bit RISCV ISA instructions. Function simulator takes instruction encoding in .mc file as input. .mc file has the following format:
+
+All the instructions in the given in the input .mc file is executed as per the functional behavior of the instructions. Each instruction must go through the following phases:
+
+ - Fetch
+ - Decode
+ - Execute
+ - Memory
+ - Writeback
+
+
+Along with execution of instruction stages, simulator also provide messages what it is doing in each stage, Implements an additional instruction which exits the simulator, writes the data memory in .mc file before exiting.  
+
+You must test the software using assembly programs:
+ - Fibonacci Program
+ - Sum of the array of N elements. Initialize an array in first loop with each element equal to its index. In second loop find the sum of this array, and store the result at Arr[N].   
+ - Factorial Program
+ - Bubble Sort Program
+
+A template implementation is attached, which contains a README file, a design document, Makefile, and c code to start with. In the submission you are supposed to submit the source code along with updated design document,  README, input test files.  Overall project would be evaluation on:
+ - Functional completeness
+ - Documentation completeness
+ - Testcase
+
