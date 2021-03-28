@@ -1,7 +1,7 @@
-# The project is developed as part of Computer Architecture class
-# Project Name: Functional Simulator for subset of RISCV Processor
-
 """
+The project is developed as part of Computer Architecture class.
+Project Name: Functional Simulator for subset of RISCV Processor
+
 -------------------------------------------------
 | Developer's Name   | Developer's Email ID     |
 |-----------------------------------------------|
@@ -14,27 +14,27 @@
 """
 
 # myRISCVSim.py
-# Purpose of this file: implementation file for myRISCVSim
+# Purpose of this file: Implementation file for myRISCVSim
 
 # Register file
 R = [0]*32
 
-# flags
+# Flags
 N = C = V = Z = 0
 
-#Program Counter
+# Program Counter
 PC = 0
 
-# memory
-# static unsigned char MEM[4000];
+# Memory
 MEM = ['NAN']*1000
 
-# intermediate datapath and control path signals
+# Intermediate datapath and control path signals
 instruction_word = 0
 int operand1 = 0
 int operand2 = 0
 
 
+# run_RISCVsim function
 def run_RISCVsim():
     while(1):
         fetch()
@@ -44,8 +44,8 @@ def run_RISCVsim():
         write_back()
 
 
-# it is used to set the reset values
-#reset all registers and memory content to 0
+# It is used to set the reset values
+# Reset all registers and memory content to 0
 def reset_proc():
   for i in range(32):
     R[i] = '0x00000000'
@@ -53,10 +53,8 @@ def reset_proc():
   R[3] = '0x10000000'
 
 
-#load_program_memory reads the input memory, and pupulates the instruction
-# memory
+# load_program_memory reads the input memory, and populates the instruction memory
 def load_program_memory(string file_name):
-  #address, instruction;
   try:
     fp = open(file_name, 'r')
     for line in fp:
@@ -66,11 +64,11 @@ def load_program_memory(string file_name):
             write_word(address, instruction)
     fp.close()
   except:
-    print("Error opening input mem file\n")
+    print("Error opening input mem file.\n")
     exit(1)
 
 
-#writes the data memory in "data_out.mem" file
+# Writes the data memory in "data_out.mem" file
 def write_data_memory():
   try:
     fp = open("data_out.mem", "w")
@@ -81,36 +79,38 @@ def write_data_memory():
     fp.writelines(out_tmp)
     fp.close()
   except:
-    print("Error opening dataout.mem file for writing\n")
+    print("Error opening dataout.mem file for writing.\n")
 
 
-
-#should be called when instruction is swi_exit
+# It should be called when instruction is swi_exit
 def swi_exit():
   write_data_memory()
   exit(0)
 
 
-
-#reads from the instruction memory and updates the instruction register
+# Reads from the instruction memory and updates the instruction register
 def fetch():
   instruction_word = MEM[PC/4]
   PC += 4
 
-#reads the instruction register, reads operand1, operand2 from register file, decides the operation to be performed in execute stage
+
+# Reads the instruction register, operand1 and operand2 from register file; decides the operation to be performed in execute stage
 def decode():
 
-#executes the ALU operation based on ALUop
+
+# Executes the ALU operations based on ALUop
 def execute():
 
-#perform the memory operation
+
+# Performs the memory operations
 def mem():
 
-#writes the results back to register file
+
+# Writes the results back to the register file
 def write_back():
 
 
-
+# Memory write
 def write_word(address, instruction):
   idx = int(address[2:],16)
   MEM[idx] = instruction
