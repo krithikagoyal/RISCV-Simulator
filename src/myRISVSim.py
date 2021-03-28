@@ -97,7 +97,28 @@ def decode():
   Krithika code here to identify operation and optype,
   and fill the operand1 and operand2 global variables (whereable applicable)
   '''
-  op_type = ''
+  instruction = (32 - len(bin_instruction)) * '0' + bin_instruction
+  opcode = int(instruction[25:32], 2)
+  func3 = int(instruction[17:20], 2)
+  func7 = int(instruction[0:7], 2)
+  f = open('Instruction_Set_List.csv')
+  instruction_set_list = list(csv.reader(f))
+  f.close()
+  match_found = False
+  track = 0
+  for ins in instruction_set_list:
+      if track == 0:
+          match_found = False
+      elif ins[4] != 'NA' and [int(ins[2], 2), int(ins[3], 2), int(ins[4], 2)] == [opcode, func3, func7]:
+          match_found = True
+      elif ins[4] == 'NA' and ins[3] != 'NA' and [int(ins[2], 2), int(ins[3], 2)] == [opcode, func3]:
+          match_found = True
+      elif ins[4] == 'NA' and ins[3] == 'NA' and int(ins[2], 2) == opcode:
+          match_found = True
+      if match_found:
+          break
+      track += 1
+  op_type = instruction_set_list[track][0]
   if op_type == 'R':
     rs2 = bin_instruction[7:12]
     rs1 = bin_instruction[12:17]
