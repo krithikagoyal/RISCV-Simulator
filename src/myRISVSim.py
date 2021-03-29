@@ -20,7 +20,7 @@ Project Name: Functional Simulator for subset of RISCV Processor
 R = [0]*32
 
 # Flags
-N = C = V = Z = 0
+N = C = V = Z = clock = 0
 
 # Program Counter
 PC = 0
@@ -42,6 +42,7 @@ def run_RISCVsim():
         execute()
         mem()
         write_back()
+        clock += 1
 
 
 # It is used to set the reset values
@@ -159,67 +160,72 @@ def execute():
   if operation == 'add':
     operand1 = R[int(rs1,2)]
     operand2 = R[int(rs2,2)]
-    R[int(rd,2)] = operand1 + operand2
+    R[int(rd,2)] = hex(int(int(operand1,16) + int(operand2,16)))
   else if operation == 'sub':
     operand1 = R[int(rs1,2)]
     operand2 = R[int(rs2,2)]
-    R[int(rd,2)] = operand1 - operand2
+    R[int(rd,2)] = hex(int(int(operand1,16) - int(operand2,16)))
   else if operation == 'and':
     operand1 = R[int(rs1,2)]
     operand2 = R[int(rs2,2)]
-    R[int(rd,2)] = operand1 & operand2
+    R[int(rd,2)] = hex(int(int(operand1,16) & int(operand2,16)))
   else if operation == 'or':
     operand1 = R[int(rs1,2)]
     operand2 = R[int(rs2,2)]
-    R[int(rd,2)] = operand1 | operand2
+    R[int(rd,2)] =hex(int(int(operand1,16) | int(operand2,16)))
   else if operation == 'sll':
     operand1 = R[int(rs1,2)]
     operand2 = R[int(rs2,2)]
-    R[int(rd,2)] = operand1<<operand2
+    R[int(rd,2)] = hex(int(int(operand1,16) << int(operand2,16)))
   else if operation == 'slt':
     operand1 = R[int(rs1,2)]
     operand2 = R[int(rs2,2)]
-    if (operand1<operand2):
-        R[int(rd,2)] = 1
+    if (int(operand1,16) << int(operand2,16)):
+        R[int(rd,2)] = hex(1)
     else:
-        R[int(rd,2)] = 0
+        R[int(rd,2)] = hex(0)
   else if operation == 'sra':
     operand1 = R[int(rs1,2)]
     operand2 = R[int(rs2,2)]
-    R[int(rd,2)] = operand1 >> operand2
+    R[int(rd,2)] = hex(int(int(operand1,16) >> int(operand2,16)))
   else if operation == 'srl':
     operand1 = R[int(rs1,2)]
     operand2 = R[int(rs2,2)]
-    R[int(rd,2)] = operand1 >> operand2
+    R[int(rd,2)] = hex(int(operand1,16) >> int(operand2,16))
   else if operation == 'xor':
     operand1 = R[int(rs1,2)]
     operand2 = R[int(rs2,2)]
-    R[int(rd,2)] = operand1 ^ operand2
+    R[int(rd,2)] = hex(int(int(operand1,16) ^ int(operand2,16)))
   else if operation == 'mul':
     operand1 = R[int(rs1,2)]
     operand2 = R[int(rs2,2)]
-    R[int(rd,2)] = operand1 * operand2
+    R[int(rd,2)] = hex(int(int(operand1,16) * int(operand2,16)))
   else if operation == 'div':
     operand1 = R[int(rs1,2)]
     operand2 = R[int(rs2,2)]
-    R[int(rd,2)] = operand1 / operand2
+    R[int(rd,2)] = hex(int(int(operand1,16) / int(operand2,16)))
   else if operation == 'rem':
     operand1 = R[int(rs1,2)]
     operand2 = R[int(rs2,2)]
-    R[int(rd,2)] = operand1 % operand2
+    R[int(rd,2)] = hex(int(int(operand1,16) % int(operand2,16)))
   else if operation == 'addi':
     operand1 = R[int(rs1,2)]
-    operand2 = not(imm)
-    R[int(rs1,2)] = operand1 + operand2
+    operand2 = (imm)
+    R[int(rs1,2)] = hex(int(int(operand1,16) + int(operand2,2)))
   else if operation == 'andi':
     operand1 = R[int(rs1,2)]
-    operand2 = not(imm)
-    R[int(rs1,2)] = operand1 & operand2
+    operand2 = (imm)
+    R[int(rs1,2)] = hex(int(int(operand1,16) & int(operand2,2)))
   else if operation == 'ori':
     operand1 = R[int(rs1,2)]
-    operand2 = not(imm)
-    R[int(rs1,2)] = operand1 | operand2
+    operand2 = (imm)
+    R[int(rs1,2)] = hex(int(int(operand1,16) | int(operand2,2)))
   else if operation == 'lb':
+    base=R[int(rs1,2)]
+    offset=imm
+    memory_element=MEM[int(int(base,16) + int(offset,2))/4]
+    R[int(rd,2)]=hex(memory_element[0:8])
+
   else if operation == 'lh':
   else if operation == 'lw':
   else if operation == 'jalr':
