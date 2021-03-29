@@ -159,66 +159,66 @@ def execute():
   if operation == 'add':
     operand1 = R[int(rs1,2)]
     operand2 = R[int(rs2,2)]
-    R[int(rd,2)] = operand1 + operand2
+    R[int(rd,2)] = hex(int(int(operand1,16) + int(operand2,16)))
   else if operation == 'sub':
     operand1 = R[int(rs1,2)]
     operand2 = R[int(rs2,2)]
-    R[int(rd,2)] = operand1 - operand2
+    R[int(rd,2)] = hex(int(int(operand1,16) - int(operand2,16)))
   else if operation == 'and':
     operand1 = R[int(rs1,2)]
     operand2 = R[int(rs2,2)]
-    R[int(rd,2)] = operand1 & operand2
+    R[int(rd,2)] = hex(int(int(operand1,16) & int(operand2,16)))
   else if operation == 'or':
     operand1 = R[int(rs1,2)]
     operand2 = R[int(rs2,2)]
-    R[int(rd,2)] = operand1 | operand2
+    R[int(rd,2)] =hex(int(int(operand1,16) | int(operand2,16)))
   else if operation == 'sll':
     operand1 = R[int(rs1,2)]
     operand2 = R[int(rs2,2)]
-    R[int(rd,2)] = operand1<<operand2
+    R[int(rd,2)] = hex(int(int(operand1,16) << int(operand2,16)))
   else if operation == 'slt':
     operand1 = R[int(rs1,2)]
     operand2 = R[int(rs2,2)]
-    if (operand1<operand2):
-        R[int(rd,2)] = 1
+    if (int(operand1,16) << int(operand2,16)):
+        R[int(rd,2)] = hex(1)
     else:
-        R[int(rd,2)] = 0
+        R[int(rd,2)] = hex(0)
   else if operation == 'sra':
     operand1 = R[int(rs1,2)]
     operand2 = R[int(rs2,2)]
-    R[int(rd,2)] = operand1 >> operand2
+    R[int(rd,2)] = hex(int(int(operand1,16) >> int(operand2,16)))
   else if operation == 'srl':
     operand1 = R[int(rs1,2)]
     operand2 = R[int(rs2,2)]
-    R[int(rd,2)] = operand1 >> operand2
+    R[int(rd,2)] = hex(int(operand1,16) >> int(operand2,16))
   else if operation == 'xor':
     operand1 = R[int(rs1,2)]
     operand2 = R[int(rs2,2)]
-    R[int(rd,2)] = operand1 ^ operand2 
+    R[int(rd,2)] = hex(int(int(operand1,16) ^ int(operand2,16)))
   else if operation == 'mul':
     operand1 = R[int(rs1,2)]
     operand2 = R[int(rs2,2)]
-    R[int(rd,2)] = operand1 * operand2
+    R[int(rd,2)] = hex(int(int(operand1,16) * int(operand2,16)))
   else if operation == 'div':
     operand1 = R[int(rs1,2)]
     operand2 = R[int(rs2,2)]
-    R[int(rd,2)] = operand1 / operand2
+    R[int(rd,2)] = hex(int(int(operand1,16) / int(operand2,16)))
   else if operation == 'rem':
     operand1 = R[int(rs1,2)]
     operand2 = R[int(rs2,2)]
-    R[int(rd,2)] = operand1 % operand2
+    R[int(rd,2)] = hex(int(int(operand1,16) % int(operand2,16)))
   else if operation == 'addi':
     operand1 = R[int(rs1,2)]
-    operand2 = not(imm)
-    R[int(rs1,2)] = operand1 + operand2 
+    operand2 = (imm)
+    R[int(rs1,2)] = hex(int(int(operand1,16) + int(operand2,2)))
   else if operation == 'andi':
     operand1 = R[int(rs1,2)]
-    operand2 = not(imm)
-    R[int(rs1,2)] = operand1 & operand2
+    operand2 = (imm)
+    R[int(rs1,2)] = hex(int(int(operand1,16) & int(operand2,2)))
   else if operation == 'ori':
     operand1 = R[int(rs1,2)]
-    operand2 = not(imm)
-    R[int(rs1,2)] = operand1 | operand2
+    operand2 = (imm)
+    R[int(rs1,2)] = hex(int(int(operand1,16) | int(operand2,2)))
   else if operation == 'lb':
   else if operation == 'lh':
   else if operation == 'lw':
