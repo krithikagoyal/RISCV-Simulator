@@ -26,12 +26,12 @@ N = C = V = Z = 0
 PC = 0
 
 # Memory
-MEM = ['NAN']*1000
+MEM = [0]*1000
 
 # Intermediate datapath and control path signals
 instruction_word = 0
-int operand1 = 0
-int operand2 = 0
+operand1 = 0
+operand2 = 0
 
 
 # run_RISCVsim function
@@ -51,6 +51,9 @@ def reset_proc():
     R[i] = '0x00000000'
   R[2] = '0x7FFFFFF0'
   R[3] = '0x10000000'
+
+  for i in range(1000):
+    MEM[i] = '0x00000000'
 
 
 # load_program_memory reads the input memory, and populates the instruction memory
