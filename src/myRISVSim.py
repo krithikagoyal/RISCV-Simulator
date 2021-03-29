@@ -20,7 +20,7 @@ Project Name: Functional Simulator for subset of RISCV Processor
 R = [0]*32
 
 # Flags
-N = C = V = Z = 0
+N = C = V = Z = clock = 0
 
 # Program Counter
 PC = 0
@@ -42,6 +42,7 @@ def run_RISCVsim():
         execute()
         mem()
         write_back()
+        clock += 1
 
 
 # It is used to set the reset values
@@ -222,13 +223,13 @@ def execute():
   else if operation == 'lb':
   else if operation == 'lh':
   else if operation == 'lw':
-  else if operation == 'jalr':        
-#Now we execute  
+  else if operation == 'jalr':
+#Now we execute
 
-  
-   
-   
-   
+
+
+
+
 
 # Performs the memory operations
 def mem():
