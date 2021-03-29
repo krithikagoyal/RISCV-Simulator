@@ -172,7 +172,40 @@ def execute():
     operand1 = R[int(rs1,2)]
     operand2 = R[int(rs2,2)]
     R[int(rd,2)] = operand1 | operand2
-
+  else if operation == 'sll':
+    operand1 = R[int(rs1,2)]
+    operand2 = R[int(rs2,2)]
+    R[int(rd,2)] = operand1<<operand2
+  else if operation == 'slt':
+    operand1 = R[int(rs1,2)]
+    operand2 = R[int(rs2,2)]
+    if (operand1<operand2):
+        R[int(rd,2)] = 1
+    else:
+        R[int(rd,2)] = 0
+  else if operation == 'sra':
+    operand1 = R[int(rs1,2)]
+    operand2 = R[int(rs2,2)]
+    R[int(rd,2)] = operand1 >> operand2
+  else if operation == 'xor':
+    operand1 = R[int(rs1,2)]
+    operand2 = R[int(rs2,2)]
+    R[int(rd,2)] = operand1 ^ operand2 
+  else if operation == 'mul':
+    operand1 = R[int(rs1,2)]
+    operand2 = R[int(rs2,2)]
+    R[int(rd,2)] = operand1 * operand2
+  else if operation == 'div':
+    operand1 = R[int(rs1,2)]
+    operand2 = R[int(rs2,2)]
+    R[int(rd,2)] = operand1 / operand2
+  else if operation == 'rem':
+    operand1 = R[int(rs1,2)]
+    operand2 = R[int(rs2,2)]
+    R[int(rd,2)] = operand1 % operand2
+   
+   
+   
 
 # Performs the memory operations
 def mem():
