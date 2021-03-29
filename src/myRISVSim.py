@@ -30,8 +30,8 @@ MEM = ['NAN']*1000
 
 # Intermediate datapath and control path signals
 instruction_word = 0
-int operand1 = 0
-int operand2 = 0
+operand1 = 0
+operand2 = 0
 
 
 # run_RISCVsim function
