@@ -110,19 +110,21 @@ def decode():
   track = 0
 
   for ins in instruction_set_list:
-      if track == 0:
-          match_found = False
-      elif ins[4] != 'NA' and [int(ins[2], 2), int(ins[3], 2), int(ins[4], 2)] == [opcode, func3, func7]:
-          match_found = True
-      elif ins[4] == 'NA' and ins[3] != 'NA' and [int(ins[2], 2), int(ins[3], 2)] == [opcode, func3]:
-          match_found = True
-      elif ins[4] == 'NA' and ins[3] == 'NA' and int(ins[2], 2) == opcode:
-          match_found = True
-      if match_found:
-          break
-      track += 1
+    if track == 0:
+      match_found = False
+    elif ins[4] != 'NA' and [int(ins[2], 2), int(ins[3], 2), int(ins[4], 2)] == [opcode, func3, func7]:
+      match_found = True
+    elif ins[4] == 'NA' and ins[3] != 'NA' and [int(ins[2], 2), int(ins[3], 2)] == [opcode, func3]:
+      match_found = True
+    elif ins[4] == 'NA' and ins[3] == 'NA' and int(ins[2], 2) == opcode:
+      match_found = True
+    if match_found:
+      break
+    track += 1
+
   op_type = instruction_set_list[track][0]
   operation = instruction_set_list[track][1]
+
   if op_type == 'R':
     rs2 = bin_instruction[7:12]
     rs1 = bin_instruction[12:17]
@@ -148,14 +150,12 @@ def decode():
   else:
     print("Unidentifiable machine code!")
     swi_exit()
-  
-  
 
 
-# executes the ALU operation based on ALUop
+# Executes the ALU operation based on ALUop
 def execute():
-  #akhil and rhythm, use variables imm, rs1, rs2, rd, operation they are predefined. Now execute
-  #doing 4 for example
+  # akhil and rhythm, use variables imm, rs1, rs2, rd, operation they are predefined. Now execute
+  # doing 4 for example
   if operation == 'add':
     operand1 = R[int(rs1,2)]
     operand2 = R[int(rs2,2)]
@@ -163,7 +163,7 @@ def execute():
   else if operation == 'sub':
     operand1 = R[int(rs1,2)]
     operand2 = R[int(rs2,2)]
-    R[int(rd,2)] = operand1 + operand2
+    R[int(rd,2)] = operand1 - operand2
   else if operation == 'and':
     operand1 = R[int(rs1,2)]
     operand2 = R[int(rs2,2)]
@@ -172,6 +172,7 @@ def execute():
     operand1 = R[int(rs1,2)]
     operand2 = R[int(rs2,2)]
     R[int(rd,2)] = operand1 | operand2
+
 
 # Performs the memory operations
 def mem():
