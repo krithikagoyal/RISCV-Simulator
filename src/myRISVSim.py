@@ -140,7 +140,7 @@ def decode():
   elif op_type == 'B':
     rs2 = bin_instruction[7:12]
     rs1 = bin_instruction[12:17]
-    imm = bin_instruction[0] + bin_instruction[24] +bin_instruction[1:7] + bin_instruction[20:24] + '0'
+    imm = bin_instruction[0] + bin_instruction[24] + bin_instruction[1:7] + bin_instruction[20:24] + '0'
   elif op_type == 'U':
     rd = bin_instruction[20:25]
     imm = bin_instruction[0:20] + '0'*12
