@@ -209,16 +209,22 @@ def execute():
     R[int(rd,2)] = operand1 % operand2
   else if operation == 'addi':
     operand1 = R[int(rs1,2)]
-    operand2 = imm
+    operand2 = not(imm)
     R[int(rs1,2)] = operand1 + operand2 
   else if operation == 'andi':
     operand1 = R[int(rs1,2)]
-    operand2 = imm
+    operand2 = not(imm)
     R[int(rs1,2)] = operand1 & operand2
   else if operation == 'ori':
     operand1 = R[int(rs1,2)]
-    operand2 = imm
+    operand2 = not(imm)
     R[int(rs1,2)] = operand1 | operand2
+  else if operation == 'lb':
+  else if operation == 'lh':
+  else if operation == 'lw':
+  else if operation == 'jalr':        
+#Now we execute  
+
   
    
    
