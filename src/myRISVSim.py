@@ -26,12 +26,12 @@ N = C = V = Z = clock = 0
 PC = 0
 
 # Memory
-MEM = ['NAN']*1000
+MEM = [0]*1000
 
 # Intermediate datapath and control path signals
 instruction_word = 0
-int operand1 = 0
-int operand2 = 0
+operand1 = 0
+operand2 = 0
 
 
 # run_RISCVsim function
@@ -50,8 +50,11 @@ def run_RISCVsim():
 def reset_proc():
   for i in range(32):
     R[i] = '0x00000000'
-  R[2] = '0x7FFFFFF0'
+  R[2] = '0x000003E8'
   R[3] = '0x10000000'
+
+  for i in range(1000):
+    MEM[i] = '0x00000000'
 
 
 # load_program_memory reads the input memory, and populates the instruction memory
@@ -69,14 +72,13 @@ def load_program_memory(string file_name):
     exit(1)
 
 
-# Writes the data memory in "data_out.mem" file
+# Writes the data memory in "data_out.mc" file
 def write_data_memory():
   try:
-    fp = open("data_out.mem", "w")
+    fp = open("data_out.mc", "w")
     out_tmp = []
     for i in range(4000,4):
-        if MEM[i/4] != 'NAN':
-            out_tmp.append(hex(i) + ' ' + MEM[i/4])
+        out_tmp.append(hex(i) + ' ' + MEM[i/4])
     fp.writelines(out_tmp)
     fp.close()
   except:
@@ -155,8 +157,6 @@ def decode():
 
 # Executes the ALU operation based on ALUop
 def execute():
-  # akhil and rhythm, use variables imm, rs1, rs2, rd, operation they are predefined. Now execute
-  # doing 4 for example
   if operation == 'add':
     operand1 = R[int(rs1,2)]
     operand2 = R[int(rs2,2)]
@@ -229,11 +229,6 @@ def execute():
   else if operation == 'lh':
   else if operation == 'lw':
   else if operation == 'jalr':
-#Now we execute
-
-
-
-
 
 
 # Performs the memory operations
