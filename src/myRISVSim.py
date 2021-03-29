@@ -187,6 +187,10 @@ def execute():
     operand1 = R[int(rs1,2)]
     operand2 = R[int(rs2,2)]
     R[int(rd,2)] = operand1 >> operand2
+  else if operation == 'srl':
+    operand1 = R[int(rs1,2)]
+    operand2 = R[int(rs2,2)]
+    R[int(rd,2)] = operand1 >> operand2
   else if operation == 'xor':
     operand1 = R[int(rs1,2)]
     operand2 = R[int(rs2,2)]
@@ -203,6 +207,19 @@ def execute():
     operand1 = R[int(rs1,2)]
     operand2 = R[int(rs2,2)]
     R[int(rd,2)] = operand1 % operand2
+  else if operation == 'addi':
+    operand1 = R[int(rs1,2)]
+    operand2 = imm
+    R[int(rs1,2)] = operand1 + operand2 
+  else if operation == 'andi':
+    operand1 = R[int(rs1,2)]
+    operand2 = imm
+    R[int(rs1,2)] = operand1 & operand2
+  else if operation == 'ori':
+    operand1 = R[int(rs1,2)]
+    operand2 = imm
+    R[int(rs1,2)] = operand1 | operand2
+  
    
    
    
