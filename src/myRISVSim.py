@@ -30,8 +30,8 @@ MEM = ['NAN']*1000
 
 # Intermediate datapath and control path signals
 instruction_word = 0
-operand1 = 0
-operand2 = 0
+int operand1 = 0
+int operand2 = 0
 
 
 # run_RISCVsim function
@@ -221,6 +221,11 @@ def execute():
     operand2 = (imm)
     R[int(rs1,2)] = hex(int(int(operand1,16) | int(operand2,2)))
   else if operation == 'lb':
+    base=R[int(rs1,2)]
+    offset=imm
+    memory_element=MEM[int(int(base,16) + int(offset,2))/4]
+    R[int(rd,2)]=hex(memory_element[0:8])
+
   else if operation == 'lh':
   else if operation == 'lw':
   else if operation == 'jalr':
