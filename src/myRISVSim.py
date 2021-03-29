@@ -153,8 +153,6 @@ def decode():
 
 # Executes the ALU operation based on ALUop
 def execute():
-  # akhil and rhythm, use variables imm, rs1, rs2, rd, operation they are predefined. Now execute
-  # doing 4 for example
   if operation == 'add':
     operand1 = R[int(rs1,2)]
     operand2 = R[int(rs2,2)]
@@ -222,11 +220,6 @@ def execute():
   else if operation == 'lh':
   else if operation == 'lw':
   else if operation == 'jalr':
-#Now we execute
-
-
-
-
 
 
 # Performs the memory operations
