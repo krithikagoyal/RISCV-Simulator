@@ -49,7 +49,7 @@ def run_RISCVsim():
 def reset_proc():
   for i in range(32):
     R[i] = '0x00000000'
-  R[2] = '0x7FFFFFF0'
+  R[2] = '0x000003E8'
   R[3] = '0x10000000'
 
   for i in range(1000):
