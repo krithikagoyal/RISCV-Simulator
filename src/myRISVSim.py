@@ -68,14 +68,13 @@ def load_program_memory(string file_name):
     exit(1)
 
 
-# Writes the data memory in "data_out.mem" file
+# Writes the data memory in "data_out.mc" file
 def write_data_memory():
   try:
-    fp = open("data_out.mem", "w")
+    fp = open("data_out.mc", "w")
     out_tmp = []
     for i in range(4000,4):
-        if MEM[i/4] != 'NAN':
-            out_tmp.append(hex(i) + ' ' + MEM[i/4])
+        out_tmp.append(hex(i) + ' ' + MEM[i/4])
     fp.writelines(out_tmp)
     fp.close()
   except:
@@ -194,7 +193,7 @@ def execute():
   else if operation == 'xor':
     operand1 = R[int(rs1,2)]
     operand2 = R[int(rs2,2)]
-    R[int(rd,2)] = operand1 ^ operand2 
+    R[int(rd,2)] = operand1 ^ operand2
   else if operation == 'mul':
     operand1 = R[int(rs1,2)]
     operand2 = R[int(rs2,2)]
@@ -210,7 +209,7 @@ def execute():
   else if operation == 'addi':
     operand1 = R[int(rs1,2)]
     operand2 = not(imm)
-    R[int(rs1,2)] = operand1 + operand2 
+    R[int(rs1,2)] = operand1 + operand2
   else if operation == 'andi':
     operand1 = R[int(rs1,2)]
     operand2 = not(imm)
@@ -222,13 +221,13 @@ def execute():
   else if operation == 'lb':
   else if operation == 'lh':
   else if operation == 'lw':
-  else if operation == 'jalr':        
-#Now we execute  
+  else if operation == 'jalr':
+#Now we execute
 
-  
-   
-   
-   
+
+
+
+
 
 # Performs the memory operations
 def mem():
