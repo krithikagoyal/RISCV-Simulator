@@ -32,3 +32,21 @@ myRISCVSim.py test/simple_add.mc
 ```
 
 #### Directory Structure
+
+CS112-Project
+* bin
+  * myRISCVSim
+* doc
+  * design-doc.docx
+* include
+  * myRISCVSim.h
+* src
+  * main.c
+  * Makefile
+  * myRISCVSim.h
+* test
+  * simple_add.mc
+  * fib.mc
+  * array_add.mc
+  * fact.mc
+  * bubble.mc
