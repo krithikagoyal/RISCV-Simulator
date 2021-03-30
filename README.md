@@ -25,21 +25,43 @@ $ python test/bubble_sort.mc
 ```
 
 #### Directory Structure
+```
+RISCV-Simulator
+  |
+  |- doc
+      |
+      |- design-doc.docx
+  |- include
+      |
+      |- utility.py
+  |- src
+      |
+      |- Instruction_Set_List.csv
+      |- main.py
+      |- myRISCVSim.py
+  |- test
+      |
+      |- bubble_sort.mc
+      |- factorial.mc
+      |- fibonacci.mc
+      |- Readme.md
+      |- TC_1_Fibonacci_Assembly.s
+      |- TC_2_Factorial_Assembly.s
+      |- TC_1_BubbleSort_Assembly.s
+  |
+  |- Project-statement.txt
+  |- Readme
+```
 
-CS204-Project
-* bin
-  * myRISCVSim
-* doc
-  * design-doc.docx
-* include
-  * myRISCVSim.h
-* src
-  * main.c
-  * Makefile
-  * myRISCVSim.h
-* test
-  * simple_add.mc
-  * fib.mc
-  * array_add.mc
-  * fact.mc
-  * bubble.mc
+#### Contributors
+```
+-------------------------------------------------
+| Developer's Name   | Developer's Email ID     |
+|-----------------------------------------------|
+| Akhil Arya         | 2019csb1066@iitrpr.ac.in |
+| Harshwardhan Kumar | 2019csb1089@iitrpr.ac.in |
+| Krithika Goyal     | 2019csb1094@iitrpr.ac.in |
+| Rhythm Jain        | 2019csb1111@iitrpr.ac.in |
+| Tarun Singla       | 2019csb1126@iitrpr.ac.in |
+-------------------------------------------------
+```
