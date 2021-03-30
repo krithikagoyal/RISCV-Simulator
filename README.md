@@ -1,7 +1,54 @@
 # Functional Simulator for RISC-V Processor
 ### *This project is developed as part of Computer Architecture class and is build in 3 phases.*
 
-## PHASE: 1 (Single cycle execution)
+## Table of Contents
+1. [Contributors](https://github.com/Harshiitrpr/RISCV-Simulator/tree/Issue#contributors)
+2. [Directory Structure](https://github.com/Harshiitrpr/RISCV-Simulator/tree/Issue#directory-structure)
+3. [Phase 1 (Single cycle execution)](https://github.com/Harshiitrpr/RISCV-Simulator/tree/Issue#phase-1-single-cycle-execution)
+
+## Contributors
+```
+-------------------------------------------------
+| Developer's Name   | Developer's Email ID     |
+|-----------------------------------------------|
+| Akhil Arya         | 2019csb1066@iitrpr.ac.in |
+| Harshwardhan Kumar | 2019csb1089@iitrpr.ac.in |
+| Krithika Goyal     | 2019csb1094@iitrpr.ac.in |
+| Rhythm Jain        | 2019csb1111@iitrpr.ac.in |
+| Tarun Singla       | 2019csb1126@iitrpr.ac.in |
+-------------------------------------------------
+```
+
+## Directory Structure
+```
+RISCV-Simulator
+  |
+  |- doc
+      |
+      |- design-doc.docx
+  |- include
+      |
+      |- utility.py
+  |- src
+      |
+      |- Instruction_Set_List.csv
+      |- main.py
+      |- myRISCVSim.py
+  |- test
+      |
+      |- bubble_sort.mc
+      |- factorial.mc
+      |- fibonacci.mc
+      |- Readme.md
+      |- TC_1_Fibonacci_Assembly.s
+      |- TC_2_Factorial_Assembly.s
+      |- TC_1_BubbleSort_Assembly.s
+  |
+  |- Project-statement.txt
+  |- Readme
+```
+
+## PHASE 1 (Single cycle execution)
 *myRISCVSim.py* file will take .mc file as its argument and is executed as per the functional behaviour of the instructons.
 Each instruction will go through the following steps:
 1. Fetch
@@ -23,23 +70,3 @@ Run the following commands on the terminal:
 ```
 $ python test/bubble_sort.mc
 ```
-
-#### Directory Structure
-
-CS204-Project
-* bin
-  * myRISCVSim
-* doc
-  * design-doc.docx
-* include
-  * myRISCVSim.h
-* src
-  * main.c
-  * Makefile
-  * myRISCVSim.h
-* test
-  * simple_add.mc
-  * fib.mc
-  * array_add.mc
-  * fact.mc
-  * bubble.mc
