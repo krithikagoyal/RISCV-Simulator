@@ -26,7 +26,7 @@ N = C = V = Z = clock = 0
 PC = 0
 
 # Memory
-MEM = [0]*1000
+MEM = [0]*4000
 
 # Intermediate datapath and control path signals
 instruction_word = 0
@@ -53,8 +53,8 @@ def reset_proc():
   R[2] = '0x000003E8'
   R[3] = '0x10000000'
 
-  for i in range(1000):
-    MEM[i] = '0x00000000'
+  for i in range(4000):
+    MEM[i] = '0x00'
 
 
 # load_program_memory reads the input memory, and populates the instruction memory
@@ -78,7 +78,7 @@ def write_data_memory():
     fp = open("data_out.mc", "w")
     out_tmp = []
     for i in range(4000,4):
-        out_tmp.append(hex(i) + ' ' + MEM[i/4])
+        out_tmp.append(hex(i) + ' ' + MEM[i])
     fp.writelines(out_tmp)
     fp.close()
   except:
@@ -93,7 +93,7 @@ def swi_exit():
 
 # Reads from the instruction memory and updates the instruction register
 def fetch():
-  instruction_word = MEM[PC/4]
+  instruction_word = MEM[PC] + MEM[PC - 1][2:] + MEM[PC - 2][2:] + MEM[PC - 3][2:]
   PC += 4
 
 
@@ -223,8 +223,8 @@ def execute():
   else if operation == 'lb':
     base=R[int(rs1,2)]
     offset=imm
-    memory_element=MEM[int(int(base,16) + int(offset,2))/4]
-    R[int(rd,2)]=hex(memory_element[0:8])
+    memory_element=MEM[int(int(base,16) + int(offset,2))]
+    R[int(rd,2)]=hex(memory_element[0:2])
 
   else if operation == 'lh':
   else if operation == 'lw':
