@@ -1,10 +1,10 @@
 # Functional Simulator for RISC-V Processor
-## *This project is developed as part of Computer Architecture class and is build in 3 phases.*
+#### *This project is developed as part of Computer Architecture class and is build in 3 phases.*
 
 ## Table of Contents
-1. Contributors
-2. Directory Structure
-3. Phase 1 (Single cycle execution)
+1. Contributors[https://github.com/Harshiitrpr/RISCV-Simulator/tree/Issue#contributors]
+2. Directory Structure[https://github.com/Harshiitrpr/RISCV-Simulator/tree/Issue#directory-structure]
+3. Phase 1 (Single cycle execution)[https://github.com/Harshiitrpr/RISCV-Simulator/tree/Issue#phase-1-single-cycle-execution]
 
 ## Contributors
 ```
