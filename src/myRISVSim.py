@@ -219,10 +219,6 @@ def execute():
     operand1 = R[int(rs1,2)]
     operand2 = imm
     R[int(rs1,2)] = operand1 | operand2
-  
-   
-   
-   
 
 # Performs the memory operations
 def mem():
