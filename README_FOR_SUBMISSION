@@ -16,7 +16,7 @@ Table of contents:
 3. Input format
 4. Output format
 5. Project requirements / Libraries Used
-6. How to use
+6. How to run ?
 7. Constraints
 8. Individual contributions
 9. GUI
@@ -107,8 +107,8 @@ The user must have Python and Python Standard Library installed.
 ---Edit for GUI---
 
 
-How to use:
------------
+How to run ?
+------------
 Run the following command on terminal:
 *python test/bubble_sort.mc*
 ---Edit if GUI is used---
