@@ -33,7 +33,7 @@ myRISCVSim.py test/simple_add.mc
 
 #### Directory Structure
 
-CS112-Project
+CS204-Project
 * bin
   * myRISCVSim
 * doc
