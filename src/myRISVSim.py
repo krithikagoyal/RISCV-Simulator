@@ -20,18 +20,18 @@ Project Name: Functional Simulator for subset of RISCV Processor
 R = [0]*32
 
 # Flags
-N = C = V = Z = 0
+N = C = V = Z = clock = 0
 
 # Program Counter
 PC = 0
 
 # Memory
-MEM = ['NAN']*1000
+MEM = [0]*4000
 
 # Intermediate datapath and control path signals
 instruction_word = 0
-int operand1 = 0
-int operand2 = 0
+operand1 = 0
+operand2 = 0
 
 
 # run_RISCVsim function
@@ -42,6 +42,7 @@ def run_RISCVsim():
         execute()
         mem()
         write_back()
+        clock += 1
 
 
 # It is used to set the reset values
@@ -52,9 +53,12 @@ def reset_proc():
   R[2] = '0x7FFFFFF0'
   R[3] = '0x10000000'
 
+  for i in range(4000):
+    MEM[i] = '00'
+
 
 # load_program_memory reads the input memory, and populates the instruction memory
-def load_program_memory(string file_name):
+def load_program_memory(file_name):
   try:
     fp = open(file_name, 'r')
     for line in fp:
@@ -68,14 +72,13 @@ def load_program_memory(string file_name):
     exit(1)
 
 
-# Writes the data memory in "data_out.mem" file
+# Writes the data memory in "data_out.mc" file
 def write_data_memory():
   try:
-    fp = open("data_out.mem", "w")
+    fp = open("data_out.mc", "w")
     out_tmp = []
-    for i in range(4000,4):
-        if MEM[i/4] != 'NAN':
-            out_tmp.append(hex(i) + ' ' + MEM[i/4])
+    for i in range(1000,4):
+        out_tmp.append(hex(i) + ' 0x' + MEM[i * 4 + 3] + MEM[i * 4 + 2] + MEM[i * 4 + 1] + MEM[i * 4])
     fp.writelines(out_tmp)
     fp.close()
   except:
@@ -90,7 +93,7 @@ def swi_exit():
 
 # Reads from the instruction memory and updates the instruction register
 def fetch():
-  instruction_word = MEM[PC/4]
+  instruction_word = '0x' + MEM[PC + 3] + MEM[PC + 2] + MEM[PC + 1] + MEM[PC]
   PC += 4
 
 
@@ -154,71 +157,85 @@ def decode():
 
 # Executes the ALU operation based on ALUop
 def execute():
-  # akhil and rhythm, use variables imm, rs1, rs2, rd, operation they are predefined. Now execute
-  # doing 4 for example
   if operation == 'add':
     operand1 = R[int(rs1,2)]
     operand2 = R[int(rs2,2)]
-    R[int(rd,2)] = operand1 + operand2
+    R[int(rd,2)] = hex(int(int(operand1,16) + int(operand2,16)))
   else if operation == 'sub':
     operand1 = R[int(rs1,2)]
     operand2 = R[int(rs2,2)]
-    R[int(rd,2)] = operand1 - operand2
+    R[int(rd,2)] = hex(int(int(operand1,16) - int(operand2,16)))
   else if operation == 'and':
     operand1 = R[int(rs1,2)]
     operand2 = R[int(rs2,2)]
-    R[int(rd,2)] = operand1 & operand2
+    R[int(rd,2)] = hex(int(int(operand1,16) & int(operand2,16)))
   else if operation == 'or':
     operand1 = R[int(rs1,2)]
     operand2 = R[int(rs2,2)]
-    R[int(rd,2)] = operand1 | operand2
+    R[int(rd,2)] =hex(int(int(operand1,16) | int(operand2,16)))
   else if operation == 'sll':
     operand1 = R[int(rs1,2)]
     operand2 = R[int(rs2,2)]
-    R[int(rd,2)] = operand1<<operand2
+    R[int(rd,2)] = hex(int(int(operand1,16) << int(operand2,16)))
   else if operation == 'slt':
     operand1 = R[int(rs1,2)]
     operand2 = R[int(rs2,2)]
-    if (operand1<operand2):
-        R[int(rd,2)] = 1
+    if (int(operand1,16) << int(operand2,16)):
+        R[int(rd,2)] = hex(1)
     else:
-        R[int(rd,2)] = 0
+        R[int(rd,2)] = hex(0)
   else if operation == 'sra':
     operand1 = R[int(rs1,2)]
     operand2 = R[int(rs2,2)]
-    R[int(rd,2)] = operand1 >> operand2
+    R[int(rd,2)] = hex(int(int(operand1,16) >> int(operand2,16)))
   else if operation == 'srl':
     operand1 = R[int(rs1,2)]
     operand2 = R[int(rs2,2)]
-    R[int(rd,2)] = operand1 >> operand2
+    R[int(rd,2)] = hex(int(operand1,16) >> int(operand2,16))
   else if operation == 'xor':
     operand1 = R[int(rs1,2)]
     operand2 = R[int(rs2,2)]
-    R[int(rd,2)] = operand1 ^ operand2 
+    R[int(rd,2)] = hex(int(int(operand1,16) ^ int(operand2,16)))
   else if operation == 'mul':
     operand1 = R[int(rs1,2)]
     operand2 = R[int(rs2,2)]
-    R[int(rd,2)] = operand1 * operand2
+    R[int(rd, 2)] = hex(int(int(operand1, 16) * int(operand2, 16)))
   else if operation == 'div':
-    operand1 = R[int(rs1,2)]
-    operand2 = R[int(rs2,2)]
-    R[int(rd,2)] = operand1 / operand2
+    operand1 = R[int(rs1, 2)]
+    operand2 = R[int(rs2, 2)]
+    R[int(rd, 2)] = hex(int(int(operand1, 16) / int(operand2, 16)))
   else if operation == 'rem':
-    operand1 = R[int(rs1,2)]
-    operand2 = R[int(rs2,2)]
-    R[int(rd,2)] = operand1 % operand2
+    operand1 = R[int(rs1, 2)]
+    operand2 = R[int(rs2, 2)]
+    R[int(rd, 2)] = hex(int(int(operand1, 16) % int(operand2, 16)))
   else if operation == 'addi':
-    operand1 = R[int(rs1,2)]
-    operand2 = imm
-    R[int(rs1,2)] = operand1 + operand2 
+    operand1 = R[int(rs1, 2)]
+    operand2 = (imm)
+    R[int(rs1, 2)] = hex(int(int(operand1, 16) + int(operand2, 2)))
   else if operation == 'andi':
-    operand1 = R[int(rs1,2)]
-    operand2 = imm
-    R[int(rs1,2)] = operand1 & operand2
+    operand1 = R[int(rs1, 2)]
+    operand2 = (imm)
+    R[int(rs1, 2)] = hex(int(int(operand1, 16) & int(operand2, 2)))
   else if operation == 'ori':
-    operand1 = R[int(rs1,2)]
-    operand2 = imm
-    R[int(rs1,2)] = operand1 | operand2
+    operand1 = R[int(rs1, 2)]
+    operand2 = (imm)
+    R[int(rs1, 2)] = hex(int(int(operand1, 16) | int(operand2, 2)))
+  else if operation == 'lb':
+    base = R[int(rs1, 2)]
+    offset = imm
+    memory_element = MEM[int(int(base, 16) + int(offset, 2))]
+    R[int(rd, 2)] = '0x' + memory_element
+
+  else if operation == 'lh':
+  else if operation == 'lw':
+    base = R[int(rs1, 2)]
+    offset = imm
+    element_address = int(int(base, 16) + int(offset, 2))
+    memory_element = MEM[element_address + 3] + MEM[element_address + 2] + MEM[element_address + 1] + MEM[element_address]
+    R[int(rd, 2)] = '0x' + memory_element
+
+  else if operation == 'jalr':
+
 
 # Performs the memory operations
 def mem():
@@ -231,4 +248,7 @@ def write_back():
 # Memory write
 def write_word(address, instruction):
   idx = int(address[2:],16)
-  MEM[idx] = instruction
+  MEM[idx] = instruction[8:10]
+  MEM[idx + 1] = instruction[6:8]
+  MEM[idx + 2] = instruction[4:6]
+  MEM[idx + 3] = instruction[2:4]
