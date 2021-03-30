@@ -54,11 +54,11 @@ def reset_proc():
   R[3] = '0x10000000'
 
   for i in range(4000):
-    MEM[i] = '0x00'
+    MEM[i] = '00'
 
 
 # load_program_memory reads the input memory, and populates the instruction memory
-def load_program_memory(string file_name):
+def load_program_memory(file_name):
   try:
     fp = open(file_name, 'r')
     for line in fp:
@@ -77,8 +77,8 @@ def write_data_memory():
   try:
     fp = open("data_out.mc", "w")
     out_tmp = []
-    for i in range(4000,4):
-        out_tmp.append(hex(i) + ' ' + MEM[i])
+    for i in range(1000,4):
+        out_tmp.append(hex(i) + ' 0x' + MEM[i * 4 + 3] + MEM[i * 4 + 2] + MEM[i * 4 + 1] + MEM[i * 4])
     fp.writelines(out_tmp)
     fp.close()
   except:
@@ -93,7 +93,7 @@ def swi_exit():
 
 # Reads from the instruction memory and updates the instruction register
 def fetch():
-  instruction_word = MEM[PC] + MEM[PC - 1][2:] + MEM[PC - 2][2:] + MEM[PC - 3][2:]
+  instruction_word = '0x' + MEM[PC + 3] + MEM[PC + 2] + MEM[PC + 1] + MEM[PC]
   PC += 4
 
 
@@ -199,35 +199,41 @@ def execute():
   else if operation == 'mul':
     operand1 = R[int(rs1,2)]
     operand2 = R[int(rs2,2)]
-    R[int(rd,2)] = hex(int(int(operand1,16) * int(operand2,16)))
+    R[int(rd, 2)] = hex(int(int(operand1, 16) * int(operand2, 16)))
   else if operation == 'div':
-    operand1 = R[int(rs1,2)]
-    operand2 = R[int(rs2,2)]
-    R[int(rd,2)] = hex(int(int(operand1,16) / int(operand2,16)))
+    operand1 = R[int(rs1, 2)]
+    operand2 = R[int(rs2, 2)]
+    R[int(rd, 2)] = hex(int(int(operand1, 16) / int(operand2, 16)))
   else if operation == 'rem':
-    operand1 = R[int(rs1,2)]
-    operand2 = R[int(rs2,2)]
-    R[int(rd,2)] = hex(int(int(operand1,16) % int(operand2,16)))
+    operand1 = R[int(rs1, 2)]
+    operand2 = R[int(rs2, 2)]
+    R[int(rd, 2)] = hex(int(int(operand1, 16) % int(operand2, 16)))
   else if operation == 'addi':
-    operand1 = R[int(rs1,2)]
+    operand1 = R[int(rs1, 2)]
     operand2 = (imm)
-    R[int(rs1,2)] = hex(int(int(operand1,16) + int(operand2,2)))
+    R[int(rs1, 2)] = hex(int(int(operand1, 16) + int(operand2, 2)))
   else if operation == 'andi':
-    operand1 = R[int(rs1,2)]
+    operand1 = R[int(rs1, 2)]
     operand2 = (imm)
-    R[int(rs1,2)] = hex(int(int(operand1,16) & int(operand2,2)))
+    R[int(rs1, 2)] = hex(int(int(operand1, 16) & int(operand2, 2)))
   else if operation == 'ori':
-    operand1 = R[int(rs1,2)]
+    operand1 = R[int(rs1, 2)]
     operand2 = (imm)
-    R[int(rs1,2)] = hex(int(int(operand1,16) | int(operand2,2)))
+    R[int(rs1, 2)] = hex(int(int(operand1, 16) | int(operand2, 2)))
   else if operation == 'lb':
-    base=R[int(rs1,2)]
-    offset=imm
-    memory_element=MEM[int(int(base,16) + int(offset,2))]
-    R[int(rd,2)]=hex(memory_element[0:2])
+    base = R[int(rs1, 2)]
+    offset = imm
+    memory_element = MEM[int(int(base, 16) + int(offset, 2))]
+    R[int(rd, 2)] = '0x' + memory_element
 
   else if operation == 'lh':
   else if operation == 'lw':
+    base = R[int(rs1, 2)]
+    offset = imm
+    element_address = int(int(base, 16) + int(offset, 2))
+    memory_element = MEM[element_address + 3] + MEM[element_address + 2] + MEM[element_address + 1] + MEM[element_address]
+    R[int(rd, 2)] = '0x' + memory_element
+
   else if operation == 'jalr':
 
 
@@ -242,4 +248,7 @@ def write_back():
 # Memory write
 def write_word(address, instruction):
   idx = int(address[2:],16)
-  MEM[idx] = instruction
+  MEM[idx] = instruction[8:10]
+  MEM[idx + 1] = instruction[6:8]
+  MEM[idx + 2] = instruction[4:6]
+  MEM[idx + 3] = instruction[2:4]
