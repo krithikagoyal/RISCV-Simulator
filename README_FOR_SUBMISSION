@@ -1,0 +1,129 @@
+================================================
+Functional Simulator for RISC-V Processor
+================================================
+
+
+----------------------------------------------
+This project is developed as part of Computer
+Architecture class and is build in 3 phases.
+This is PHASE 1: SINGLE CYCLE EXECUTION
+----------------------------------------------
+
+
+Table of contents:
+1. Contributors
+2. Directory Structure
+3. Input format
+4. Output format
+5. Project requirements / Libraries Used
+6. How to use
+7. Constraints
+8. Individual contributions
+9. GUI
+---Anything Else---
+---How to build section if required---
+
+
+Contributors:
+-------------------------------------------------
+| Developer's Name   | Developer's Email ID     |
+|-----------------------------------------------|
+| Akhil Arya         | 2019csb1066@iitrpr.ac.in |
+| Harshwardhan Kumar | 2019csb1089@iitrpr.ac.in |
+| Krithika Goyal     | 2019csb1094@iitrpr.ac.in |
+| Rhythm Jain        | 2019csb1111@iitrpr.ac.in |
+| Tarun Singla       | 2019csb1126@iitrpr.ac.in |
+-------------------------------------------------
+
+
+Directory Structure:
+--------------------
+RISCV-Simulator
+  |
+  |- doc
+      |
+      |- design-doc.docx
+  |- include
+      |
+      |- utility.py
+  |- src
+      |
+      |- Instruction_Set_List.csv
+      |- main.py
+      |- myRISCVSim.py
+  |- test
+      |
+      |- bubble_sort.mc
+      |- factorial.mc
+      |- fibonacci.mc
+      |- Readme.md
+      |- TC_1_Fibonacci_Assembly.s
+      |- TC_2_Factorial_Assembly.s
+      |- TC_1_BubbleSort_Assembly.s
+  |
+  |- Project-statement.txt
+  |- Readme
+---Update if required---
+
+
+Input Format:
+-------------
+Input to the simulator is a .mc file that contains the encoded instructions and
+the corresponding addresses at which the instruction is supposed to be stored,
+separated by a space. For example:
+0x0 0xE3A0200A
+0x4 0xE3A03002
+0x8 0xE0821003
+
+It also contains the data to be pre-loaded into the memory in a similar format.
+For example:
+0x10000000 0x10
+0x10000004 0x20
+
+The simulator supports below 29 instructions:
+R Format: add, and, or, sll, slt, sra, srl, sub, xor, mul, div, rem.
+I Format: andi, addi, ori, lb, lh, lw, jalr.
+S Format: sb, sw, sh.
+SB Format: beq, bne, bge, blt.
+U Format: auipc, lui.
+UJ Format: jal.
+---Edit if required---
+---About exit instruction---
+
+
+Output Format:
+--------------
+As an output, the simulator writes the updated memory contents in a data_out.mc
+file. Additionally, the simulator also prints messages for each stage and the
+number of clock cycles after each cycle.
+---Edit if required---
+---About print messages---
+
+
+Project requirements / Libraries Used:
+--------------------------------------
+This simulator is built using Python.
+The user must have Python and Python Standard Library installed.
+---Edit for GUI---
+
+
+How to use:
+-----------
+Run the following command on terminal:
+*python test/bubble_sort.mc*
+---Edit if GUI is used---
+
+
+Constraints:
+------------
+---Constraints if any---
+
+
+Individual contributions:
+-------------------------
+---Add after completion and discussion---
+
+
+GUI:
+----
+---Information about GUI and it's interpretation---
