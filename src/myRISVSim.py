@@ -12,7 +12,7 @@ Project Name: Functional Simulator for subset of RISCV Processor
 | Tarun Singla       | 2019csb1126@iitrpr.ac.in |
 -------------------------------------------------
 """
-
+from collections import defaultdict
 # myRISCVSim.py
 # Purpose of this file: Implementation file for myRISCVSim
 
@@ -26,7 +26,7 @@ N = C = V = Z = clock = 0
 PC = 0
 
 # Memory
-MEM = [0]*4000
+MEM = defaultdict(lambda: '00')
 
 # Intermediate datapath and control path signals
 instruction_word = 0
@@ -53,9 +53,6 @@ def reset_proc():
     R[i] = '0x00000000'
   R[2] = '0x7FFFFFF0'
   R[3] = '0x10000000'
-
-  for i in range(4000):
-    MEM[i] = '00'
 
 
 # load_program_memory reads the input memory, and populates the instruction memory
