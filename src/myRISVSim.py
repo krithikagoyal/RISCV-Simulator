@@ -237,6 +237,8 @@ def execute():
         R[int(rd, 2)] = '0x' + memory_element
 
     elif operation == 'jalr':
+        R[int(rs2, 0)] = hex(PC)
+        PC = int(imm, 2) + int(R[int(rs1, 2)], 16) - 4
 
     elif operation == 'sb':
         base = R[int(rs1, 2)]
@@ -261,12 +263,20 @@ def execute():
         MEM[memory_address + 1] = R[int(rs2, 2)][6:8]
 
     elif operation == 'beq':
+        if R[int(rs1, 2)] == R[int(rs2, 2)]:
+            PC += int(imm, 2) - 4
 
     elif operation == 'bne':
+        if R[int(rs1, 2)] != R[int(rs2, 2)]:
+            PC += int(imm, 2) - 4
 
     elif operation == 'bge':
+        if R[int(rs2, 2)] >= R[int(rs1, 2)]:
+            PC += int(imm, 2) - 4
 
     elif operation == 'blt':
+        if R[int(rs2, 2)] > R[int(rs1, 2)]:
+            PC += int(imm, 2) - 4
 
     elif operation == 'auipc':
 
