@@ -43,6 +43,7 @@ def run_RISCVsim():
         mem()
         write_back()
         clock += 1
+        print("Number of clock cycles: ", clock)
 
 
 # It is used to set the reset values
