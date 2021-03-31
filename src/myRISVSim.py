@@ -100,6 +100,9 @@ def fetch():
 
 # Reads the instruction register, operand1 and operand2 from register file; decides the operation to be performed in execute stage
 def decode():
+    if instruction_word == '0x401010BB':
+        swi_exit()
+
     bin_instruction = bin(int(instruction_word[2:],16))[2:]
 
     bin_instruction = (32 - len(bin_instruction)) * '0' + bin_instruction
