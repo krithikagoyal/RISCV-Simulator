@@ -239,10 +239,26 @@ def execute():
     elif operation == 'jalr':
 
     elif operation == 'sb':
+        base = R[int(rs1, 2)]
+        offset = imm
+        memory_address = int(int(base, 16) + int(offset, 2))
+        MEM[memory_address] = R[int(rs2, 2)][8:10]        
 
     elif operation == 'sw':
+        base = R[int(rs1, 2)]
+        offset = imm
+        memory_address = int(int(base, 16) + int(offset, 2))
+        MEM[memory_address] = R[int(rs2, 2)][8:10]
+        MEM[memory_address + 1] = R[int(rs2, 2)][6:8]
+        MEM[memory_address + 2] = R[int(rs2, 2)][4:6]
+        MEM[memory_address + 3] = R[int(rs2, 2)][2:4]
 
     elif operation == 'sh':
+        base = R[int(rs1, 2)]
+        offset = imm
+        memory_address = int(int(base, 16) + int(offset, 2))
+        MEM[memory_address] = R[int(rs2, 2)][8:10]
+        MEM[memory_address + 1] = R[int(rs2, 2)][6:8]
 
     elif operation == 'beq':
 
