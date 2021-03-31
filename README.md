@@ -4,7 +4,7 @@
 ## Table of Contents
 1. [Contributors](https://github.com/Harshiitrpr/RISCV-Simulator/tree/Issue#contributors)
 2. [Directory Structure](https://github.com/Harshiitrpr/RISCV-Simulator/tree/Issue#directory-structure)
-3. [Requirements]
+3. [Requirements](https://github.com/Harshiitrpr/RISCV-Simulator/tree/Issue#requirements)
 4. [Phase 1 (Single cycle execution)](https://github.com/Harshiitrpr/RISCV-Simulator/tree/Issue#phase-1-single-cycle-execution)
 
 ## Contributors
