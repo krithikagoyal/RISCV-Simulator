@@ -223,6 +223,11 @@ def execute():
         R[int(rd, 2)] = '0x' + memory_element
 
     elif operation == 'lh':
+        base = R[int(rs1, 2)]
+        offset = imm
+        element_address = int(int(base, 16) + int(offset, 2))
+        memory_element = MEM[element_address + 1] + MEM[element_address]
+        R[int(rd, 2)] = '0x' + memory_element
 
     elif operation == 'lw':
         base = R[int(rs1, 2)]
