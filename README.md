@@ -27,9 +27,6 @@ RISCV-Simulator
   |- doc
       |
       |- design-doc.docx
-  |- include
-      |
-      |- utility.py
   |- src
       |
       |- Instruction_Set_List.csv
