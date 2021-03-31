@@ -32,7 +32,11 @@ MEM = defaultdict(lambda: '00')
 instruction_word = 0
 operand1 = 0
 operand2 = 0
-
+rd = 0
+register_data = '0x00000000'
+memory_address = 0
+memory_element = '00'
+memory_data = '00'
 
 # run_RISCVsim function
 def run_RISCVsim():
@@ -129,35 +133,41 @@ def decode():
     op_type = instruction_set_list[track][0]
     operation = instruction_set_list[track][1]
 
+    rd = 0
+    register_data = '0x00000000'
     if op_type == 'R':
         rs2 = bin_instruction[7:12]
         rs1 = bin_instruction[12:17]
         rd = bin_instruction[20:25]
-        operand1 = R[int(rs1,2)]
-        operand2 = R[int(rs2,2)]
+        operand1 = R[int(rs1, 2)]
+        operand2 = R[int(rs2, 2)]
 
     elif op_type == 'I':
-        rs2 = bin_instruction[7:12]
         rs1 = bin_instruction[12:17]
-        imm = bin_instruction[0:7] + bin_instruction[20:25]
-        operand1 = R[int(rs1,2)]
-        operand2 = (imm)
+        rd = bin_instruction[20:25]
+        imm = bin_instruction[0:12]
+        operand1 = R[int(rs1, 2)]
+        operand2 = imm
 
     elif op_type == 'S':
         rs2 = bin_instruction[7:12]
         rs1 = bin_instruction[12:17]
         imm = bin_instruction[0:7] + bin_instruction[20:25]
+        operand1 = R[int(rs1, 2)]
+        operand2 = imm
 
-    elif op_type == 'B':
+    elif op_type == 'SB':
         rs2 = bin_instruction[7:12]
         rs1 = bin_instruction[12:17]
+        operand1 = int(rs1, 2)
+        operand2 = int(rs2, 2)
         imm = bin_instruction[0] + bin_instruction[24] + bin_instruction[1:7] + bin_instruction[20:24] + '0'
 
     elif op_type == 'U':
         rd = bin_instruction[20:25]
         imm = bin_instruction[0:20] + '0'*12
 
-    elif op_type == 'J':
+    elif op_type == 'UJ':
         rd = bin_instruction[20:25]
         imm = bin_instruction[0] + bin_instruction[12:20] + bin_instruction[11] + bin_instruction[1:11] + '0'
 
@@ -169,113 +179,101 @@ def decode():
 # Executes the ALU operation based on ALUop
 def execute():
     if operation == 'add':
-        R[int(rd,2)] = hex(int(int(operand1,16) + int(operand2,16)))
+        register_data = hex(int(int(operand1, 16) + int(operand2, 16)))
 
     elif operation == 'sub':
-        R[int(rd,2)] = hex(int(int(operand1,16) - int(operand2,16)))
+        register_data = hex(int(int(operand1, 16) - int(operand2, 16)))
 
     elif operation == 'and':
-        R[int(rd,2)] = hex(int(int(operand1,16) & int(operand2,16)))
+        register_data = hex(int(int(operand1, 16) & int(operand2, 16)))
 
     elif operation == 'or':
-        R[int(rd,2)] = hex(int(int(operand1,16) | int(operand2,16)))
+        register_data = hex(int(int(operand1, 16) | int(operand2, 16)))
 
     elif operation == 'sll':
-        R[int(rd,2)] = hex(int(int(operand1,16) << int(operand2,16)))
+        register_data = hex(int(int(operand1, 16) << int(operand2, 16)))
 
     elif operation == 'slt':
-        if (int(operand1,16) < int(operand2,16)):
-            R[int(rd,2)] = hex(1)
+        if (int(operand1, 16) < int(operand2, 16)):
+            register_data = hex(1)
         else:
-            R[int(rd,2)] = hex(0)
+            register_data = hex(0)
 
     elif operation == 'sra':
-        R[int(rd,2)] = hex(int(int(operand1,16) >> int(operand2,16)))
+        register_data = hex(int(int(operand1, 16) >> int(operand2, 16)))
 
     elif operation == 'srl':
-        R[int(rd,2)] = hex(int(operand1,16) >> int(operand2,16))
+        register_data = hex(int(operand1, 16) >> int(operand2, 16))
 
     elif operation == 'xor':
-        R[int(rd,2)] = hex(int(int(operand1,16) ^ int(operand2,16)))
+        register_data = hex(int(int(operand1, 16) ^ int(operand2, 16)))
 
     elif operation == 'mul':
-        R[int(rd, 2)] = hex(int(int(operand1,16) * int(operand2,16)))
+        register_data = hex(int(int(operand1, 16) * int(operand2, 16)))
 
     elif operation == 'div':
-        R[int(rd, 2)] = hex(int(int(operand1,16) / int(operand2,16)))
+        register_data = hex(int(int(operand1, 16) / int(operand2, 16)))
 
     elif operation == 'rem':
-        R[int(rd, 2)] = hex(int(int(operand1,16) % int(operand2,16)))
+        register_data = hex(int(int(operand1, 16) % int(operand2, 16)))
 
     elif operation == 'addi':
-        R[int(rs1,2)] = hex(int(int(operand1,16) + int(operand2,2)))
+        register_data = hex(int(int(operand1, 16) + int(operand2, 2)))
 
     elif operation == 'andi':
-        R[int(rs1, 2)] = hex(int(int(operand1,16) & int(operand2,2)))
+        register_data = hex(int(int(operand1, 16) & int(operand2, 2)))
 
     elif operation == 'ori':
-        R[int(rs1, 2)] = hex(int(int(operand1,16) | int(operand2,2)))
+        register_data = hex(int(int(operand1, 16) | int(operand2, 2)))
 
     elif operation == 'lb':
-        base = R[int(rs1, 2)]
-        offset = imm
-        memory_element = MEM[int(int(base, 16) + int(offset, 2))]
-        R[int(rd, 2)] = '0x' + memory_element
+        memory_element = MEM[int(int(operand1, 16) + int(operand2, 2))]
+        register_data = '0x' + memory_element
 
     elif operation == 'lh':
-        base = R[int(rs1, 2)]
-        offset = imm
-        element_address = int(int(base, 16) + int(offset, 2))
+        element_address = int(int(operand1, 16) + int(operand2, 2))
         memory_element = MEM[element_address + 1] + MEM[element_address]
-        R[int(rd, 2)] = '0x' + memory_element
+        register_data = '0x' + memory_element
 
     elif operation == 'lw':
-        base = R[int(rs1, 2)]
-        offset = imm
-        element_address = int(int(base, 16) + int(offset, 2))
+        element_address = int(int(operand1, 16) + int(operand2, 2))
         memory_element = MEM[element_address + 3] + MEM[element_address + 2] + MEM[element_address + 1] + MEM[element_address]
-        R[int(rd, 2)] = '0x' + memory_element
+        register_data = '0x' + memory_element
 
     elif operation == 'jalr':
-        R[int(rs2, 0)] = hex(PC)
-        PC = int(imm, 2) + int(R[int(rs1, 2)], 16) - 4
+        register_data = hex(PC)
+        PC = int(operand2, 2) + int(operand1, 16) - 4
 
     elif operation == 'sb':
-        base = R[int(rs1, 2)]
-        offset = imm
-        memory_address = int(int(base, 16) + int(offset, 2))
+        memory_address = int(int(operand1, 16) + int(operand2, 2))
         MEM[memory_address] = R[int(rs2, 2)][8:10]        
 
     elif operation == 'sw':
-        base = R[int(rs1, 2)]
-        offset = imm
-        memory_address = int(int(base, 16) + int(offset, 2))
+        memory_address = int(int(operand1, 16) + int(operand2, 2))
         MEM[memory_address] = R[int(rs2, 2)][8:10]
         MEM[memory_address + 1] = R[int(rs2, 2)][6:8]
         MEM[memory_address + 2] = R[int(rs2, 2)][4:6]
         MEM[memory_address + 3] = R[int(rs2, 2)][2:4]
 
     elif operation == 'sh':
-        base = R[int(rs1, 2)]
-        offset = imm
-        memory_address = int(int(base, 16) + int(offset, 2))
+        memory_address = int(int(operand1, 16) + int(operand2, 2))
         MEM[memory_address] = R[int(rs2, 2)][8:10]
         MEM[memory_address + 1] = R[int(rs2, 2)][6:8]
 
     elif operation == 'beq':
-        if R[int(rs1, 2)] == R[int(rs2, 2)]:
+        if operand1 == operand2:
             PC += int(imm, 2) - 4
 
     elif operation == 'bne':
-        if R[int(rs1, 2)] != R[int(rs2, 2)]:
+        if operand1 != operand2:
             PC += int(imm, 2) - 4
 
     elif operation == 'bge':
-        if R[int(rs2, 2)] >= R[int(rs1, 2)]:
+        if operand2 >= operand1:
             PC += int(imm, 2) - 4
 
     elif operation == 'blt':
-        if R[int(rs2, 2)] > R[int(rs1, 2)]:
+        if operand2 > operand1:
             PC += int(imm, 2) - 4
 
     elif operation == 'auipc':
@@ -291,7 +289,7 @@ def mem():
 
 # Writes the results back to the register file
 def write_back():
-
+    R[int(rd, 2)] = register_data
 
 # Memory write
 def write_word(address, instruction):
