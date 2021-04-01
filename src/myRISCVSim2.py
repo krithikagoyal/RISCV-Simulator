@@ -276,10 +276,21 @@ def execute():
             PC += int(imm, 2) - 4
 
     elif operation == 'auipc':
+        # (Add Upper Immediate to Program Counter): this sets rd to the sum of the current PC and a 32-bit value with the low 12 bits as 0 and the high 20 bits coming from the U-type immediate.
+        curr_instruction_word = '0x' + MEM[PC + 3] + MEM[PC + 2] + MEM[PC + 1] + MEM[PC]
+        register_data = hex(int(int(curr_instruction_word, 16) + int(imm, 2)))
 
     elif operation == 'lui':
+        # lui (Load Upper Immediate): this sets rd to a 32-bit value with the low 12 bits being 0 and the high 20 bits coming from the U-type immediate.
+        register_data = hex(int(imm, 2))
 
     elif operation == 'jal':
+        register_data = '0x' + MEM[PC + 3] + MEM[PC + 2] + MEM[PC + 1] + MEM[PC]  # Storing next instruction
+        updated_intruction_word = hex(int(imm, 2))
+        MEM[PC + 3] = updated_intruction_word[2:4]
+        MEM[PC + 2] = updated_intruction_word[4:6]
+        MEM[PC + 1] = updated_intruction_word[6:8]
+        MEM[PC] = updated_intruction_word[8:10]
 
 
 # Performs the memory operations
@@ -303,8 +314,8 @@ def write_back():
 
 # Memory write
 def write_word(address, instruction):
-  idx = int(address[2:],16)
-  MEM[idx] = instruction[8:10]
-  MEM[idx + 1] = instruction[6:8]
-  MEM[idx + 2] = instruction[4:6]
-  MEM[idx + 3] = instruction[2:4]
+    idx = int(address[2:],16)
+    MEM[idx] = instruction[8:10]
+    MEM[idx + 1] = instruction[6:8]
+    MEM[idx + 2] = instruction[4:6]
+    MEM[idx + 3] = instruction[2:4]
