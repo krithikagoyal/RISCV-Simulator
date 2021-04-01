@@ -1,6 +1,7 @@
 """
 The project is developed as part of Computer Architecture class.
-Project Name: Functional Simulator for subset of RISCV Processor
+Project Name: Functional Simulator for subset of RISC-V Processor
+
 -------------------------------------------------
 | Developer's Name   | Developer's Email ID     |
 |-----------------------------------------------|
@@ -11,14 +12,16 @@ Project Name: Functional Simulator for subset of RISCV Processor
 | Tarun Singla       | 2019csb1126@iitrpr.ac.in |
 -------------------------------------------------
 """
-from collections import defaultdict
+
 # myRISCVSim.py
 # Purpose of this file: Implementation file for myRISCVSim
+
+from collections import defaultdict
 
 # Register file
 R = [0]*32
 
-# Flags
+# Flags and clock
 N = C = V = Z = clock = 0
 
 # Program Counter
@@ -31,12 +34,14 @@ MEM = defaultdict(lambda: '00')
 instruction_word = 0
 operand1 = 0
 operand2 = 0
+operation = ''
 rd = 0
 register_data = '0x00000000'
 memory_address = 0
 memory_element = '00'
 memory_data = '00'
 is_mem = [False, 0, 'n']
+
 
 # run_RISCVsim function
 def run_RISCVsim():
@@ -51,55 +56,54 @@ def run_RISCVsim():
 
 
 # It is used to set the reset values
-# Reset all registers and memory content to 0
 def reset_proc():
-  for i in range(32):
-    R[i] = '0x00000000'
-  R[2] = '0x7FFFFFF0'
-  R[3] = '0x10000000'
+    for i in range(32):
+        R[i] = '0x00000000'
+    R[2] = '0x7FFFFFF0'
+    R[3] = '0x10000000'
 
 
 # load_program_memory reads the input memory, and populates the instruction memory
 def load_program_memory(file_name):
-  try:
-    fp = open(file_name, 'r')
-    for line in fp:
-        tmp = line.split()
-        if len(tmp) == 2:
-            address, instruction = tmp[0], tmp[1]
-            write_word(address, instruction)
-    fp.close()
-  except:
-    print("Error opening input mem file.\n")
-    exit(1)
+    try:
+        fp = open(file_name, 'r')
+        for line in fp:
+            tmp = line.split()
+            if len(tmp) == 2:
+                address, instruction = tmp[0], tmp[1]
+                write_word(address, instruction)
+        fp.close()
+    except:
+        print("Error opening input mem file.\n")
+        exit(1)
 
 
 # Writes the data memory in "data_out.mc" file
 def write_data_memory():
-  try:
-    fp = open("data_out.mc", "w")
-    out_tmp = []
-    for i in range(1000,4):
-        out_tmp.append(hex(i) + ' 0x' + MEM[i * 4 + 3] + MEM[i * 4 + 2] + MEM[i * 4 + 1] + MEM[i * 4])
-    fp.writelines(out_tmp)
-    fp.close()
-  except:
-    print("Error opening data_out.mc file for writing.\n")
+    try:
+        fp = open("data_out.mc", "w")
+        out_tmp = []
+        for i in range(1000, 4):
+            out_tmp.append(hex(i) + ' 0x' + MEM[i * 4 + 3] + MEM[i * 4 + 2] + MEM[i * 4 + 1] + MEM[i * 4])
+        fp.writelines(out_tmp)
+        fp.close()
+    except:
+        print("Error opening data_out.mc file for writing.\n")
 
 
 # It should be called when instruction is swi_exit
 def swi_exit():
-  write_data_memory()
-  exit(0)
+    write_data_memory()
+    exit(0)
 
 
 # Reads from the instruction memory and updates the instruction register
 def fetch():
-  instruction_word = '0x' + MEM[PC + 3] + MEM[PC + 2] + MEM[PC + 1] + MEM[PC]
-  PC += 4
+    instruction_word = '0x' + MEM[PC + 3] + MEM[PC + 2] + MEM[PC + 1] + MEM[PC]
+    PC += 4
 
 
-# Reads the instruction register, operand1 and operand2 from register file; decides the operation to be performed in execute stage
+# Reads the instruction register, operand1 and operand2 from register file; decides the operation to be performed in the execute stage
 def decode():
     if instruction_word == '0x401010BB':
         swi_exit()
@@ -289,11 +293,13 @@ def mem():
             for i in range(is_mem[1] + 1):
                 MEM[memory_address + is_mem[1] - i] = register_data[i:i + 2]
 
+
 # Writes the results back to the register file
 def write_back():
     if is_mem[0] == True:
         register_data = memory_element
     R[int(rd, 2)] = register_data
+
 
 # Memory write
 def write_word(address, instruction):
