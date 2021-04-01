@@ -249,6 +249,7 @@ def execute():
         register_data = '0x' + memory_element
 
     elif operation == 'jalr':
+        # I THink register data should be MEM[PC]
         register_data = hex(PC)
         PC = int(operand2, 2) + int(operand1, 16) - 4
 
