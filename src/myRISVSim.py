@@ -42,6 +42,8 @@ memory_element = '00'
 memory_data = '00'
 
 # run_RISCVsim function
+
+
 def run_RISCVsim():
     while(1):
         fetch()
@@ -55,50 +57,51 @@ def run_RISCVsim():
 
 # It is used to set the reset values
 def reset_proc():
-  for i in range(32):
-    R[i] = '0x00000000'
-  R[2] = '0x7FFFFFF0'
-  R[3] = '0x10000000'
+    for i in range(32):
+        R[i] = '0x00000000'
+    R[2] = '0x7FFFFFF0'
+    R[3] = '0x10000000'
 
 
 # load_program_memory reads the input memory, and populates the instruction memory
 def load_program_memory(file_name):
-  try:
-    fp = open(file_name, 'r')
-    for line in fp:
-        tmp = line.split()
-        if len(tmp) == 2:
-            address, instruction = tmp[0], tmp[1]
-            write_word(address, instruction)
-    fp.close()
-  except:
-    print("Error opening input mem file.\n")
-    exit(1)
+    try:
+        fp = open(file_name, 'r')
+        for line in fp:
+            tmp = line.split()
+            if len(tmp) == 2:
+                address, instruction = tmp[0], tmp[1]
+                write_word(address, instruction)
+        fp.close()
+    except:
+        print("Error opening input mem file.\n")
+        exit(1)
 
 
 # Writes the data memory in "data_out.mc" file
 def write_data_memory():
-  try:
-    fp = open("data_out.mc", "w")
-    out_tmp = []
-    for i in range(1000,4):
-        out_tmp.append(hex(i) + ' 0x' + MEM[i * 4 + 3] + MEM[i * 4 + 2] + MEM[i * 4 + 1] + MEM[i * 4])
-    fp.writelines(out_tmp)
-    fp.close()
-  except:
-    print("Error opening data_out.mc file for writing.\n")
+    try:
+        fp = open("data_out.mc", "w")
+        out_tmp = []
+        for i in range(1000, 4):
+            out_tmp.append(
+                hex(i) + ' 0x' + MEM[i * 4 + 3] + MEM[i * 4 + 2] + MEM[i * 4 + 1] + MEM[i * 4])
+        fp.writelines(out_tmp)
+        fp.close()
+    except:
+        print("Error opening data_out.mc file for writing.\n")
 
 
 # It should be called when instruction is swi_exit
 def swi_exit():
-  write_data_memory()
-  exit(0)
+    write_data_memory()
+    exit(0)
 
 
 # Reads from the instruction memory and updates the instruction register
 def fetch():
-  instruction_word = '0x' + MEM[PC + 3] + MEM[PC + 2] + MEM[PC + 1] + MEM[PC]
-  PC += 4
+    instruction_word = '0x' + MEM[PC + 3] + MEM[PC + 2] + MEM[PC + 1] + MEM[PC]
+    PC += 4
 
 
 # Reads the instruction register, operand1 and operand2 from register file; decides the operation to be performed in execute stage
@@ -106,7 +109,7 @@ def decode():
     if instruction_word == '0x401010BB':
         swi_exit()
 
-    bin_instruction = bin(int(instruction_word[2:],16))[2:]
+    bin_instruction = bin(int(instruction_word[2:], 16))[2:]
 
     bin_instruction = (32 - len(bin_instruction)) * '0' + bin_instruction
     opcode = int(bin_instruction[25:32], 2)
@@ -163,7 +166,8 @@ def decode():
         rs1 = bin_instruction[12:17]
         operand1 = int(rs1, 2)
         operand2 = int(rs2, 2)
-        imm = bin_instruction[0] + bin_instruction[24] + bin_instruction[1:7] + bin_instruction[20:24] + '0'
+        imm = bin_instruction[0] + bin_instruction[24] + \
+            bin_instruction[1:7] + bin_instruction[20:24] + '0'
 
     elif op_type == 'U':
         rd = bin_instruction[20:25]
@@ -171,7 +175,8 @@ def decode():
 
     elif op_type == 'UJ':
         rd = bin_instruction[20:25]
-        imm = bin_instruction[0] + bin_instruction[12:20] + bin_instruction[11] + bin_instruction[1:11] + '0'
+        imm = bin_instruction[0] + bin_instruction[12:20] + \
+            bin_instruction[11] + bin_instruction[1:11] + '0'
 
     else:
         print("Unidentifiable machine code!")
@@ -239,7 +244,8 @@ def execute():
 
     elif operation == 'lw':
         element_address = int(int(operand1, 16) + int(operand2, 2))
-        memory_element = MEM[element_address + 3] + MEM[element_address + 2] + MEM[element_address + 1] + MEM[element_address]
+        memory_element = MEM[element_address + 3] + MEM[element_address +
+                                                        2] + MEM[element_address + 1] + MEM[element_address]
         register_data = '0x' + memory_element
 
     elif operation == 'jalr':
@@ -279,30 +285,42 @@ def execute():
             PC += int(imm, 2) - 4
 
     elif operation == 'auipc':
-      #(Add Upper Immediate to Program Counter): this sets rd to the sum of the current PC and a 32-bit value with the low 12 bits as 0 and the high 20 bits coming from the U-type immediate.
-      curr_instruction_word= '0x' + MEM[PC + 3] + MEM[PC + 2] + MEM[PC + 1] + MEM[PC]
-      register_data=hex(int(curr_instruction_word,16) + int(imm,2))
+        # (Add Upper Immediate to Program Counter): this sets rd to the sum of the current PC and a 32-bit value with the low 12 bits as 0 and the high 20 bits coming from the U-type immediate.
+        curr_instruction_word = '0x' + \
+            MEM[PC + 3] + MEM[PC + 2] + MEM[PC + 1] + MEM[PC]
+        register_data = hex(int(int(curr_instruction_word, 16) + int(imm, 2)))
 
     elif operation == 'lui':
-      #lui (Load Upper Immediate): this sets rd to a 32-bit value with the low 12 bits being 0 and the high 20 bits coming from the U-type immediate.
-      register_data=hex(int(imm,2))
-
+        # lui (Load Upper Immediate): this sets rd to a 32-bit value with the low 12 bits being 0 and the high 20 bits coming from the U-type immediate.
+        register_data = hex(int(imm, 2))
 
     elif operation == 'jal':
+        register_data = '0x' + MEM[PC + 3] + MEM[PC + 2] + \
+            MEM[PC + 1] + MEM[PC]  # Storing next instruction
+        updated_intruction_word = hex(int(imm, 2))
+        MEM[PC + 3] = updated_intruction_word[2:4]
+        MEM[PC + 2] = updated_intruction_word[4:6]
+        MEM[PC + 1] = updated_intruction_word[6:8]
+        MEM[PC] = updated_intruction_word[8:10]
+
+        # Performs the memory operations
 
 
-# Performs the memory operations
 def mem():
+    # Writes the results back to the register file
+
+    # Writes the results back to the register file
 
 
-# Writes the results back to the register file
 def write_back():
     R[int(rd, 2)] = register_data
 
 # Memory write
+
+
 def write_word(address, instruction):
-  idx = int(address[2:],16)
-  MEM[idx] = instruction[8:10]
-  MEM[idx + 1] = instruction[6:8]
-  MEM[idx + 2] = instruction[4:6]
-  MEM[idx + 3] = instruction[2:4]
+    idx = int(address[2:], 16)
+    MEM[idx] = instruction[8:10]
+    MEM[idx + 1] = instruction[6:8]
+    MEM[idx + 2] = instruction[4:6]
+    MEM[idx + 3] = instruction[2:4]
