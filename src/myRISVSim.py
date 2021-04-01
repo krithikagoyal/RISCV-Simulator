@@ -42,8 +42,6 @@ memory_element = '00'
 memory_data = '00'
 
 # run_RISCVsim function
-
-
 def run_RISCVsim():
     while(1):
         fetch()
@@ -244,8 +242,7 @@ def execute():
 
     elif operation == 'lw':
         element_address = int(int(operand1, 16) + int(operand2, 2))
-        memory_element = MEM[element_address + 3] + MEM[element_address +
-                                                        2] + MEM[element_address + 1] + MEM[element_address]
+        memory_element = MEM[element_address + 3] + MEM[element_address + 2] + MEM[element_address + 1] + MEM[element_address]
         register_data = '0x' + memory_element
 
     elif operation == 'jalr':
@@ -287,8 +284,7 @@ def execute():
 
     elif operation == 'auipc':
         # (Add Upper Immediate to Program Counter): this sets rd to the sum of the current PC and a 32-bit value with the low 12 bits as 0 and the high 20 bits coming from the U-type immediate.
-        curr_instruction_word = '0x' + \
-            MEM[PC + 3] + MEM[PC + 2] + MEM[PC + 1] + MEM[PC]
+        curr_instruction_word = '0x' + MEM[PC + 3] + MEM[PC + 2] + MEM[PC + 1] + MEM[PC]
         register_data = hex(int(int(curr_instruction_word, 16) + int(imm, 2)))
 
     elif operation == 'lui':
@@ -296,29 +292,24 @@ def execute():
         register_data = hex(int(imm, 2))
 
     elif operation == 'jal':
-        register_data = '0x' + MEM[PC + 3] + MEM[PC + 2] + \
-            MEM[PC + 1] + MEM[PC]  # Storing next instruction
+        register_data = '0x' + MEM[PC + 3] + MEM[PC + 2] + MEM[PC + 1] + MEM[PC]  # Storing next instruction
         updated_intruction_word = hex(int(imm, 2))
         MEM[PC + 3] = updated_intruction_word[2:4]
         MEM[PC + 2] = updated_intruction_word[4:6]
         MEM[PC + 1] = updated_intruction_word[6:8]
         MEM[PC] = updated_intruction_word[8:10]
 
-        # Performs the memory operations
 
-
+# Performs the memory operations
 def mem():
-    # Writes the results back to the register file
-
-    # Writes the results back to the register file
 
 
+# Writes the results back to the register file
 def write_back():
     R[int(rd, 2)] = register_data
 
+
 # Memory write
-
-
 def write_word(address, instruction):
     idx = int(address[2:], 16)
     MEM[idx] = instruction[8:10]
