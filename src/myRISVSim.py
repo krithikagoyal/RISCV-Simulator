@@ -12,9 +12,11 @@ Project Name: Functional Simulator for subset of RISCV Processor
 | Tarun Singla       | 2019csb1126@iitrpr.ac.in |
 -------------------------------------------------
 """
-from collections import defaultdict
+
 # myRISCVSim.py
 # Purpose of this file: Implementation file for myRISCVSim
+
+from collections import defaultdict
 
 # Register file
 R = [0]*32
@@ -32,6 +34,7 @@ MEM = defaultdict(lambda: '00')
 instruction_word = 0
 operand1 = 0
 operand2 = 0
+operation = ''
 rd = 0
 register_data = '0x00000000'
 memory_address = 0
@@ -51,7 +54,6 @@ def run_RISCVsim():
 
 
 # It is used to set the reset values
-# Reset all registers and memory content to 0
 def reset_proc():
   for i in range(32):
     R[i] = '0x00000000'
@@ -246,7 +248,7 @@ def execute():
 
     elif operation == 'sb':
         memory_address = int(int(operand1, 16) + int(operand2, 2))
-        MEM[memory_address] = R[int(rs2, 2)][8:10]        
+        MEM[memory_address] = R[int(rs2, 2)][8:10]
 
     elif operation == 'sw':
         memory_address = int(int(operand1, 16) + int(operand2, 2))
