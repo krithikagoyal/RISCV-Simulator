@@ -230,12 +230,12 @@ def execute():
 
     elif operation == 'lb':
         memory_element = MEM[int(int(operand1, 16) + int(operand2, 2))]
-        register_data = '0x' + memory_element
+        register_data = '0x000000' + memory_element
 
     elif operation == 'lh':
         element_address = int(int(operand1, 16) + int(operand2, 2))
         memory_element = MEM[element_address + 1] + MEM[element_address]
-        register_data = '0x' + memory_element
+        register_data = '0x0000' + memory_element
 
     elif operation == 'lw':
         element_address = int(int(operand1, 16) + int(operand2, 2))
