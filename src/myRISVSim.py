@@ -279,8 +279,14 @@ def execute():
             PC += int(imm, 2) - 4
 
     elif operation == 'auipc':
+      #(Add Upper Immediate to Program Counter): this sets rd to the sum of the current PC and a 32-bit value with the low 12 bits as 0 and the high 20 bits coming from the U-type immediate.
+      curr_instruction_word= '0x' + MEM[PC + 3] + MEM[PC + 2] + MEM[PC + 1] + MEM[PC]
+      register_data=hex(int(curr_instruction_word,16) + int(imm,2))
 
     elif operation == 'lui':
+      #lui (Load Upper Immediate): this sets rd to a 32-bit value with the low 12 bits being 0 and the high 20 bits coming from the U-type immediate.
+      register_data=hex(int(imm,2))
+
 
     elif operation == 'jal':
 
