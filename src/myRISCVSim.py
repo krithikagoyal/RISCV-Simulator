@@ -39,9 +39,7 @@ rd = 0
 offset = 0
 register_data = '0x00000000'
 memory_address = 0
-memory_element = '00'
-memory_data = '00'
-is_mem = [False, 0, 'n']
+is_mem = [-1, -1] #[-1/0/1(no memory operation/load/store), type of load/store if any]
 write_back_signal = False
 
 
@@ -141,9 +139,7 @@ def decode():
     op_type = instruction_set_list[track][0]
     operation = instruction_set_list[track][1]
 
-    rd = 0 # Check these or remove these or add more
-    register_data = '0x00000000'
-    is_mem = [False, 0, 'n']
+    is_mem = [-1, -1]
 
     if op_type == 'R':
         rs2 = bin_instruction[7:12]
@@ -248,15 +244,15 @@ def execute():
 
     elif operation == 'lb':
         memory_address = int(int(operand1, 16) + int(operand2, 2))
-        is_mem = [True, 0, 'l']
+        is_mem = [0, 0]
 
     elif operation == 'lh':
         memory_address = int(int(operand1, 16) + int(operand2, 2))
-        is_mem = [True, 1, 'l']
+        is_mem = [0, 1]
 
     elif operation == 'lw':
         memory_address = int(int(operand1, 16) + int(operand2, 2))
-        is_mem = [True, 3, 'l']
+        is_mem = [0, 3]
 
     elif operation == 'jalr':
         register_data = hex(PC)
@@ -264,15 +260,15 @@ def execute():
 
     elif operation == 'sb':
         memory_address = int(int(operand1, 16) + int(operand2, 2))
-        is_mem = [True, 0, 's']
-
-    elif operation == 'sw':
-        memory_address = int(int(operand1, 16) + int(operand2, 2))
-        is_mem = [True, 3, 's']
+        is_mem = [1, 0]
 
     elif operation == 'sh':
         memory_address = int(int(operand1, 16) + int(operand2, 2))
-        is_mem = [True, 1, 's']
+        is_mem = [1, 1]
+
+    elif operation == 'sw':
+        memory_address = int(int(operand1, 16) + int(operand2, 2))
+        is_mem = [1, 3]
 
     elif operation == 'beq':
         if operand1 == operand2:
@@ -300,23 +296,38 @@ def execute():
         register_data = hex(PC)
         PC += int(offset, 2) - 4
 
+    register_data = (34 - len(register_data)) * '0' + register_data[2:]
+
 
 # Performs the memory operations
 def mem():
-    if is_mem[0] == True:
-        if is_mem[2] == 'l':
-            register_data = '0x'
-            for i in range(is_mem[1] + 1):
-                register_data += MEM[memory_address + is_mem[1] - i]
-        else:
-            for i in range(is_mem[1] + 1):
-                MEM[memory_address + is_mem[1] - i] = register_data[i:i + 2]
+    if is_mem[0] == -1:
+        print("No memory operation.")
+
+    elif is_mem[0] == 0:
+        register_data = '0x'
+        for i in range(3 - is_mem[1]):
+            register_data += '00'
+        for i in range(is_mem[1] + 1):
+            register_data += MEM[memory_address + is_mem[1] - i]
+
+    else:
+        if is_mem[1] >= 3:
+            MEM[memory_address + 3] = register_data[0:2]
+            MEM[memory_address + 2] = register_data[2:4]
+        if is_mem[1] >= 1:
+            MEM[memory_address + 1] = register_data[4:6]
+        if is_mem[1] >= 0:
+            MEM[memory_address] = register_data[6:8]
 
 
 # Writes the results back to the register file
 def write_back():
     if write_back_signal == True:
         R[int(rd, 2)] = register_data
+
+    else:
+        print("No write-back operation.")
 
 
 # Memory write
