@@ -40,7 +40,8 @@ rd = 0
 offset = 0
 register_data = '0x00000000'
 memory_address = 0
-is_mem = [-1, -1] #[-1/0/1(no memory operation/load/store), type of load/store if any]
+# [-1/0/1(no memory operation/load/store), type of load/store if any]
+is_mem = [-1, -1]
 write_back_signal = False
 
 
@@ -86,7 +87,8 @@ def write_data_memory():
         fp = open("data_out.mc", "w")
         out_tmp = []
         for i in range(268435456, 268468221, 4):
-            out_tmp.append(hex(i) + ' 0x' + MEM[i + 3] + MEM[i + 2] + MEM[i + 1] + MEM[i] + '\n')
+            out_tmp.append(
+                hex(i) + ' 0x' + MEM[i + 3] + MEM[i + 2] + MEM[i + 1] + MEM[i] + '\n')
         fp.writelines(out_tmp)
         fp.close()
     except:
@@ -114,7 +116,7 @@ def decode():
     if instruction_word == '0x401010BB':
         swi_exit()
 
-    bin_instruction = bin(int(instruction_word[2:],16))[2:]
+    bin_instruction = bin(int(instruction_word[2:], 16))[2:]
     bin_instruction = (32 - len(bin_instruction)) * '0' + bin_instruction
 
     opcode = int(bin_instruction[25:32], 2)
@@ -177,7 +179,8 @@ def decode():
         rs1 = bin_instruction[12:17]
         operand1 = R[int(rs1, 2)]
         operand2 = R[int(rs2, 2)]
-        imm = bin_instruction[0] + bin_instruction[24] + bin_instruction[1:7] + bin_instruction[20:24] + '0'
+        imm = bin_instruction[0] + bin_instruction[24] + \
+            bin_instruction[1:7] + bin_instruction[20:24] + '0'
         offset = imm
         write_back_signal = False
 
@@ -189,7 +192,8 @@ def decode():
 
     elif op_type == 'UJ':
         rd = bin_instruction[20:25]
-        imm = bin_instruction[0] + bin_instruction[12:20] + bin_instruction[11] + bin_instruction[1:11] + '0'
+        imm = bin_instruction[0] + bin_instruction[12:20] + \
+            bin_instruction[11] + bin_instruction[1:11] + '0'
         offset = imm
         write_back_signal = True
 
@@ -225,6 +229,14 @@ def execute():
 
     elif operation == 'sra':
         register_data = hex(int(int(operand1, 16) >> int(operand2, 16)))
+        # checking MSB
+        if(operand1[2] == '1'){
+            i = 2
+            while(register_data[i] != 1){
+                register_data[i] = 1
+                i = i+1
+            }
+        }
 
     elif operation == 'srl':
         register_data = hex(int(operand1, 16) >> int(operand2, 16))
@@ -340,7 +352,7 @@ def write_back():
 
 # Memory write
 def write_word(address, instruction):
-    idx = int(address[2:],16)
+    idx = int(address[2:], 16)
     MEM[idx] = instruction[8:10]
     MEM[idx + 1] = instruction[6:8]
     MEM[idx + 2] = instruction[4:6]
