@@ -17,6 +17,7 @@ Project Name: Functional Simulator for subset of RISCV Processor
 # Purpose of this file: Implementation file for myRISCVSim
 
 from collections import defaultdict
+import csv
 
 # Register file
 R = [0]*32
@@ -36,13 +37,16 @@ operand1 = 0
 operand2 = 0
 operation = ''
 rd = 0
+offset = 0
 register_data = '0x00000000'
 memory_address = 0
-memory_element = '00'
-memory_data = '00'
+is_mem = [-1, -1] #[-1/0/1(no memory operation/load/store), type of load/store if any]
+write_back_signal = False
+
 
 # run_RISCVsim function
 def run_RISCVsim():
+    global clock
     while(1):
         fetch()
         decode()
@@ -81,9 +85,8 @@ def write_data_memory():
     try:
         fp = open("data_out.mc", "w")
         out_tmp = []
-        for i in range(1000, 4):
-            out_tmp.append(
-                hex(i) + ' 0x' + MEM[i * 4 + 3] + MEM[i * 4 + 2] + MEM[i * 4 + 1] + MEM[i * 4])
+        for i in range(268435456, 268468221, 4):
+            out_tmp.append(hex(i) + ' 0x' + MEM[i + 3] + MEM[i + 2] + MEM[i + 1] + MEM[i] + '\n')
         fp.writelines(out_tmp)
         fp.close()
     except:
@@ -93,11 +96,14 @@ def write_data_memory():
 # It should be called when instruction is swi_exit
 def swi_exit():
     write_data_memory()
+    # for i in range(32):
+    #     print(R[i])
     exit(0)
 
 
 # Reads from the instruction memory and updates the instruction register
 def fetch():
+    global PC, instruction_word
     instruction_word = '0x' + MEM[PC + 3] + MEM[PC + 2] + MEM[PC + 1] + MEM[PC]
     PC += 4
 
@@ -114,7 +120,7 @@ def decode():
     func3 = int(bin_instruction[17:20], 2)
     func7 = int(bin_instruction[0:7], 2)
 
-    f = open('Instruction_Set_List.csv')
+    f = open('src/Instruction_Set_List.csv')
     instruction_set_list = list(csv.reader(f))
     f.close()
     match_found = False
@@ -133,17 +139,19 @@ def decode():
             break
         track += 1
 
+    # print(track)
     op_type = instruction_set_list[track][0]
     operation = instruction_set_list[track][1]
 
-    rd = 0
-    register_data = '0x00000000'
+    is_mem = [-1, -1]
+
     if op_type == 'R':
         rs2 = bin_instruction[7:12]
         rs1 = bin_instruction[12:17]
         rd = bin_instruction[20:25]
         operand1 = R[int(rs1, 2)]
         operand2 = R[int(rs2, 2)]
+        write_back_signal = True
 
     elif op_type == 'I':
         rs1 = bin_instruction[12:17]
@@ -151,6 +159,7 @@ def decode():
         imm = bin_instruction[0:12]
         operand1 = R[int(rs1, 2)]
         operand2 = imm
+        write_back_signal = True
 
     elif op_type == 'S':
         rs2 = bin_instruction[7:12]
@@ -158,23 +167,29 @@ def decode():
         imm = bin_instruction[0:7] + bin_instruction[20:25]
         operand1 = R[int(rs1, 2)]
         operand2 = imm
+        register_data = rs2
+        write_back_signal = False
 
     elif op_type == 'SB':
         rs2 = bin_instruction[7:12]
         rs1 = bin_instruction[12:17]
-        operand1 = int(rs1, 2)
-        operand2 = int(rs2, 2)
-        imm = bin_instruction[0] + bin_instruction[24] + \
-            bin_instruction[1:7] + bin_instruction[20:24] + '0'
+        operand1 = R[int(rs1, 2)]
+        operand2 = R[int(rs2, 2)]
+        imm = bin_instruction[0] + bin_instruction[24] + bin_instruction[1:7] + bin_instruction[20:24] + '0'
+        offset = imm
+        write_back_signal = False
 
     elif op_type == 'U':
         rd = bin_instruction[20:25]
         imm = bin_instruction[0:20] + '0'*12
+        operand2 = imm
+        write_back_signal = True
 
     elif op_type == 'UJ':
         rd = bin_instruction[20:25]
-        imm = bin_instruction[0] + bin_instruction[12:20] + \
-            bin_instruction[11] + bin_instruction[1:11] + '0'
+        imm = bin_instruction[0] + bin_instruction[12:20] + bin_instruction[11] + bin_instruction[1:11] + '0'
+        offset = imm
+        write_back_signal = True
 
     else:
         print("Unidentifiable machine code!")
@@ -183,6 +198,8 @@ def decode():
 
 # Executes the ALU operation based on ALUop
 def execute():
+    global register_data
+
     if operation == 'add':
         register_data = hex(int(int(operand1, 16) + int(operand2, 16)))
 
@@ -232,18 +249,16 @@ def execute():
         register_data = hex(int(int(operand1, 16) | int(operand2, 2)))
 
     elif operation == 'lb':
-        memory_element = MEM[int(int(operand1, 16) + int(operand2, 2))]
-        register_data = '0x000000' + memory_element
+        memory_address = int(int(operand1, 16) + int(operand2, 2))
+        is_mem = [0, 0]
 
     elif operation == 'lh':
-        element_address = int(int(operand1, 16) + int(operand2, 2))
-        memory_element = MEM[element_address + 1] + MEM[element_address]
-        register_data = '0x0000' + memory_element
+        memory_address = int(int(operand1, 16) + int(operand2, 2))
+        is_mem = [0, 1]
 
     elif operation == 'lw':
-        element_address = int(int(operand1, 16) + int(operand2, 2))
-        memory_element = MEM[element_address + 3] + MEM[element_address + 2] + MEM[element_address + 1] + MEM[element_address]
-        register_data = '0x' + memory_element
+        memory_address = int(int(operand1, 16) + int(operand2, 2))
+        is_mem = [0, 3]
 
     elif operation == 'jalr':
         # I THink register data should be MEM[PC]
@@ -252,61 +267,74 @@ def execute():
 
     elif operation == 'sb':
         memory_address = int(int(operand1, 16) + int(operand2, 2))
-        MEM[memory_address] = R[int(rs2, 2)][8:10]
-
-    elif operation == 'sw':
-        memory_address = int(int(operand1, 16) + int(operand2, 2))
-        MEM[memory_address] = R[int(rs2, 2)][8:10]
-        MEM[memory_address + 1] = R[int(rs2, 2)][6:8]
-        MEM[memory_address + 2] = R[int(rs2, 2)][4:6]
-        MEM[memory_address + 3] = R[int(rs2, 2)][2:4]
+        is_mem = [1, 0]
 
     elif operation == 'sh':
         memory_address = int(int(operand1, 16) + int(operand2, 2))
-        MEM[memory_address] = R[int(rs2, 2)][8:10]
-        MEM[memory_address + 1] = R[int(rs2, 2)][6:8]
+        is_mem = [1, 1]
+
+    elif operation == 'sw':
+        memory_address = int(int(operand1, 16) + int(operand2, 2))
+        is_mem = [1, 3]
 
     elif operation == 'beq':
         if operand1 == operand2:
-            PC += int(imm, 2) - 4
+            PC += int(offset, 2) - 4
 
     elif operation == 'bne':
         if operand1 != operand2:
-            PC += int(imm, 2) - 4
+            PC += int(offset, 2) - 4
 
     elif operation == 'bge':
         if operand2 >= operand1:
-            PC += int(imm, 2) - 4
+            PC += int(offest, 2) - 4
 
     elif operation == 'blt':
         if operand2 > operand1:
-            PC += int(imm, 2) - 4
+            PC += int(offset, 2) - 4
 
     elif operation == 'auipc':
-        # (Add Upper Immediate to Program Counter): this sets rd to the sum of the current PC and a 32-bit value with the low 12 bits as 0 and the high 20 bits coming from the U-type immediate.
-        curr_instruction_word = '0x' + MEM[PC + 3] + MEM[PC + 2] + MEM[PC + 1] + MEM[PC]
-        register_data = hex(int(int(curr_instruction_word, 16) + int(imm, 2)))
+        register_data = hex(int(PC + int(operand2, 2)))
 
     elif operation == 'lui':
-        # lui (Load Upper Immediate): this sets rd to a 32-bit value with the low 12 bits being 0 and the high 20 bits coming from the U-type immediate.
-        register_data = hex(int(imm, 2))
+        register_data = hex(int(operand2, 2))
 
     elif operation == 'jal':
-        register_data = '0x' + MEM[PC + 3] + MEM[PC + 2] + MEM[PC + 1] + MEM[PC]  # Storing next instruction
-        updated_intruction_word = hex(int(imm, 2))
-        MEM[PC + 3] = updated_intruction_word[2:4]
-        MEM[PC + 2] = updated_intruction_word[4:6]
-        MEM[PC + 1] = updated_intruction_word[6:8]
-        MEM[PC] = updated_intruction_word[8:10]
+        register_data = hex(PC)
+        PC += int(offset, 2) - 4
+
+    register_data = (34 - len(register_data)) * '0' + register_data[2:]
 
 
 # Performs the memory operations
 def mem():
+    if is_mem[0] == -1:
+        print("No memory operation.")
+
+    elif is_mem[0] == 0:
+        register_data = '0x'
+        for i in range(3 - is_mem[1]):
+            register_data += '00'
+        for i in range(is_mem[1] + 1):
+            register_data += MEM[memory_address + is_mem[1] - i]
+
+    else:
+        if is_mem[1] >= 3:
+            MEM[memory_address + 3] = register_data[0:2]
+            MEM[memory_address + 2] = register_data[2:4]
+        if is_mem[1] >= 1:
+            MEM[memory_address + 1] = register_data[4:6]
+        if is_mem[1] >= 0:
+            MEM[memory_address] = register_data[6:8]
 
 
 # Writes the results back to the register file
 def write_back():
-    R[int(rd, 2)] = register_data
+    if write_back_signal == True:
+        R[int(rd, 2)] = register_data
+
+    else:
+        print("No write-back operation.")
 
 
 # Memory write
