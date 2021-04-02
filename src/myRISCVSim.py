@@ -78,7 +78,7 @@ def load_program_memory(file_name):
         exit(1)
 
 
-# Writes the data memory in "data_out.mc" file
+# Creates a "data_out.mc" file and writes the data memory in it.
 def write_data_memory():
     try:
         fp = open("data_out.mc", "w")
@@ -100,18 +100,18 @@ def swi_exit():
 # Reads from the instruction memory and updates the instruction register
 def fetch():
     instruction_word = '0x' + MEM[PC + 3] + MEM[PC + 2] + MEM[PC + 1] + MEM[PC]
-    print("FETCH: Fetch instruction", instruction_word,  "from address", hex(PC))
+    print("FETCH: Fetch instruction", instruction_word, "from address", hex(PC))
     PC += 4
 
 
-# Reads the instruction register, operand1 and operand2 from register file; decides the operation to be performed in the execute stage
+# Decodes the instruction and decides the operation to be performed in the execute stage; reads the operands from the register file.
 def decode():
     if instruction_word == '0x401010BB':
         swi_exit()
 
     bin_instruction = bin(int(instruction_word[2:],16))[2:]
-
     bin_instruction = (32 - len(bin_instruction)) * '0' + bin_instruction
+
     opcode = int(bin_instruction[25:32], 2)
     func3 = int(bin_instruction[17:20], 2)
     func7 = int(bin_instruction[0:7], 2)
@@ -119,6 +119,7 @@ def decode():
     f = open('Instruction_Set_List.csv')
     instruction_set_list = list(csv.reader(f))
     f.close()
+
     match_found = False
     track = 0
 
@@ -138,9 +139,10 @@ def decode():
     op_type = instruction_set_list[track][0]
     operation = instruction_set_list[track][1]
 
-    rd = 0
+    rd = 0 
     register_data = '0x00000000'
     is_mem = [False, 0, 'n']
+
     if op_type == 'R':
         rs2 = bin_instruction[7:12]
         rs1 = bin_instruction[12:17]
