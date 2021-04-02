@@ -52,7 +52,7 @@ def run_RISCVsim():
         mem()
         write_back()
         clock += 1
-        print("Number of clock cycles: ", clock)
+        print("Number of clock cycles: ", clock, '\n')
 
 
 # It is used to set the reset values
@@ -100,6 +100,7 @@ def swi_exit():
 # Reads from the instruction memory and updates the instruction register
 def fetch():
     instruction_word = '0x' + MEM[PC + 3] + MEM[PC + 2] + MEM[PC + 1] + MEM[PC]
+    print("FETCH: Fetch instruction", instruction_word,  "from address", hex(PC))
     PC += 4
 
 
