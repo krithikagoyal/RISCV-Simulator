@@ -16,7 +16,7 @@ Project Name: Functional Simulator for subset of RISC-V Processor
 # main.py
 # Purpose of this file: This file handles the input and output, and invokes the simulator.
 
-from myRISVSim import reset_proc, load_program_memory, run_RISCVsim
+from myRISCVSim import reset_proc, load_program_memory, run_RISCVsim
 import sys
 
 if __name__ == '__main__':
