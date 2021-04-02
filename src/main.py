@@ -1,6 +1,6 @@
 """
 The project is developed as part of Computer Architecture class.
-Project Name: Functional Simulator for subset of RISC-V Processor
+Project Name: Functional Simulator for subset of RISCV Processor
 
 -------------------------------------------------
 | Developer's Name   | Developer's Email ID     |
