@@ -36,6 +36,7 @@ operand1 = 0
 operand2 = 0
 operation = ''
 rd = 0
+offset = 0
 register_data = '0x00000000'
 memory_address = 0
 memory_element = '00'
@@ -139,7 +140,7 @@ def decode():
     op_type = instruction_set_list[track][0]
     operation = instruction_set_list[track][1]
 
-    rd = 0 
+    rd = 0 # Check these or remove these or add more
     register_data = '0x00000000'
     is_mem = [False, 0, 'n']
 
@@ -163,6 +164,7 @@ def decode():
         imm = bin_instruction[0:7] + bin_instruction[20:25]
         operand1 = R[int(rs1, 2)]
         operand2 = imm
+        register_data = rs2
 
     elif op_type == 'SB':
         rs2 = bin_instruction[7:12]
@@ -170,14 +172,17 @@ def decode():
         operand1 = int(rs1, 2)
         operand2 = int(rs2, 2)
         imm = bin_instruction[0] + bin_instruction[24] + bin_instruction[1:7] + bin_instruction[20:24] + '0'
+        offset = imm
 
     elif op_type == 'U':
         rd = bin_instruction[20:25]
         imm = bin_instruction[0:20] + '0'*12
+        operand2 = imm
 
     elif op_type == 'UJ':
         rd = bin_instruction[20:25]
         imm = bin_instruction[0] + bin_instruction[12:20] + bin_instruction[11] + bin_instruction[1:11] + '0'
+        offset = imm
 
     else:
         print("Unidentifiable machine code!")
@@ -264,36 +269,29 @@ def execute():
 
     elif operation == 'beq':
         if operand1 == operand2:
-            PC += int(imm, 2) - 4
+            PC += int(offset, 2) - 4
 
     elif operation == 'bne':
         if operand1 != operand2:
-            PC += int(imm, 2) - 4
+            PC += int(offset, 2) - 4
 
     elif operation == 'bge':
         if operand2 >= operand1:
-            PC += int(imm, 2) - 4
+            PC += int(offest, 2) - 4
 
     elif operation == 'blt':
         if operand2 > operand1:
-            PC += int(imm, 2) - 4
+            PC += int(offset, 2) - 4
 
     elif operation == 'auipc':
-        # (Add Upper Immediate to Program Counter): this sets rd to the sum of the current PC and a 32-bit value with the low 12 bits as 0 and the high 20 bits coming from the U-type immediate.
-        curr_instruction_word = '0x' + MEM[PC + 3] + MEM[PC + 2] + MEM[PC + 1] + MEM[PC]
-        register_data = hex(int(int(curr_instruction_word, 16) + int(imm, 2)))
+        register_data = hex(int(PC + int(operand2, 2)))
 
     elif operation == 'lui':
-        # lui (Load Upper Immediate): this sets rd to a 32-bit value with the low 12 bits being 0 and the high 20 bits coming from the U-type immediate.
-        register_data = hex(int(imm, 2))
+        register_data = hex(int(operand2, 2))
 
     elif operation == 'jal':
-        register_data = '0x' + MEM[PC + 3] + MEM[PC + 2] + MEM[PC + 1] + MEM[PC]  # Storing next instruction
-        updated_intruction_word = hex(int(imm, 2))
-        MEM[PC + 3] = updated_intruction_word[2:4]
-        MEM[PC + 2] = updated_intruction_word[4:6]
-        MEM[PC + 1] = updated_intruction_word[6:8]
-        MEM[PC] = updated_intruction_word[8:10]
+        register_data = hex(PC)
+        PC += int(offset, 2) - 4
 
 
 # Performs the memory operations
