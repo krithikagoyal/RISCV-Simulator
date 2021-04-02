@@ -84,7 +84,7 @@ def write_data_memory():
         fp = open("data_out.mc", "w")
         out_tmp = []
         for i in range(268435456, 268468221, 4):
-            out_tmp.append(hex(i) + ' 0x' + MEM[i * 4 + 3] + MEM[i * 4 + 2] + MEM[i * 4 + 1] + MEM[i * 4])
+            out_tmp.append(hex(i) + ' 0x' + MEM[i + 3] + MEM[i + 2] + MEM[i + 1] + MEM[i])
         fp.writelines(out_tmp)
         fp.close()
     except:
