@@ -1,6 +1,6 @@
 """
 The project is developed as part of Computer Architecture class.
-Project Name: Functional Simulator for subset of RISCV Processor
+Project Name: Functional Simulator for subset of RISC-V Processor
 
 -------------------------------------------------
 | Developer's Name   | Developer's Email ID     |
@@ -21,7 +21,7 @@ from collections import defaultdict
 # Register file
 R = [0]*32
 
-# Flags
+# Flags and clock
 N = C = V = Z = clock = 0
 
 # Program Counter
@@ -40,6 +40,8 @@ register_data = '0x00000000'
 memory_address = 0
 memory_element = '00'
 memory_data = '00'
+is_mem = [False, 0, 'n']
+
 
 # run_RISCVsim function
 def run_RISCVsim():
@@ -82,8 +84,7 @@ def write_data_memory():
         fp = open("data_out.mc", "w")
         out_tmp = []
         for i in range(1000, 4):
-            out_tmp.append(
-                hex(i) + ' 0x' + MEM[i * 4 + 3] + MEM[i * 4 + 2] + MEM[i * 4 + 1] + MEM[i * 4])
+            out_tmp.append(hex(i) + ' 0x' + MEM[i * 4 + 3] + MEM[i * 4 + 2] + MEM[i * 4 + 1] + MEM[i * 4])
         fp.writelines(out_tmp)
         fp.close()
     except:
@@ -102,12 +103,12 @@ def fetch():
     PC += 4
 
 
-# Reads the instruction register, operand1 and operand2 from register file; decides the operation to be performed in execute stage
+# Reads the instruction register, operand1 and operand2 from register file; decides the operation to be performed in the execute stage
 def decode():
     if instruction_word == '0x401010BB':
         swi_exit()
 
-    bin_instruction = bin(int(instruction_word[2:], 16))[2:]
+    bin_instruction = bin(int(instruction_word[2:],16))[2:]
 
     bin_instruction = (32 - len(bin_instruction)) * '0' + bin_instruction
     opcode = int(bin_instruction[25:32], 2)
@@ -138,6 +139,7 @@ def decode():
 
     rd = 0
     register_data = '0x00000000'
+    is_mem = [False, 0, 'n']
     if op_type == 'R':
         rs2 = bin_instruction[7:12]
         rs1 = bin_instruction[12:17]
@@ -164,8 +166,7 @@ def decode():
         rs1 = bin_instruction[12:17]
         operand1 = int(rs1, 2)
         operand2 = int(rs2, 2)
-        imm = bin_instruction[0] + bin_instruction[24] + \
-            bin_instruction[1:7] + bin_instruction[20:24] + '0'
+        imm = bin_instruction[0] + bin_instruction[24] + bin_instruction[1:7] + bin_instruction[20:24] + '0'
 
     elif op_type == 'U':
         rd = bin_instruction[20:25]
@@ -173,8 +174,7 @@ def decode():
 
     elif op_type == 'UJ':
         rd = bin_instruction[20:25]
-        imm = bin_instruction[0] + bin_instruction[12:20] + \
-            bin_instruction[11] + bin_instruction[1:11] + '0'
+        imm = bin_instruction[0] + bin_instruction[12:20] + bin_instruction[11] + bin_instruction[1:11] + '0'
 
     else:
         print("Unidentifiable machine code!")
@@ -232,39 +232,32 @@ def execute():
         register_data = hex(int(int(operand1, 16) | int(operand2, 2)))
 
     elif operation == 'lb':
-        memory_element = MEM[int(int(operand1, 16) + int(operand2, 2))]
-        register_data = '0x000000' + memory_element
+        memory_address = int(int(operand1, 16) + int(operand2, 2))
+        is_mem = [True, 0, 'l']
 
     elif operation == 'lh':
-        element_address = int(int(operand1, 16) + int(operand2, 2))
-        memory_element = MEM[element_address + 1] + MEM[element_address]
-        register_data = '0x0000' + memory_element
+        memory_address = int(int(operand1, 16) + int(operand2, 2))
+        is_mem = [True, 1, 'l']
 
     elif operation == 'lw':
-        element_address = int(int(operand1, 16) + int(operand2, 2))
-        memory_element = MEM[element_address + 3] + MEM[element_address + 2] + MEM[element_address + 1] + MEM[element_address]
-        register_data = '0x' + memory_element
+        memory_address = int(int(operand1, 16) + int(operand2, 2))
+        is_mem = [True, 3, 'l']
 
     elif operation == 'jalr':
-        # I THink register data should be MEM[PC]
         register_data = hex(PC)
         PC = int(operand2, 2) + int(operand1, 16) - 4
 
     elif operation == 'sb':
         memory_address = int(int(operand1, 16) + int(operand2, 2))
-        MEM[memory_address] = R[int(rs2, 2)][8:10]
+        is_mem = [True, 0, 's']
 
     elif operation == 'sw':
         memory_address = int(int(operand1, 16) + int(operand2, 2))
-        MEM[memory_address] = R[int(rs2, 2)][8:10]
-        MEM[memory_address + 1] = R[int(rs2, 2)][6:8]
-        MEM[memory_address + 2] = R[int(rs2, 2)][4:6]
-        MEM[memory_address + 3] = R[int(rs2, 2)][2:4]
+        is_mem = [True, 3, 's']
 
     elif operation == 'sh':
         memory_address = int(int(operand1, 16) + int(operand2, 2))
-        MEM[memory_address] = R[int(rs2, 2)][8:10]
-        MEM[memory_address + 1] = R[int(rs2, 2)][6:8]
+        is_mem = [True, 1, 's']
 
     elif operation == 'beq':
         if operand1 == operand2:
@@ -302,16 +295,26 @@ def execute():
 
 # Performs the memory operations
 def mem():
+    if is_mem[0] == True:
+        if is_mem[2] == 'l':
+            register_data = '0x'
+            for i in range(is_mem[1] + 1):
+                register_data += MEM[memory_address + is_mem[1] - i]
+        else:
+            for i in range(is_mem[1] + 1):
+                MEM[memory_address + is_mem[1] - i] = register_data[i:i + 2]
 
 
 # Writes the results back to the register file
 def write_back():
+    if is_mem[0] == True:
+        register_data = memory_element
     R[int(rd, 2)] = register_data
 
 
 # Memory write
 def write_word(address, instruction):
-    idx = int(address[2:], 16)
+    idx = int(address[2:],16)
     MEM[idx] = instruction[8:10]
     MEM[idx + 1] = instruction[6:8]
     MEM[idx + 2] = instruction[4:6]
