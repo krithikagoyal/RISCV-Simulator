@@ -1,4 +1,4 @@
-Design and implement a function simulator in C/C++/Java/Python for 32-bit RISC-V ISA instructions. Function simulator takes instruction encoding in a .mc file as input. The .mc file has the following format:
+Design and implement a function simulator in C/C++/Java/Python for 32-bit RISCV ISA instructions. Function simulator takes instruction encoding in a .mc file as input. The .mc file has the following format:
 <address of instruction><delimiter - space><machine code of the instruction>
 
 All the instructions given in the input .mc file are executed as per the functional behavior of the instructions. Each instruction must go through the following phases:
@@ -8,7 +8,7 @@ All the instructions given in the input .mc file are executed as per the functio
  - Memory
  - Writeback
 
-Along with the execution of instruction stages, the simulator also provides messages about what it is doing in each stage, implements an additional instruction that exits the simulator, writes the data memory in the .mc file before exiting.
+Along with the execution of instruction stages, the simulator also provides messages about what it is doing in each stage, implements an additional instruction that exits the simulator, writes the data memory in the .mc file before exiting.  
 
 You must test the software using the following assembly programs:
  - Fibonacci Program
