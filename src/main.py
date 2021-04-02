@@ -21,15 +21,15 @@ import sys
 
 if __name__ == '__main__':
 
-    # check for correct number of arguments
+    '''# check for correct number of arguments
     if len(sys.argv) < 2:
         print("Incorrect number of arguments. Please invoke the simulator \n\t./myRISCVSim <input mc file> \n")
         exit(1)
     
 
     # set .mc file
-    prog_mc_file = sys.argv[1]
-    #prog_mc_file = 'input.mc'
+    prog_mc_file = sys.argv[1]'''
+    prog_mc_file = 'input.mc'
 
     # reset the processor
     reset_proc()
