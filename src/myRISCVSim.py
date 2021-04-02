@@ -96,6 +96,8 @@ def write_data_memory():
 # It is called to end the program and write the updated data memory in "data_out.mc" file
 def swi_exit():
     write_data_memory()
+    # for i in range(32):
+    #     print(R[i])
     exit(0)
 
 
@@ -139,7 +141,7 @@ def decode():
             break
         track += 1
 
-    print(track)
+    # print(track)
     op_type = instruction_set_list[track][0]
     operation = instruction_set_list[track][1]
 
