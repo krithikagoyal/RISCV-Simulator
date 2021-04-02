@@ -1,6 +1,6 @@
 """
 The project is developed as part of Computer Architecture class.
-Project Name: Functional Simulator for subset of RISCV Processor
+Project Name: Functional Simulator for subset of RISC-V Processor
 
 -------------------------------------------------
 | Developer's Name   | Developer's Email ID     |
@@ -22,7 +22,7 @@ import csv
 # Register file
 R = [0]*32
 
-# Flags
+# Flags and clock
 N = C = V = Z = clock = 0
 
 # Program Counter
@@ -54,7 +54,7 @@ def run_RISCVsim():
         mem()
         write_back()
         clock += 1
-        print("Number of clock cycles: ", clock)
+        print("Number of clock cycles: ", clock, '\n')
 
 
 # It is used to set the reset values
@@ -76,11 +76,11 @@ def load_program_memory(file_name):
                 write_word(address, instruction)
         fp.close()
     except:
-        print("Error opening input mem file.\n")
+        print("Error opening input .mc file.\n")
         exit(1)
 
 
-# Writes the data memory in "data_out.mc" file
+# Creates a "data_out.mc" file and writes the data memory in it.
 def write_data_memory():
     try:
         fp = open("data_out.mc", "w")
@@ -93,7 +93,7 @@ def write_data_memory():
         print("Error opening data_out.mc file for writing.\n")
 
 
-# It should be called when instruction is swi_exit
+# It is called to end the program and write the updated data memory in "data_out.mc" file
 def swi_exit():
     write_data_memory()
     # for i in range(32):
@@ -105,17 +105,18 @@ def swi_exit():
 def fetch():
     global PC, instruction_word
     instruction_word = '0x' + MEM[PC + 3] + MEM[PC + 2] + MEM[PC + 1] + MEM[PC]
+    print("FETCH: Fetch instruction", instruction_word, "from address", hex(PC))
     PC += 4
 
 
-# Reads the instruction register, operand1 and operand2 from register file; decides the operation to be performed in execute stage
+# Decodes the instruction and decides the operation to be performed in the execute stage; reads the operands from the register file.
 def decode():
     if instruction_word == '0x401010BB':
         swi_exit()
 
-    bin_instruction = bin(int(instruction_word[2:], 16))[2:]
-
+    bin_instruction = bin(int(instruction_word[2:],16))[2:]
     bin_instruction = (32 - len(bin_instruction)) * '0' + bin_instruction
+
     opcode = int(bin_instruction[25:32], 2)
     func3 = int(bin_instruction[17:20], 2)
     func7 = int(bin_instruction[0:7], 2)
@@ -123,6 +124,7 @@ def decode():
     f = open('src/Instruction_Set_List.csv')
     instruction_set_list = list(csv.reader(f))
     f.close()
+
     match_found = False
     track = 0
 
@@ -261,7 +263,6 @@ def execute():
         is_mem = [0, 3]
 
     elif operation == 'jalr':
-        # I THink register data should be MEM[PC]
         register_data = hex(PC)
         PC = int(operand2, 2) + int(operand1, 16) - 4
 
@@ -339,7 +340,7 @@ def write_back():
 
 # Memory write
 def write_word(address, instruction):
-    idx = int(address[2:], 16)
+    idx = int(address[2:],16)
     MEM[idx] = instruction[8:10]
     MEM[idx + 1] = instruction[6:8]
     MEM[idx + 2] = instruction[4:6]
