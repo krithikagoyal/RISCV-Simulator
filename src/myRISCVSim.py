@@ -43,6 +43,17 @@ memory_address = 0
 is_mem = [-1, -1] #[-1/0/1(no memory operation/load/store), type of load/store if any]
 write_back_signal = False
 
+#hex for negative numbers
+def nhex(num):
+    if num < 0:
+        num += 2**32
+    return hex(num)
+
+def nint(s, base):
+    num = int(s,base)
+    if num >= 2**31:
+        num -= 2**32
+    return num
 
 # run_RISCVsim function
 def run_RISCVsim():
@@ -86,7 +97,7 @@ def write_data_memory():
         fp = open("data_out.mc", "w")
         out_tmp = []
         for i in range(268435456, 268468221, 4):
-            out_tmp.append(hex(i) + ' 0x' + MEM[i + 3] + MEM[i + 2] + MEM[i + 1] + MEM[i] + '\n')
+            out_tmp.append(nhex(i) + ' 0x' + MEM[i + 3] + MEM[i + 2] + MEM[i + 1] + MEM[i] + '\n')
         fp.writelines(out_tmp)
         fp.close()
     except:
@@ -105,12 +116,13 @@ def swi_exit():
 def fetch():
     global PC, instruction_word
     instruction_word = '0x' + MEM[PC + 3] + MEM[PC + 2] + MEM[PC + 1] + MEM[PC]
-    print("FETCH: Fetch instruction", instruction_word, "from address", hex(PC))
+    print("FETCH: Fetch instruction", instruction_word, "from address", nhex(PC))
     PC += 4
 
 
 # Decodes the instruction and decides the operation to be performed in the execute stage; reads the operands from the register file.
 def decode():
+    global opcode, func3, func7, operation, operand1, operand2, 
     if instruction_word == '0x401010BB':
         swi_exit()
 
@@ -140,7 +152,11 @@ def decode():
         if match_found:
             break
         track += 1
-
+    
+    if match_found == False:
+        print("Unidentifiable machine code!")
+        swi_exit()
+    
     # print(track)
     op_type = instruction_set_list[track][0]
     operation = instruction_set_list[track][1]
@@ -203,52 +219,52 @@ def execute():
     global register_data
 
     if operation == 'add':
-        register_data = hex(int(int(operand1, 16) + int(operand2, 16)))
+        register_data = nhex(int(nint(operand1, 16) + nint(operand2, 16)))
 
     elif operation == 'sub':
-        register_data = hex(int(int(operand1, 16) - int(operand2, 16)))
+        register_data = nhex(int(nint(operand1, 16) - nint(operand2, 16)))
 
     elif operation == 'and':
-        register_data = hex(int(int(operand1, 16) & int(operand2, 16)))
+        register_data = nhex(int(int(operand1, 16) & int(operand2, 16)))
 
     elif operation == 'or':
-        register_data = hex(int(int(operand1, 16) | int(operand2, 16)))
+        register_data = nhex(int(int(operand1, 16) | int(operand2, 16)))
 
     elif operation == 'sll':
-        register_data = hex(int(int(operand1, 16) << int(operand2, 16)))
+        register_data = nhex(int(int(operand1, 16) << int(operand2, 16)))
 
     elif operation == 'slt':
-        if (int(operand1, 16) < int(operand2, 16)):
+        if (nint(operand1, 16) < nint(operand2, 16)):
             register_data = hex(1)
         else:
             register_data = hex(0)
 
     elif operation == 'sra':
-        register_data = hex(int(int(operand1, 16) >> int(operand2, 16)))
+        register_data = nhex(int(int(operand1, 16) >> int(operand2, 16)))
 
     elif operation == 'srl':
-        register_data = hex(int(operand1, 16) >> int(operand2, 16))
+        register_data = nhex(int(operand1, 16) >> int(operand2, 16))
 
     elif operation == 'xor':
-        register_data = hex(int(int(operand1, 16) ^ int(operand2, 16)))
+        register_data = nhex(int(int(operand1, 16) ^ int(operand2, 16)))
 
     elif operation == 'mul':
-        register_data = hex(int(int(operand1, 16) * int(operand2, 16)))
+        register_data = nhex(int(int(operand1, 16) * int(operand2, 16)))
 
     elif operation == 'div':
-        register_data = hex(int(int(operand1, 16) / int(operand2, 16)))
+        register_data = nhex(int(int(operand1, 16) / int(operand2, 16)))
 
     elif operation == 'rem':
-        register_data = hex(int(int(operand1, 16) % int(operand2, 16)))
+        register_data = nhex(int(int(operand1, 16) % int(operand2, 16)))
 
     elif operation == 'addi':
-        register_data = hex(int(int(operand1, 16) + int(operand2, 2)))
+        register_data = nhex(int(int(operand1, 16) + int(operand2, 2)))
 
     elif operation == 'andi':
-        register_data = hex(int(int(operand1, 16) & int(operand2, 2)))
+        register_data = nhex(int(int(operand1, 16) & int(operand2, 2)))
 
     elif operation == 'ori':
-        register_data = hex(int(int(operand1, 16) | int(operand2, 2)))
+        register_data = nhex(int(int(operand1, 16) | int(operand2, 2)))
 
     elif operation == 'lb':
         memory_address = int(int(operand1, 16) + int(operand2, 2))
@@ -263,7 +279,7 @@ def execute():
         is_mem = [0, 3]
 
     elif operation == 'jalr':
-        register_data = hex(PC)
+        register_data = nhex(PC)
         PC = int(operand2, 2) + int(operand1, 16) - 4
 
     elif operation == 'sb':
@@ -295,13 +311,13 @@ def execute():
             PC += int(offset, 2) - 4
 
     elif operation == 'auipc':
-        register_data = hex(int(PC + int(operand2, 2)))
+        register_data = nhex(int(PC + int(operand2, 2)))
 
     elif operation == 'lui':
-        register_data = hex(int(operand2, 2))
+        register_data = nhex(int(operand2, 2))
 
     elif operation == 'jal':
-        register_data = hex(PC)
+        register_data = nhex(PC)
         PC += int(offset, 2) - 4
 
     register_data = (34 - len(register_data)) * '0' + register_data[2:]
