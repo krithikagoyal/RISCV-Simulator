@@ -20,7 +20,10 @@ from myRISCVSim import *
 import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QInputDialog, QFileDialog
+import sys
+import time
 
+filename = ""
 class Ui_takeInput(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -56,34 +59,16 @@ class Ui_takeInput(object):
         self.pushButton.clicked.connect(self.pushButton_handler)
 
     def pushButton_handler(self):
-        print("clicked")
         self.openDialogBox()
     
     def openDialogBox(self):
+        global filename
         filename = QFileDialog.getOpenFileName()
-        print(filename[0])
-        # set .mc file
-        prog_mc_file = filename[0]
-
-        # reset the processor
-        reset_proc()
-
-        # load the program memory
-        load_program_memory(prog_mc_file)
-
-        # run the simulator
-        run_RISCVsim()
         MainWindow.close()
-
-        app = QtWidgets.QApplication(sys.argv)
-        MainWindow2 = QtWidgets.QMainWindow()
-        ui = Ui_displayOutput()
-        ui.setupUi(MainWindow2)
-        MainWindow2.show()
 
 
 class Ui_displayOutput(object):
-    def setupUi(self, MainWindow):
+    def setupUi(self, MainWindow, filename):
         MainWindow.width = 1900
         MainWindow.height = 1000
         MainWindow.setObjectName("MainWindow")
@@ -128,14 +113,14 @@ class Ui_displayOutput(object):
         self.statusbar.setObjectName("statusbar")
         MainWindow.setStatusBar(self.statusbar)
 
-        self.retranslateUi(MainWindow)
-        QtCore.QMetaObject.connectSlotsByName(MainWindow)
         self.tableWidget.setColumnWidth(0, int(MainWindow.width / 4) - 30)
         self.tableWidget.setColumnWidth(1, int(MainWindow.width / 4) - 30)
         self.tableWidget.setColumnWidth(2, int(MainWindow.width / 4) - 30)
         self.tableWidget.setColumnWidth(3, int(MainWindow.width / 4) - 30)
+        self.retranslateUi(MainWindow, filename)
+        QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
-    def retranslateUi(self, MainWindow):
+    def retranslateUi(self, MainWindow, filename):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
         self.label.setText(_translate("MainWindow", "Data Memory"))
@@ -148,12 +133,10 @@ class Ui_displayOutput(object):
         item = self.tableWidget.horizontalHeaderItem(3)
         item.setText(_translate("MainWindow", "DECIMAL"))
 
-        f = open("data.txt", "r")
+        f = open(filename, "r")
         f = f.readlines()
         for i in range(len(f)):
             f[i] = f[i].split()
-        # __sortingEnabled = self.tableWidget.isSortingEnabled()
-        # self.tableWidget.setSortingEnabled(False)
         for i in range(100):
             item = QtWidgets.QTableWidgetItem()
             item.setTextAlignment(QtCore.Qt.AlignCenter)
@@ -178,17 +161,26 @@ class Ui_displayOutput(object):
 
 
 if __name__ == '__main__':
-    import sys
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
     ui = Ui_takeInput()
     ui.setupUi(MainWindow)
     MainWindow.show()
+    app.exec_()
+    # set .mc file
+    prog_mc_file = filename[0]
 
-    # check for correct number of arguments
-    # if len(sys.argv) < 2:
-    #     print("Incorrect number of arguments. Please invoke the simulator \n\t./myRISCVSim <input mc file> \n")
-    #     exit(1)
+    # reset the processor
+    reset_proc()
 
+    # load the program memory
+    load_program_memory(prog_mc_file)
 
+    # run the simulator
+    run_RISCVsim()
+
+    MainWindow2 = QtWidgets.QMainWindow()
+    ui = Ui_displayOutput()
+    ui.setupUi(MainWindow2, "src/data.mc")
+    MainWindow2.show()
     sys.exit(app.exec_())
