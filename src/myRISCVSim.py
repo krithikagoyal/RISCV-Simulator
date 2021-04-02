@@ -17,6 +17,7 @@ Project Name: Functional Simulator for subset of RISC-V Processor
 # Purpose of this file: Implementation file for myRISCVSim
 
 from collections import defaultdict
+from sys import exit
 import csv
 
 # Register file
@@ -122,8 +123,8 @@ def fetch():
 
 # Decodes the instruction and decides the operation to be performed in the execute stage; reads the operands from the register file.
 def decode():
-    global opcode, func3, func7, operation, operand1, operand2, 
-    if instruction_word == '0x401010BB':
+    global opcode, func3, func7, operation, operand1, operand2, instruction_word, rd, offset, register_data, memory_address, write_back_signal, PC, is_mem
+    if instruction_word == '0x401010BB' or instruction_word == '0x00000000':
         swi_exit()
 
     bin_instruction = bin(int(instruction_word[2:],16))[2:]
@@ -216,8 +217,7 @@ def decode():
 
 # Executes the ALU operation based on ALUop
 def execute():
-    global register_data
-
+    global opcode, func3, func7, operation, operand1, operand2, instruction_word, rd, offset, register_data, memory_address, write_back_signal, PC, is_mem
     if operation == 'add':
         register_data = nhex(int(nint(operand1, 16) + nint(operand2, 16)))
 
@@ -304,7 +304,7 @@ def execute():
 
     elif operation == 'bge':
         if operand2 >= operand1:
-            PC += int(offest, 2) - 4
+            PC += int(offset, 2) - 4
 
     elif operation == 'blt':
         if operand2 > operand1:
@@ -320,7 +320,7 @@ def execute():
         register_data = nhex(PC)
         PC += int(offset, 2) - 4
 
-    register_data = (34 - len(register_data)) * '0' + register_data[2:]
+    register_data = (10 - len(register_data)) * '0' + register_data[2:]
 
 
 # Performs the memory operations
