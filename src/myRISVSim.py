@@ -302,7 +302,7 @@ def execute():
 
 # Performs the memory operations
 def mem():
-
+    print("hi")
 
 # Writes the results back to the register file
 def write_back():
