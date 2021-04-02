@@ -17,6 +17,7 @@ Project Name: Functional Simulator for subset of RISC-V Processor
 # Purpose of this file: Implementation file for myRISCVSim
 
 from collections import defaultdict
+import csv
 
 # Register file
 R = [0]*32
@@ -45,6 +46,7 @@ write_back_signal = False
 
 # run_RISCVsim function
 def run_RISCVsim():
+    global clock
     while(1):
         fetch()
         decode()
@@ -117,7 +119,7 @@ def decode():
     func3 = int(bin_instruction[17:20], 2)
     func7 = int(bin_instruction[0:7], 2)
 
-    f = open('Instruction_Set_List.csv')
+    f = open('src/Instruction_Set_List.csv')
     instruction_set_list = list(csv.reader(f))
     f.close()
 
@@ -195,6 +197,8 @@ def decode():
 
 # Executes the ALU operation based on ALUop
 def execute():
+    global register_data
+
     if operation == 'add':
         register_data = hex(int(int(operand1, 16) + int(operand2, 16)))
 
