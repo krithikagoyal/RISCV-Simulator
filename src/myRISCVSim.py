@@ -86,7 +86,7 @@ def write_data_memory():
         fp = open("data_out.mc", "w")
         out_tmp = []
         for i in range(268435456, 268468221, 4):
-            out_tmp.append(hex(i) + ' 0x' + MEM[i + 3] + MEM[i + 2] + MEM[i + 1] + MEM[i])
+            out_tmp.append(hex(i) + ' 0x' + MEM[i + 3] + MEM[i + 2] + MEM[i + 1] + MEM[i] + '\n')
         fp.writelines(out_tmp)
         fp.close()
     except:
@@ -139,6 +139,7 @@ def decode():
             break
         track += 1
 
+    print(track)
     op_type = instruction_set_list[track][0]
     operation = instruction_set_list[track][1]
 
