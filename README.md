@@ -4,7 +4,8 @@
 ## Table of Contents
 1. [Contributors](https://github.com/Harshiitrpr/RISCV-Simulator/tree/Issue#contributors)
 2. [Directory Structure](https://github.com/Harshiitrpr/RISCV-Simulator/tree/Issue#directory-structure)
-3. [Phase 1 (Single cycle execution)](https://github.com/Harshiitrpr/RISCV-Simulator/tree/Issue#phase-1-single-cycle-execution)
+3. [Requirements](https://github.com/Harshiitrpr/RISCV-Simulator/tree/Issue#requirements)
+4. [Phase 1 (Single cycle execution)](https://github.com/Harshiitrpr/RISCV-Simulator/tree/Issue#phase-1-single-cycle-execution)
 
 ## Contributors
 ```
@@ -26,9 +27,6 @@ RISCV-Simulator
   |- doc
       |
       |- design-doc.docx
-  |- include
-      |
-      |- utility.py
   |- src
       |
       |- Instruction_Set_List.csv
@@ -48,8 +46,11 @@ RISCV-Simulator
   |- Readme
 ```
 
+## Requirements
+This simulator is built using Python. The user must have Python and Python Standard Library installed.
+
 ## PHASE 1 (Single cycle execution)
-*myRISCVSim.py* file will take .mc file as its argument and is executed as per the functional behaviour of the instructons.
+*myRISCVSim.py* file will take .mc file as its argument and is executed as per the functional behaviour of the instructions.
 Each instruction will go through the following steps:
 1. Fetch
 1. Decode
@@ -64,6 +65,10 @@ Each instruction will go through the following steps:
 * **SB Format:** beq, bne, bge, blt.
 * **U Format:** auipc, lui.
 * **UJ Format:** jal.
+
+As an output, the simulator writes the updated memory contents in a data_out.mc
+file. Additionally, the simulator also prints messages for each stage and the
+number of clock cycles after each cycle.
 
 #### How to run ?
 Run the following commands on the terminal:
