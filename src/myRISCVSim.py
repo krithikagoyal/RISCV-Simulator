@@ -230,13 +230,11 @@ def execute():
     elif operation == 'sra':
         register_data = hex(int(int(operand1, 16) >> int(operand2, 16)))
         # checking MSB
-        if(operand1[2] == '1'){
+        if operand1[2] == '1':
             i = 2
-            while(register_data[i] != 1){
+            while register_data[i] != 1:
                 register_data[i] = 1
                 i = i+1
-            }
-        }
 
     elif operation == 'srl':
         register_data = hex(int(operand1, 16) >> int(operand2, 16))
