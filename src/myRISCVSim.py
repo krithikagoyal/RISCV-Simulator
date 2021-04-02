@@ -170,8 +170,8 @@ def decode():
     elif op_type == 'SB':
         rs2 = bin_instruction[7:12]
         rs1 = bin_instruction[12:17]
-        operand1 = int(rs1, 2)
-        operand2 = int(rs2, 2)
+        operand1 = R[int(rs1, 2)]
+        operand2 = R[int(rs2, 2)]
         imm = bin_instruction[0] + bin_instruction[24] + bin_instruction[1:7] + bin_instruction[20:24] + '0'
         offset = imm
         write_back_signal = False
