@@ -320,7 +320,7 @@ def execute():
         register_data = nhex(PC)
         PC += int(offset, 2) - 4
 
-    register_data = (10 - len(register_data)) * '0' + register_data[2:]
+    register_data = register_data[:2] + (10 - len(register_data)) * '0' + register_data[2:]
 
 
 # Performs the memory operations
