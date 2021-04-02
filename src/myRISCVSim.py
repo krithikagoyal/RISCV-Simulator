@@ -42,6 +42,7 @@ memory_address = 0
 memory_element = '00'
 memory_data = '00'
 is_mem = [False, 0, 'n']
+write_back_signal = False
 
 
 # run_RISCVsim function
@@ -150,6 +151,7 @@ def decode():
         rd = bin_instruction[20:25]
         operand1 = R[int(rs1, 2)]
         operand2 = R[int(rs2, 2)]
+        write_back_signal = True
 
     elif op_type == 'I':
         rs1 = bin_instruction[12:17]
@@ -157,6 +159,7 @@ def decode():
         imm = bin_instruction[0:12]
         operand1 = R[int(rs1, 2)]
         operand2 = imm
+        write_back_signal = True
 
     elif op_type == 'S':
         rs2 = bin_instruction[7:12]
@@ -165,6 +168,7 @@ def decode():
         operand1 = R[int(rs1, 2)]
         operand2 = imm
         register_data = rs2
+        write_back_signal = False
 
     elif op_type == 'SB':
         rs2 = bin_instruction[7:12]
@@ -173,16 +177,19 @@ def decode():
         operand2 = int(rs2, 2)
         imm = bin_instruction[0] + bin_instruction[24] + bin_instruction[1:7] + bin_instruction[20:24] + '0'
         offset = imm
+        write_back_signal = False
 
     elif op_type == 'U':
         rd = bin_instruction[20:25]
         imm = bin_instruction[0:20] + '0'*12
         operand2 = imm
+        write_back_signal = True
 
     elif op_type == 'UJ':
         rd = bin_instruction[20:25]
         imm = bin_instruction[0] + bin_instruction[12:20] + bin_instruction[11] + bin_instruction[1:11] + '0'
         offset = imm
+        write_back_signal = True
 
     else:
         print("Unidentifiable machine code!")
@@ -308,9 +315,8 @@ def mem():
 
 # Writes the results back to the register file
 def write_back():
-    if is_mem[0] == True:
-        register_data = memory_element
-    R[int(rd, 2)] = register_data
+    if write_back_signal == True:
+        R[int(rd, 2)] = register_data
 
 
 # Memory write
