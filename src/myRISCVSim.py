@@ -74,7 +74,7 @@ def load_program_memory(file_name):
                 write_word(address, instruction)
         fp.close()
     except:
-        print("Error opening input mem file.\n")
+        print("Error opening input .mc file.\n")
         exit(1)
 
 
@@ -83,7 +83,7 @@ def write_data_memory():
     try:
         fp = open("data_out.mc", "w")
         out_tmp = []
-        for i in range(1000, 4):
+        for i in range(268435456, 268468221, 4):
             out_tmp.append(hex(i) + ' 0x' + MEM[i * 4 + 3] + MEM[i * 4 + 2] + MEM[i * 4 + 1] + MEM[i * 4])
         fp.writelines(out_tmp)
         fp.close()
@@ -91,7 +91,7 @@ def write_data_memory():
         print("Error opening data_out.mc file for writing.\n")
 
 
-# It should be called when instruction is swi_exit
+# It is called to end the program and write the updated data memory in "data_out.mc" file
 def swi_exit():
     write_data_memory()
     exit(0)
