@@ -106,8 +106,8 @@ The user must have Python and Python Standard Library installed.
 
 How to run ?
 ------------
-Run the following command on terminal:
-*python test/bubble_sort.mc*
+Run the following commands on the terminal in the main directory:
+*python src/main.py test/bubble_sort.mc*
 ---Edit if GUI is used---
 
 

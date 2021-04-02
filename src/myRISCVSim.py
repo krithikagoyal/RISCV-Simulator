@@ -99,6 +99,7 @@ def swi_exit():
 
 # Reads from the instruction memory and updates the instruction register
 def fetch():
+    global PC, instruction_word
     instruction_word = '0x' + MEM[PC + 3] + MEM[PC + 2] + MEM[PC + 1] + MEM[PC]
     print("FETCH: Fetch instruction", instruction_word, "from address", hex(PC))
     PC += 4
