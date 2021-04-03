@@ -51,10 +51,10 @@ def nhex(num):
         num += 2**32
     return hex(num)
 
-def nint(s, base):
+def nint(s, base, bits = 32):
     num = int(s,base)
-    if num >= 2**31:
-        num -= 2**32
+    if num >= 2**(bits-1):
+        num -= 2**bits
     return num
 
 # run_RISCVsim function
@@ -251,8 +251,6 @@ def execute():
             while register_data[i] != 1:
                 register_data[i] = 1
                 i = i+1
-            
-        
 
     elif operation == 'srl':
         register_data = nhex(int(operand1, 16) >> int(operand2, 16))
@@ -270,7 +268,7 @@ def execute():
         register_data = nhex(int(int(operand1, 16) % int(operand2, 16)))
 
     elif operation == 'addi':
-        register_data = nhex(int(int(operand1, 16) + int(operand2, 2)))
+        register_data = nhex(int(int(operand1, 16) + nint(operand2, 2, len(operand2))))
 
     elif operation == 'andi':
         register_data = nhex(int(int(operand1, 16) & int(operand2, 2)))
