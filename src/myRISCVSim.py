@@ -41,11 +41,11 @@ rd = 0
 offset = 0
 register_data = '0x00000000'
 memory_address = 0
-# [-1/0/1(no memory operation/load/store), type of load/store if any]
-is_mem = [-1, -1]
+is_mem = [-1, -1] # [-1/0/1(no memory operation/load/store), type of load/store if any]
 write_back_signal = False
 
-#hex for negative numbers
+
+# Utility functions
 def nhex(num):
     if num < 0:
         num += 2**32
@@ -56,6 +56,14 @@ def nint(s, base, bits = 32):
     if num >= 2**(bits-1):
         num -= 2**bits
     return num
+
+def sign_extend(data):
+    if data[2] == 'f':
+        data = data[:2] + (10 - len(data)) * 'f' + data[2:]
+    else:
+        data = data[:2] + (10 - len(data)) * '0' + data[2:]
+    return data
+
 
 # run_RISCVsim function
 def run_RISCVsim():
@@ -155,11 +163,11 @@ def decode():
         if match_found:
             break
         track += 1
-    
+
     if match_found == False:
         print("Unidentifiable machine code!")
         swi_exit()
-    
+
     # print(track)
     op_type = instruction_set_list[track][0]
     operation = instruction_set_list[track][1]
@@ -330,7 +338,7 @@ def execute():
         register_data = nhex(PC)
         PC += int(offset, 2) - 4
 
-    register_data = register_data[:2] + (10 - len(register_data)) * '0' + register_data[2:]
+    register_data = sign_extend(register_data)
 
 
 # Performs the memory operations
@@ -340,19 +348,23 @@ def mem():
 
     elif is_mem[0] == 0:
         register_data = '0x'
-        for i in range(3 - is_mem[1]):
-            register_data += '00'
-        for i in range(is_mem[1] + 1):
-            register_data += MEM[memory_address + is_mem[1] - i]
+        if is_mem[1] == 0:
+            register_data += MEM[memory_address]
+        elif is_mem[1] == 1:
+            register_data += (MEM[memory_address + 1] + MEM[memory_address])
+        else
+            register_data += (MEM[memory_address + 3] + MEM[memory_address + 2] + MEM[memory_address + 1] + MEM[memory_address])
+
+        register_data = sign_extend(register_data)
 
     else:
         if is_mem[1] >= 3:
-            MEM[memory_address + 3] = register_data[0:2]
-            MEM[memory_address + 2] = register_data[2:4]
+            MEM[memory_address + 3] = register_data[2:4]
+            MEM[memory_address + 2] = register_data[4:6]
         if is_mem[1] >= 1:
-            MEM[memory_address + 1] = register_data[4:6]
+            MEM[memory_address + 1] = register_data[6:8]
         if is_mem[1] >= 0:
-            MEM[memory_address] = register_data[6:8]
+            MEM[memory_address] = register_data[8:10]
 
 
 # Writes the results back to the register file
