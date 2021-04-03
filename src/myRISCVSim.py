@@ -17,6 +17,7 @@ Project Name: Functional Simulator for subset of RISC-V Processor
 # Purpose of this file: Implementation file for myRISCVSim
 
 from collections import defaultdict
+from sys import exit
 import csv
 
 # Register file
@@ -40,9 +41,21 @@ rd = 0
 offset = 0
 register_data = '0x00000000'
 memory_address = 0
-is_mem = [-1, -1] #[-1/0/1(no memory operation/load/store), type of load/store if any]
+# [-1/0/1(no memory operation/load/store), type of load/store if any]
+is_mem = [-1, -1]
 write_back_signal = False
 
+#hex for negative numbers
+def nhex(num):
+    if num < 0:
+        num += 2**32
+    return hex(num)
+
+def nint(s, base, bits = 32):
+    num = int(s,base)
+    if num >= 2**(bits-1):
+        num -= 2**bits
+    return num
 
 # run_RISCVsim function
 def run_RISCVsim():
@@ -86,7 +99,8 @@ def write_data_memory():
         fp = open("data_out.mc", "w")
         out_tmp = []
         for i in range(268435456, 268468221, 4):
-            out_tmp.append(hex(i) + ' 0x' + MEM[i + 3] + MEM[i + 2] + MEM[i + 1] + MEM[i] + '\n')
+            out_tmp.append(
+                hex(i) + ' 0x' + MEM[i + 3] + MEM[i + 2] + MEM[i + 1] + MEM[i] + '\n')
         fp.writelines(out_tmp)
         fp.close()
     except:
@@ -105,23 +119,24 @@ def swi_exit():
 def fetch():
     global PC, instruction_word
     instruction_word = '0x' + MEM[PC + 3] + MEM[PC + 2] + MEM[PC + 1] + MEM[PC]
-    print("FETCH: Fetch instruction", instruction_word, "from address", hex(PC))
+    print("FETCH: Fetch instruction", instruction_word, "from address", nhex(PC))
     PC += 4
 
 
 # Decodes the instruction and decides the operation to be performed in the execute stage; reads the operands from the register file.
 def decode():
-    if instruction_word == '0x401010BB':
+    global opcode, func3, func7, operation, operand1, operand2, instruction_word, rd, offset, register_data, memory_address, write_back_signal, PC, is_mem
+    if instruction_word == '0x401010BB' or instruction_word == '0x00000000':
         swi_exit()
 
-    bin_instruction = bin(int(instruction_word[2:],16))[2:]
+    bin_instruction = bin(int(instruction_word[2:], 16))[2:]
     bin_instruction = (32 - len(bin_instruction)) * '0' + bin_instruction
 
     opcode = int(bin_instruction[25:32], 2)
     func3 = int(bin_instruction[17:20], 2)
     func7 = int(bin_instruction[0:7], 2)
 
-    f = open('src/Instruction_Set_List.csv')
+    f = open('Instruction_Set_List.csv')
     instruction_set_list = list(csv.reader(f))
     f.close()
 
@@ -140,7 +155,11 @@ def decode():
         if match_found:
             break
         track += 1
-
+    
+    if match_found == False:
+        print("Unidentifiable machine code!")
+        swi_exit()
+    
     # print(track)
     op_type = instruction_set_list[track][0]
     operation = instruction_set_list[track][1]
@@ -177,7 +196,8 @@ def decode():
         rs1 = bin_instruction[12:17]
         operand1 = R[int(rs1, 2)]
         operand2 = R[int(rs2, 2)]
-        imm = bin_instruction[0] + bin_instruction[24] + bin_instruction[1:7] + bin_instruction[20:24] + '0'
+        imm = bin_instruction[0] + bin_instruction[24] + \
+            bin_instruction[1:7] + bin_instruction[20:24] + '0'
         offset = imm
         write_back_signal = False
 
@@ -189,7 +209,8 @@ def decode():
 
     elif op_type == 'UJ':
         rd = bin_instruction[20:25]
-        imm = bin_instruction[0] + bin_instruction[12:20] + bin_instruction[11] + bin_instruction[1:11] + '0'
+        imm = bin_instruction[0] + bin_instruction[12:20] + \
+            bin_instruction[11] + bin_instruction[1:11] + '0'
         offset = imm
         write_back_signal = True
 
@@ -200,55 +221,60 @@ def decode():
 
 # Executes the ALU operation based on ALUop
 def execute():
-    global register_data
-
+    global opcode, func3, func7, operation, operand1, operand2, instruction_word, rd, offset, register_data, memory_address, write_back_signal, PC, is_mem
     if operation == 'add':
-        register_data = hex(int(int(operand1, 16) + int(operand2, 16)))
+        register_data = nhex(int(nint(operand1, 16) + nint(operand2, 16)))
 
     elif operation == 'sub':
-        register_data = hex(int(int(operand1, 16) - int(operand2, 16)))
+        register_data = nhex(int(nint(operand1, 16) - nint(operand2, 16)))
 
     elif operation == 'and':
-        register_data = hex(int(int(operand1, 16) & int(operand2, 16)))
+        register_data = nhex(int(int(operand1, 16) & int(operand2, 16)))
 
     elif operation == 'or':
-        register_data = hex(int(int(operand1, 16) | int(operand2, 16)))
+        register_data = nhex(int(int(operand1, 16) | int(operand2, 16)))
 
     elif operation == 'sll':
-        register_data = hex(int(int(operand1, 16) << int(operand2, 16)))
+        register_data = nhex(int(int(operand1, 16) << int(operand2, 16)))
 
     elif operation == 'slt':
-        if (int(operand1, 16) < int(operand2, 16)):
+        if (nint(operand1, 16) < nint(operand2, 16)):
             register_data = hex(1)
         else:
             register_data = hex(0)
 
     elif operation == 'sra':
         register_data = hex(int(int(operand1, 16) >> int(operand2, 16)))
+        # checking MSB
+        if operand1[2] == '1':
+            i = 2
+            while register_data[i] != 1:
+                register_data[i] = 1
+                i = i+1
 
     elif operation == 'srl':
-        register_data = hex(int(operand1, 16) >> int(operand2, 16))
+        register_data = nhex(int(operand1, 16) >> int(operand2, 16))
 
     elif operation == 'xor':
-        register_data = hex(int(int(operand1, 16) ^ int(operand2, 16)))
+        register_data = nhex(int(int(operand1, 16) ^ int(operand2, 16)))
 
     elif operation == 'mul':
-        register_data = hex(int(int(operand1, 16) * int(operand2, 16)))
+        register_data = nhex(int(int(operand1, 16) * int(operand2, 16)))
 
     elif operation == 'div':
-        register_data = hex(int(int(operand1, 16) / int(operand2, 16)))
+        register_data = nhex(int(int(operand1, 16) / int(operand2, 16)))
 
     elif operation == 'rem':
-        register_data = hex(int(int(operand1, 16) % int(operand2, 16)))
+        register_data = nhex(int(int(operand1, 16) % int(operand2, 16)))
 
     elif operation == 'addi':
-        register_data = hex(int(int(operand1, 16) + int(operand2, 2)))
+        register_data = nhex(int(int(operand1, 16) + nint(operand2, 2, len(operand2))))
 
     elif operation == 'andi':
-        register_data = hex(int(int(operand1, 16) & int(operand2, 2)))
+        register_data = nhex(int(int(operand1, 16) & int(operand2, 2)))
 
     elif operation == 'ori':
-        register_data = hex(int(int(operand1, 16) | int(operand2, 2)))
+        register_data = nhex(int(int(operand1, 16) | int(operand2, 2)))
 
     elif operation == 'lb':
         memory_address = int(int(operand1, 16) + int(operand2, 2))
@@ -263,7 +289,7 @@ def execute():
         is_mem = [0, 3]
 
     elif operation == 'jalr':
-        register_data = hex(PC)
+        register_data = nhex(PC)
         PC = int(operand2, 2) + int(operand1, 16) - 4
 
     elif operation == 'sb':
@@ -288,23 +314,23 @@ def execute():
 
     elif operation == 'bge':
         if operand2 >= operand1:
-            PC += int(offest, 2) - 4
+            PC += int(offset, 2) - 4
 
     elif operation == 'blt':
         if operand2 > operand1:
             PC += int(offset, 2) - 4
 
     elif operation == 'auipc':
-        register_data = hex(int(PC + int(operand2, 2)))
+        register_data = nhex(int(PC + int(operand2, 2)))
 
     elif operation == 'lui':
-        register_data = hex(int(operand2, 2))
+        register_data = nhex(int(operand2, 2))
 
     elif operation == 'jal':
-        register_data = hex(PC)
+        register_data = nhex(PC)
         PC += int(offset, 2) - 4
 
-    register_data = (34 - len(register_data)) * '0' + register_data[2:]
+    register_data = register_data[:2] + (10 - len(register_data)) * '0' + register_data[2:]
 
 
 # Performs the memory operations
@@ -340,7 +366,7 @@ def write_back():
 
 # Memory write
 def write_word(address, instruction):
-    idx = int(address[2:],16)
+    idx = int(address[2:], 16)
     MEM[idx] = instruction[8:10]
     MEM[idx + 1] = instruction[6:8]
     MEM[idx + 2] = instruction[4:6]
