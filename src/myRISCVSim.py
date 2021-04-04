@@ -270,7 +270,7 @@ def execute():
             register_data = hex(int(int(operand1, 16) >> int(operand2, 16)))
             if operand1[2] == '8' or operand1[2] == '9' or operand1[2] == 'a' or operand1[2] == 'b' or operand1[2] == 'c' or operand1[2] == 'd' or operand1[2] == 'e' or operand1[2] == 'f':
                 i = 2
-                while register_data[i] != '8' and register_data[i] != '9' and register_data[i] != 'a' and register_data[i] != 'b' and register_data[i] != 'c' and register_data[i] != 'd' and register_data[i] != 'e' and register_data[i] != 'f' and :
+                while register_data[i] != '8' and register_data[i] != '9' and register_data[i] != 'a' and register_data[i] != 'b' and register_data[i] != 'c' and register_data[i] != 'd' and register_data[i] != 'e' and register_data[i] != 'f':
                     register_data[i] = 1
                     i = i + 1
 
