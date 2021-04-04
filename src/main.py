@@ -16,7 +16,6 @@ Project Name: Functional Simulator for subset of RISC-V Processor
 # main.py
 # Purpose of this file: This file handles the input and output, and invokes the simulator.
 
-# from myRISCVSim import reset_proc, load_program_memory, run_RISCVsim
 from myRISCVSim import *
 import sys
 
@@ -27,10 +26,8 @@ if __name__ == '__main__':
         print("Incorrect number of arguments. Please invoke the simulator \n\t./myRISCVSim <input mc file> \n")
         exit(1)
 
-
     # set .mc file
     prog_mc_file = sys.argv[1]
-    # prog_mc_file = 'input.mc'
 
     # reset the processor
     reset_proc()

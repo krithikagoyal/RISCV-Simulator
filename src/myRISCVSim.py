@@ -75,8 +75,6 @@ def run_RISCVsim():
         mem()
         write_back()
         clock += 1
-        # for i in range(32):
-        #     print(R[i])
         print("Number of clock cycles: ", clock, '\n')
 
 
@@ -108,7 +106,7 @@ def write_data_memory():
     try:
         fp = open("data_out.mc", "w")
         out_tmp = []
-        for i in range(268435456, 268435465, 4): #268468221
+        for i in range(268435456, 268468221, 4):
             out_tmp.append(
                 hex(i) + ' 0x' + MEM[i + 3] + MEM[i + 2] + MEM[i + 1] + MEM[i] + '\n')
         fp.writelines(out_tmp)
@@ -120,8 +118,6 @@ def write_data_memory():
 # It is called to end the program and write the updated data memory in "data_out.mc" file
 def swi_exit():
     write_data_memory()
-    for i in range(32):
-        print(R[i])
     exit(0)
 
 
@@ -172,7 +168,6 @@ def decode():
         print("Unidentifiable machine code!")
         swi_exit()
 
-    # print(track)
     op_type = instruction_set_list[track][0]
     operation = instruction_set_list[track][1]
 
@@ -248,7 +243,6 @@ def execute():
         register_data = nhex(int(int(operand1, 16) | int(operand2, 16)))
 
     elif operation == 'sll':
-        # FIX FOR NEGATIVE VALUES
         if(nint(operand2, 16) < 0):
             print("ERROR IN SLL\n")
             swi_exit()
@@ -262,7 +256,6 @@ def execute():
             register_data = hex(0)
 
     elif operation == 'sra':
-        # FIX FOR NEGATIVE VALUES
         if(nint(operand2, 16) < 0):
             print("ERROR IN SRA\n")
             swi_exit()
@@ -275,7 +268,6 @@ def execute():
                     i = i + 1
 
     elif operation == 'srl':
-        # MAKE CASE FOR NEGATIVE SHIFTS
         if(nint(operand2, 16) < 0):
             print("ERROR IN SRL\n")
             swi_exit()
@@ -289,14 +281,14 @@ def execute():
         register_data = nhex(int(nint(operand1, 16) * nint(operand2, 16)))
 
     elif operation == 'div':
-        register_data = nhex(int(nint(operand1, 16) / int(operand2, 16)))
+        register_data = nhex(int(nint(operand1, 16) / nint(operand2, 16)))
 
     elif operation == 'rem':
-        register_data = nhex(int(int(operand1, 16) % int(operand2, 16)))
+        register_data = nhex(int(nint(operand1, 16) % nint(operand2, 16)))
 
     elif operation == 'addi':
         register_data = nhex(
-            int(int(operand1, 16) + nint(operand2, 2, len(operand2))))
+            int(nint(operand1, 16) + nint(operand2, 2, len(operand2))))
 
     elif operation == 'andi':
         register_data = nhex(int(int(operand1, 16) & int(operand2, 2)))
@@ -318,7 +310,7 @@ def execute():
 
     elif operation == 'jalr':
         register_data = nhex(PC)
-        PC = int(operand2, 2) + int(operand1, 16) - 4
+        PC = nint(operand2, 2, len(operand2)) + nint(operand1, 16)
 
     elif operation == 'sb':
         memory_address = int(int(operand1, 16) + nint(operand2, 2, len(operand2)))
@@ -334,19 +326,19 @@ def execute():
 
     elif operation == 'beq':
         if nint(operand1, 16) == nint(operand2, 16):
-            PC += int(offset, 2) - 4
+            PC += nint(offset, 2, len(offset)) - 4
 
     elif operation == 'bne':
         if nint(operand1, 16) != nint(operand2, 16):
-            PC += int(offset, 2) - 4
+            PC += nint(offset, 2, len(offset)) - 4
 
     elif operation == 'bge':
         if nint(operand1, 16) >= nint(operand2, 16):
-            PC += int(offset, 2) - 4
+            PC += nint(offset, 2, len(offset)) - 4
 
     elif operation == 'blt':
-        if nint(operand1, 16) > nint(operand2, 16):
-            PC += int(offset, 2) - 4
+        if nint(operand1, 16) < nint(operand2, 16):
+            PC += nint(offset, 2, len(offset)) - 4
 
     elif operation == 'auipc':
         register_data = operand2 + 12 * '0'
@@ -358,7 +350,7 @@ def execute():
 
     elif operation == 'jal':
         register_data = nhex(PC)
-        PC += int(offset, 2) - 4
+        PC += nint(offset, 2, len(offset)) - 4
 
     register_data = register_data[:2] + \
         (10 - len(register_data)) * '0' + register_data[2:]
