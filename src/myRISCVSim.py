@@ -58,7 +58,7 @@ def nint(s, base, bits = 32):
     return num
 
 def sign_extend(data):
-    if data[2] == 'f':
+    if data[2] == '8' or data[2] == '9' or data[2] == 'a' or data[2] == 'b' or data[2] == 'c' or data[2] == 'd' or data[2] == 'e' or data[2] == 'f':
         data = data[:2] + (10 - len(data)) * 'f' + data[2:]
     else:
         data = data[:2] + (10 - len(data)) * '0' + data[2:]
@@ -75,6 +75,8 @@ def run_RISCVsim():
         mem()
         write_back()
         clock += 1
+        # for i in range(32):
+        #     print(R[i])
         print("Number of clock cycles: ", clock, '\n')
 
 
@@ -106,7 +108,7 @@ def write_data_memory():
     try:
         fp = open("data_out.mc", "w")
         out_tmp = []
-        for i in range(268435456, 268468221, 4):
+        for i in range(268435456, 268435465, 4): #268468221
             out_tmp.append(
                 hex(i) + ' 0x' + MEM[i + 3] + MEM[i + 2] + MEM[i + 1] + MEM[i] + '\n')
         fp.writelines(out_tmp)
@@ -118,14 +120,15 @@ def write_data_memory():
 # It is called to end the program and write the updated data memory in "data_out.mc" file
 def swi_exit():
     write_data_memory()
-    # for i in range(32):
-    #     print(R[i])
+    for i in range(32):
+        print(R[i])
     exit(0)
 
 
 # Reads from the instruction memory and updates the instruction register
 def fetch():
     global PC, instruction_word
+
     instruction_word = '0x' + MEM[PC + 3] + MEM[PC + 2] + MEM[PC + 1] + MEM[PC]
     print("FETCH: Fetch instruction", instruction_word, "from address", nhex(PC))
     PC += 4
@@ -133,7 +136,8 @@ def fetch():
 
 # Decodes the instruction and decides the operation to be performed in the execute stage; reads the operands from the register file.
 def decode():
-    global opcode, func3, func7, operation, operand1, operand2, instruction_word, rd, offset, register_data, memory_address, write_back_signal, PC, is_mem
+    global operation, operand1, operand2, instruction_word, rd, offset, register_data, memory_address, write_back_signal, PC, is_mem, MEM, R
+
     if instruction_word == '0x401010BB' or instruction_word == '0x00000000':
         swi_exit()
 
@@ -144,7 +148,7 @@ def decode():
     func3 = int(bin_instruction[17:20], 2)
     func7 = int(bin_instruction[0:7], 2)
 
-    f = open('Instruction_Set_List.csv')
+    f = open('src/Instruction_Set_List.csv')
     instruction_set_list = list(csv.reader(f))
     f.close()
 
@@ -196,7 +200,7 @@ def decode():
         imm = bin_instruction[0:7] + bin_instruction[20:25]
         operand1 = R[int(rs1, 2)]
         operand2 = imm
-        register_data = rs2
+        register_data = R[int(rs2, 2)]
         write_back_signal = False
 
     elif op_type == 'SB':
@@ -229,7 +233,8 @@ def decode():
 
 # Executes the ALU operation based on ALUop
 def execute():
-    global opcode, func3, func7, operation, operand1, operand2, instruction_word, rd, offset, register_data, memory_address, write_back_signal, PC, is_mem
+    global operation, operand1, operand2, instruction_word, rd, offset, register_data, memory_address, write_back_signal, PC, is_mem, MEM, R
+
     if operation == 'add':
         register_data = nhex(int(nint(operand1, 16) + nint(operand2, 16)))
 
@@ -258,7 +263,7 @@ def execute():
             i = 2
             while register_data[i] != 1:
                 register_data[i] = 1
-                i = i+1
+                i = i + 1
 
     elif operation == 'srl':
         register_data = nhex(int(operand1, 16) >> int(operand2, 16))
@@ -285,15 +290,15 @@ def execute():
         register_data = nhex(int(int(operand1, 16) | int(operand2, 2)))
 
     elif operation == 'lb':
-        memory_address = int(int(operand1, 16) + int(operand2, 2))
+        memory_address = int(int(operand1, 16) + nint(operand2, 2, len(operand2)))
         is_mem = [0, 0]
 
     elif operation == 'lh':
-        memory_address = int(int(operand1, 16) + int(operand2, 2))
+        memory_address = int(int(operand1, 16) + nint(operand2, 2, len(operand2)))
         is_mem = [0, 1]
 
     elif operation == 'lw':
-        memory_address = int(int(operand1, 16) + int(operand2, 2))
+        memory_address = int(int(operand1, 16) + nint(operand2, 2, len(operand2)))
         is_mem = [0, 3]
 
     elif operation == 'jalr':
@@ -301,48 +306,52 @@ def execute():
         PC = int(operand2, 2) + int(operand1, 16) - 4
 
     elif operation == 'sb':
-        memory_address = int(int(operand1, 16) + int(operand2, 2))
+        memory_address = int(int(operand1, 16) + nint(operand2, 2, len(operand2)))
         is_mem = [1, 0]
 
     elif operation == 'sh':
-        memory_address = int(int(operand1, 16) + int(operand2, 2))
+        memory_address = int(int(operand1, 16) + nint(operand2, 2, len(operand2)))
         is_mem = [1, 1]
 
     elif operation == 'sw':
-        memory_address = int(int(operand1, 16) + int(operand2, 2))
+        memory_address = int(int(operand1, 16) + nint(operand2, 2, len(operand2)))
         is_mem = [1, 3]
 
     elif operation == 'beq':
-        if operand1 == operand2:
+        if nint(operand1, 16) == nint(operand2, 16):
             PC += int(offset, 2) - 4
 
     elif operation == 'bne':
-        if operand1 != operand2:
+        if nint(operand1, 16) != nint(operand2, 16):
             PC += int(offset, 2) - 4
 
     elif operation == 'bge':
-        if operand2 >= operand1:
+        if nint(operand1, 16) >= nint(operand2, 16):
             PC += int(offset, 2) - 4
 
     elif operation == 'blt':
-        if operand2 > operand1:
+        if nint(operand1, 16) > nint(operand2, 16):
             PC += int(offset, 2) - 4
 
     elif operation == 'auipc':
+        register_data = operand2 + 12 * '0'
         register_data = nhex(int(PC + int(operand2, 2)))
 
     elif operation == 'lui':
+        register_data = operand2 + 12 * '0'
         register_data = nhex(int(operand2, 2))
 
     elif operation == 'jal':
         register_data = nhex(PC)
         PC += int(offset, 2) - 4
 
-    register_data = sign_extend(register_data)
+    register_data = register_data[:2] + (10 - len(register_data)) * '0' + register_data[2:]
 
 
 # Performs the memory operations
 def mem():
+    global operation, operand1, operand2, instruction_word, rd, offset, register_data, memory_address, write_back_signal, PC, is_mem, MEM, R
+
     if is_mem[0] == -1:
         print("No memory operation.")
 
@@ -352,7 +361,7 @@ def mem():
             register_data += MEM[memory_address]
         elif is_mem[1] == 1:
             register_data += (MEM[memory_address + 1] + MEM[memory_address])
-        else
+        else:
             register_data += (MEM[memory_address + 3] + MEM[memory_address + 2] + MEM[memory_address + 1] + MEM[memory_address])
 
         register_data = sign_extend(register_data)
