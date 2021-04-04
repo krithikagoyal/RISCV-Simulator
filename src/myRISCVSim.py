@@ -45,19 +45,24 @@ memory_address = 0
 is_mem = [-1, -1]
 write_back_signal = False
 
-#hex for negative numbers
+# hex for negative numbers
+
+
 def nhex(num):
     if num < 0:
         num += 2**32
     return hex(num)
 
-def nint(s, base, bits = 32):
-    num = int(s,base)
+
+def nint(s, base, bits=32):
+    num = int(s, base)
     if num >= 2**(bits-1):
         num -= 2**bits
     return num
 
 # run_RISCVsim function
+
+
 def run_RISCVsim():
     global clock
     while(1):
@@ -110,8 +115,8 @@ def write_data_memory():
 # It is called to end the program and write the updated data memory in "data_out.mc" file
 def swi_exit():
     write_data_memory()
-    # for i in range(32):
-    #     print(R[i])
+    for i in range(32):
+        print("x", i, " ", R[i])
     exit(0)
 
 
@@ -155,11 +160,11 @@ def decode():
         if match_found:
             break
         track += 1
-    
+
     if match_found == False:
         print("Unidentifiable machine code!")
         swi_exit()
-    
+
     # print(track)
     op_type = instruction_set_list[track][0]
     operation = instruction_set_list[track][1]
@@ -235,7 +240,11 @@ def execute():
         register_data = nhex(int(int(operand1, 16) | int(operand2, 16)))
 
     elif operation == 'sll':
-        register_data = nhex(int(int(operand1, 16) << int(operand2, 16)))
+        # FIX FOR NEGATIVE VALUES
+        if(nint(operand2, 16) < 0):
+            print("ERROR IN SLL\n")
+        else:
+            register_data = nhex(int(int(operand1, 16) << int(operand2, 16)))
 
     elif operation == 'slt':
         if (nint(operand1, 16) < nint(operand2, 16)):
@@ -244,31 +253,41 @@ def execute():
             register_data = hex(0)
 
     elif operation == 'sra':
+        # CHECK FOR SRA ,NOT RIGHT IN CASE FOR NEGATIVE NUMBERS
+        preserve = 0
+        if nint(operand1, 16) < 0:
+            print("HELO\n")
+            preserve = 1
+
         register_data = hex(int(int(operand1, 16) >> int(operand2, 16)))
+        print(register_data)
         # checking MSB
-        if operand1[2] == '1':
-            i = 2
-            while register_data[i] != 1:
-                register_data[i] = 1
-                i = i+1
 
     elif operation == 'srl':
-        register_data = nhex(int(operand1, 16) >> int(operand2, 16))
+        # MAKE CASE FOR NEGATIVE SHIFTS
+        if(nint(operand2, 16) < 0):
+            print("ERROR IN SRL\n")
+        else:
+            register_data = nhex(int(operand1, 16) >> int(operand2, 16))
 
     elif operation == 'xor':
         register_data = nhex(int(int(operand1, 16) ^ int(operand2, 16)))
 
     elif operation == 'mul':
-        register_data = nhex(int(int(operand1, 16) * int(operand2, 16)))
+        register_data = nhex(int(nint(operand1, 16) * nint(operand2, 16)))
 
     elif operation == 'div':
-        register_data = nhex(int(int(operand1, 16) / int(operand2, 16)))
+        if(nint(operand2, 16) < 0):
+            print("ERROR IN DIV.NEGATIVE ENCOUNTERED\n")
+        else:
+            register_data = nhex(int(nint(operand1, 16) / int(operand2, 16)))
 
     elif operation == 'rem':
         register_data = nhex(int(int(operand1, 16) % int(operand2, 16)))
 
     elif operation == 'addi':
-        register_data = nhex(int(int(operand1, 16) + nint(operand2, 2, len(operand2))))
+        register_data = nhex(
+            int(int(operand1, 16) + nint(operand2, 2, len(operand2))))
 
     elif operation == 'andi':
         register_data = nhex(int(int(operand1, 16) & int(operand2, 2)))
@@ -330,7 +349,8 @@ def execute():
         register_data = nhex(PC)
         PC += int(offset, 2) - 4
 
-    register_data = register_data[:2] + (10 - len(register_data)) * '0' + register_data[2:]
+    register_data = register_data[:2] + \
+        (10 - len(register_data)) * '0' + register_data[2:]
 
 
 # Performs the memory operations
