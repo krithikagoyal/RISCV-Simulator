@@ -5,8 +5,9 @@
     lui x28 65536 # x28 = 0x10000000 i.e. address of n
     lw x10 0(x28) # Load n in x10
     jal x1 fact # Call factorial
+    sw x10 4(x28)
     beq x0 x0 exit # Exit program
-    
+
     # Factorial procedure
     fact:
         addi sp sp -8 # Stack
@@ -27,6 +28,6 @@
             addi sp sp 8 # Restore stack
             mul x10 x10 x6 # Get answer
             jalr x0 x1 0 # Return
-    
+
     # Exit program
     exit:
