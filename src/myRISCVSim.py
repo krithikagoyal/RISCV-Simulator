@@ -51,8 +51,9 @@ def nhex(num):
         num += 2**32
     return hex(num)
 
-def nint(s, base, bits = 32):
-    num = int(s,base)
+
+def nint(s, base, bits=32):
+    num = int(s, base)
     if num >= 2**(bits-1):
         num -= 2**bits
     return num
@@ -66,6 +67,8 @@ def sign_extend(data):
 
 
 # run_RISCVsim function
+
+
 def run_RISCVsim():
     global clock
     while(1):
@@ -248,7 +251,11 @@ def execute():
         register_data = nhex(int(int(operand1, 16) | int(operand2, 16)))
 
     elif operation == 'sll':
-        register_data = nhex(int(int(operand1, 16) << int(operand2, 16)))
+        # FIX FOR NEGATIVE VALUES
+        if(nint(operand2, 16) < 0):
+            print("ERROR IN SLL\n")
+        else:
+            register_data = nhex(int(int(operand1, 16) << int(operand2, 16)))
 
     elif operation == 'slt':
         if (nint(operand1, 16) < nint(operand2, 16)):
@@ -257,7 +264,14 @@ def execute():
             register_data = hex(0)
 
     elif operation == 'sra':
+        # CHECK FOR SRA ,NOT RIGHT IN CASE FOR NEGATIVE NUMBERS
+        preserve = 0
+        if nint(operand1, 16) < 0:
+            print("HELO\n")
+            preserve = 1
+
         register_data = hex(int(int(operand1, 16) >> int(operand2, 16)))
+        print(register_data)
         # checking MSB
         if operand1[2] == '1':
             i = 2
@@ -266,22 +280,30 @@ def execute():
                 i = i + 1
 
     elif operation == 'srl':
-        register_data = nhex(int(operand1, 16) >> int(operand2, 16))
+        # MAKE CASE FOR NEGATIVE SHIFTS
+        if(nint(operand2, 16) < 0):
+            print("ERROR IN SRL\n")
+        else:
+            register_data = nhex(int(operand1, 16) >> int(operand2, 16))
 
     elif operation == 'xor':
         register_data = nhex(int(int(operand1, 16) ^ int(operand2, 16)))
 
     elif operation == 'mul':
-        register_data = nhex(int(int(operand1, 16) * int(operand2, 16)))
+        register_data = nhex(int(nint(operand1, 16) * nint(operand2, 16)))
 
     elif operation == 'div':
-        register_data = nhex(int(int(operand1, 16) / int(operand2, 16)))
+        if(nint(operand2, 16) < 0):
+            print("ERROR IN DIV.NEGATIVE ENCOUNTERED\n")
+        else:
+            register_data = nhex(int(nint(operand1, 16) / int(operand2, 16)))
 
     elif operation == 'rem':
         register_data = nhex(int(int(operand1, 16) % int(operand2, 16)))
 
     elif operation == 'addi':
-        register_data = nhex(int(int(operand1, 16) + nint(operand2, 2, len(operand2))))
+        register_data = nhex(
+            int(int(operand1, 16) + nint(operand2, 2, len(operand2))))
 
     elif operation == 'andi':
         register_data = nhex(int(int(operand1, 16) & int(operand2, 2)))
@@ -345,7 +367,8 @@ def execute():
         register_data = nhex(PC)
         PC += int(offset, 2) - 4
 
-    register_data = register_data[:2] + (10 - len(register_data)) * '0' + register_data[2:]
+    register_data = register_data[:2] + \
+        (10 - len(register_data)) * '0' + register_data[2:]
 
 
 # Performs the memory operations
