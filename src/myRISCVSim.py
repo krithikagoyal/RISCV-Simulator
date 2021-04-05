@@ -341,11 +341,9 @@ def execute():
             PC += nint(offset, 2, len(offset)) - 4
 
     elif operation == 'auipc':
-        register_data = operand2 + 12 * '0'
         register_data = nhex(int(PC + int(operand2, 2)))
 
     elif operation == 'lui':
-        register_data = operand2 + 12 * '0'
         register_data = nhex(int(operand2, 2))
 
     elif operation == 'jal':
