@@ -71,7 +71,7 @@ file. Additionally, the simulator also prints messages for each stage and the
 number of clock cycles after each cycle.
 
 #### How to run ?
-Run the following command on the terminal in the main directory:
+Run the following command on the terminal in the src directory:
 ```
-$ python src/main.py test/bubble_sort.mc
+$ python main.py
 ```
