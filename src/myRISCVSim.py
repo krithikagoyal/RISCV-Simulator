@@ -281,7 +281,11 @@ def execute():
         register_data = nhex(int(nint(operand1, 16) * nint(operand2, 16)))
 
     elif operation == 'div':
-        register_data = nhex(int(nint(operand1, 16) / nint(operand2, 16)))
+        if nint(operand2, 16) == 0:
+            print("ERROR: Division by zero!")
+            swi_exit()
+        else:
+            register_data = nhex(int(nint(operand1, 16) / nint(operand2, 16)))
 
     elif operation == 'rem':
         register_data = nhex(int(nint(operand1, 16) % nint(operand2, 16)))
