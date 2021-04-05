@@ -118,6 +118,8 @@ def write_data_memory():
 # It is called to end the program and write the updated data memory in "data_out.mc" file
 def swi_exit():
     write_data_memory()
+    #for i in range(32):
+    #    print("X",i," ",R[i])
     exit(0)
 
 
@@ -144,7 +146,7 @@ def decode():
     func3 = int(bin_instruction[17:20], 2)
     func7 = int(bin_instruction[0:7], 2)
 
-    f = open('src/Instruction_Set_List.csv')
+    f = open('Instruction_Set_List.csv')
     instruction_set_list = list(csv.reader(f))
     f.close()
 
@@ -353,9 +355,14 @@ def execute():
     elif operation == 'jal':
         register_data = nhex(PC)
         PC += nint(offset, 2, len(offset)) - 4
-
+        
+    if(len(register_data)>10):
+        register_data=register_data[:2]+register_data[-8:]
+        
     register_data = register_data[:2] + \
-        (10 - len(register_data)) * '0' + register_data[2:]
+        (10 - len(register_data)) * '0' + register_data[2::]
+
+        
 
 
 # Performs the memory operations
