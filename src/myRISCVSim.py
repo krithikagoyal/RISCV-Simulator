@@ -206,6 +206,16 @@ def write_data_memory():
         fp.close()
     except:
         print("Error opening data_out.mc file for writing.\n")
+    
+    try:
+        fp = open("reg_out.mc", "w")
+        out_tmp = []
+        for i in range(31):
+            out_tmp.append('x' + i + ' ' + R[i] + '\n')
+        fp.writelines(out_tmp)
+        fp.close()
+    except:
+        print("Error opening reg_out.mc file for writing.\n")
 
 
 # It is called to end the program and write the updated data memory in "data_out.mc" file
