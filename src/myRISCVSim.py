@@ -453,8 +453,13 @@ def execute():
         register_data = nhex(PC)
         PC += nint(offset, 2, len(offset)) - 4
 
+    if(len(register_data)>10):
+        register_data=register_data[:2]+register_data[-8:]
+
     register_data = register_data[:2] + \
-        (10 - len(register_data)) * '0' + register_data[2:]
+        (10 - len(register_data)) * '0' + register_data[2::]
+
+
 
 
 # Performs the memory operations
