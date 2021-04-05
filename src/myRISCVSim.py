@@ -385,7 +385,10 @@ def mem():
 # Writes the results back to the register file
 def write_back():
     if write_back_signal == True:
-        R[int(rd, 2)] = register_data
+        if int(rd, 2) != 0:
+            R[int(rd, 2)] = register_data
+        else:
+            print("WRITEBACK: No change in R0")
 
     else:
         print("No write-back operation.")
