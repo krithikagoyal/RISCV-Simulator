@@ -80,7 +80,7 @@ def run_RISCVsim():
         mem()
         write_back()
         clock += 1
-        print("Number of clock cycles: ", clock, '\n')
+        print("CLOCK CYCLE:", clock, '\n')
 
 
 # It is used to set the reset values
@@ -102,7 +102,7 @@ def load_program_memory(file_name):
                 write_word(address, instruction)
         fp.close()
     except:
-        print("Error opening input .mc file.\n")
+        print("ERROR: Error opening input .mc file\n")
         exit(1)
 
 
@@ -117,7 +117,7 @@ def write_data_memory():
         fp.writelines(out_tmp)
         fp.close()
     except:
-        print("Error opening data_out.mc file for writing.\n")
+        print("ERROR: Error opening data_out.mc file for writing\n")
 
     try:
         fp = open("reg_out.mc", "w")
@@ -127,7 +127,7 @@ def write_data_memory():
         fp.writelines(out_tmp)
         fp.close()
     except:
-        print("Error opening reg_out.mc file for writing.\n")
+        print("ERROR: Error opening reg_out.mc file for writing\n")
 
 
 # It is called to end the program and write the updated data memory in "data_out.mc" file
@@ -150,6 +150,7 @@ def decode():
     global operation, operand1, operand2, instruction_word, rd, offset, register_data, memory_address, write_back_signal, PC, is_mem, MEM, R
 
     if instruction_word == '0x401010BB' or instruction_word == '0x00000000':
+        print("END PROGRAM\n")
         swi_exit()
         return
 
@@ -181,7 +182,7 @@ def decode():
         track += 1
 
     if match_found == False:
-        print("Unidentifiable machine code!")
+        print("ERROR: Unidentifiable machine code!\n")
         swi_exit()
         return
 
@@ -239,7 +240,7 @@ def decode():
         write_back_signal = True
 
     else:
-        print("Unidentifiable machine code!")
+        print("ERROR: Unidentifiable machine code!\n")
         swi_exit()
         return
 
@@ -262,7 +263,7 @@ def execute():
 
     elif operation == 'sll':
         if(nint(operand2, 16) < 0):
-            print("ERROR IN SLL\n")
+            print("ERROR: Shift by negative!\n")
             swi_exit()
             return
         else:
@@ -276,7 +277,7 @@ def execute():
 
     elif operation == 'sra':
         if(nint(operand2, 16) < 0):
-            print("ERROR IN SRA\n")
+            print("ERROR: Shift by negative!\n")
             swi_exit()
             return
         else:
@@ -287,7 +288,7 @@ def execute():
 
     elif operation == 'srl':
         if(nint(operand2, 16) < 0):
-            print("ERROR IN SRL\n")
+            print("ERROR: Shift by negative!\n")
             swi_exit()
             return
         else:
@@ -301,7 +302,7 @@ def execute():
 
     elif operation == 'div':
         if nint(operand2, 16) == 0:
-            print("ERROR: Division by zero!")
+            print("ERROR: Division by zero!\n")
             swi_exit()
             return
         else:
@@ -386,7 +387,7 @@ def mem():
     global operation, operand1, operand2, instruction_word, rd, offset, register_data, memory_address, write_back_signal, PC, is_mem, MEM, R
 
     if is_mem[0] == -1:
-        print("No memory operation.")
+        print("MEMORY: No memory operation")
 
     elif is_mem[0] == 0:
         register_data = '0x'
@@ -399,6 +400,13 @@ def mem():
 
         register_data = sign_extend(register_data)
 
+        if is_mem[1] == 0:
+            print("MEMORY: Load(byte)", nint(register_data, 16), "from", hex(memory_address))
+        elif is_mem[1] == 1:
+            print("MEMORY: Load(half-word)", nint(register_data, 16), "from", hex(memory_address))
+        else:
+            print("MEMORY: Load(word)", nint(register_data, 16), "from", hex(memory_address))
+
     else:
         if is_mem[1] >= 3:
             MEM[memory_address + 3] = register_data[2:4]
@@ -408,17 +416,25 @@ def mem():
         if is_mem[1] >= 0:
             MEM[memory_address] = register_data[8:10]
 
+        if is_mem[1] == 0:
+            print("MEMORY: Store(byte)", nint(register_data[8:10], 16), "to", hex(memory_address))
+        elif is_mem[1] == 1:
+            print("MEMORY: Store(half-word)", nint(register_data[6:10], 16), "to", hex(memory_address))
+        else:
+            print("MEMORY: Store(word)", nint(register_data[2:10], 16), "to", hex(memory_address))
+
 
 # Writes the results back to the register file
 def write_back():
     if write_back_signal == True:
         if int(rd, 2) != 0:
             R[int(rd, 2)] = register_data
+            print("WRITEBACK: Write", nint(register_data, 16), "to", "R" + str(int(rd, 2)))
         else:
-            print("WRITEBACK: No change in R0")
+            print("WRITEBACK: Value of R0 can not change")
 
     else:
-        print("No write-back operation.")
+        print("WRITEBACK: No write-back operation")
 
 
 # Memory write
