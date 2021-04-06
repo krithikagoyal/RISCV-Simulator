@@ -23,8 +23,8 @@ import csv
 # Register file
 R = [0]*32
 
-# Flags and clock
-N = C = V = Z = clock = 0
+# Clock
+clock = 0
 
 # Program Counter
 PC = 0
@@ -43,8 +43,8 @@ register_data = '0x00000000'
 memory_address = 0
 is_mem = [-1, -1] # [-1/0/1(no memory operation/load/store), type of load/store if any]
 write_back_signal = False
-global terminate
 terminate = False
+
 
 # Utility functions
 def nhex(num):
@@ -75,10 +75,12 @@ def run_RISCVsim():
         if terminate:
             return
         execute()
+        if terminate:
+            return
         mem()
         write_back()
         clock += 1
-        print("Number of clock cycles: ", clock, '\n')
+        print("CLOCK CYCLE:", clock, '\n')
 
 
 # It is used to set the reset values
@@ -100,7 +102,7 @@ def load_program_memory(file_name):
                 write_word(address, instruction)
         fp.close()
     except:
-        print("Error opening input .mc file.\n")
+        print("ERROR: Error opening input .mc file\n")
         exit(1)
 
 
@@ -115,7 +117,7 @@ def write_data_memory():
         fp.writelines(out_tmp)
         fp.close()
     except:
-        print("Error opening data_out.mc file for writing.\n")
+        print("ERROR: Error opening data_out.mc file for writing\n")
 
     try:
         fp = open("reg_out.mc", "w")
@@ -125,14 +127,15 @@ def write_data_memory():
         fp.writelines(out_tmp)
         fp.close()
     except:
-        print("Error opening reg_out.mc file for writing.\n")
+        print("ERROR: Error opening reg_out.mc file for writing\n")
 
 
 # It is called to end the program and write the updated data memory in "data_out.mc" file
 def swi_exit():
-    write_data_memory()
     global terminate
+    write_data_memory()
     terminate = True
+
 
 # Reads from the instruction memory and updates the instruction register
 def fetch():
@@ -145,9 +148,10 @@ def fetch():
 
 # Decodes the instruction and decides the operation to be performed in the execute stage; reads the operands from the register file.
 def decode():
-    global operation, operand1, operand2, instruction_word, rd, offset, register_data, memory_address, write_back_signal, PC, is_mem, MEM, R
+    global alu_control_signal, operation, operand1, operand2, instruction_word, rd, offset, register_data, memory_address, write_back_signal, PC, is_mem, MEM, R
 
     if instruction_word == '0x401010BB' or instruction_word == '0x00000000':
+        print("END PROGRAM\n")
         swi_exit()
         return
 
@@ -179,11 +183,13 @@ def decode():
         track += 1
 
     if match_found == False:
-        print("Unidentifiable machine code!")
+        print("ERROR: Unidentifiable machine code!\n")
         swi_exit()
+        return
 
     op_type = instruction_set_list[track][0]
     operation = instruction_set_list[track][1]
+    alu_control_signal = track
 
     is_mem = [-1, -1]
 
@@ -194,6 +200,8 @@ def decode():
         operand1 = R[int(rs1, 2)]
         operand2 = R[int(rs2, 2)]
         write_back_signal = True
+        print("DECODE: Operation is ", operation.upper(), ", first operand is R", str(int(rs1, 2)), ", second operand is R", str(int(rs2, 2)), ", destination register is R", str(int(rd, 2)), sep="")
+        print("DECODE: Read registers: R", str(int(rs1, 2)), " = ", nint(operand1, 16), ", R", str(int(rs2, 2)), " = ", nint(operand2, 16), sep="")
 
     elif op_type == 'I':
         rs1 = bin_instruction[12:17]
@@ -202,6 +210,8 @@ def decode():
         operand1 = R[int(rs1, 2)]
         operand2 = imm
         write_back_signal = True
+        print("DECODE: Operation is ", operation.upper(), ", first operand is R", str(int(rs1, 2)), ", immediate is ", nint(operand2, 2, len(operand2)), ", destination register is R", str(int(rd, 2)), sep="")
+        print("DECODE: Read registers: R", str(int(rs1, 2)), " = ", nint(operand1, 16), sep="")
 
     elif op_type == 'S':
         rs2 = bin_instruction[7:12]
@@ -211,6 +221,8 @@ def decode():
         operand2 = imm
         register_data = R[int(rs2, 2)]
         write_back_signal = False
+        print("DECODE: Operation is ", operation.upper(), ", first operand is R", str(int(rs1, 2)), ", immediate is ", nint(operand2, 2, len(operand2)), ", data to be stored is in R", str(int(rs2, 2)), sep="")
+        print("DECODE: Read registers: R", str(int(rs1, 2)), " = ", nint(operand1, 16), ", R", str(int(rs2, 2)), " = ", nint(register_data, 16), sep="")
 
     elif op_type == 'SB':
         rs2 = bin_instruction[7:12]
@@ -221,152 +233,192 @@ def decode():
             bin_instruction[1:7] + bin_instruction[20:24] + '0'
         offset = imm
         write_back_signal = False
+        print("DECODE: Operation is ", operation.upper(), ", first operand is R", str(int(rs1, 2)), ", second operand is R", str(int(rs2, 2)), ", immediate is ", nint(offset, 2, len(offset)), sep="")
+        print("DECODE: Read registers: R", str(int(rs1, 2)), " = ", nint(operand1, 16), ", R", str(int(rs2, 2)), " = ", nint(operand2, 16), sep="")
 
     elif op_type == 'U':
         rd = bin_instruction[20:25]
-        imm = bin_instruction[0:20] + '0'*12
-        operand2 = imm
+        imm = bin_instruction[0:20]
         write_back_signal = True
+        print("DECODE: Operation is ", operation.upper(), ", immediate is ", nint(imm, 2, len(imm)), ", destination register is R", str(int(rd, 2)), sep="")
+        print("DECODE: No register read")
+        imm += '0'*12
+        operand2 = imm
 
     elif op_type == 'UJ':
         rd = bin_instruction[20:25]
         imm = bin_instruction[0] + bin_instruction[12:20] + \
-            bin_instruction[11] + bin_instruction[1:11] + '0'
-        offset = imm
+            bin_instruction[11] + bin_instruction[1:11]
         write_back_signal = True
+        print("DECODE: Operation is ", operation.upper(), ", immediate is ", nint(imm, 2, len(imm)), ", destination register is R", str(int(rd, 2)), sep="")
+        print("DECODE: No register read")
+        imm += '0'
+        offset = imm
 
     else:
-        print("Unidentifiable machine code!")
+        print("ERROR: Unidentifiable machine code!\n")
         swi_exit()
+        return
 
 
 # Executes the ALU operation based on ALUop
 def execute():
-    global operation, operand1, operand2, instruction_word, rd, offset, register_data, memory_address, write_back_signal, PC, is_mem, MEM, R
+    global alu_control_signal, operation, operand1, operand2, instruction_word, rd, offset, register_data, memory_address, write_back_signal, PC, is_mem, MEM, R
 
-    if operation == 'add':
+    if alu_control_signal == 2:
         register_data = nhex(int(nint(operand1, 16) + nint(operand2, 16)))
+        print("EXECUTE:", operation.upper(), nint(operand1, 16), "and", nint(operand2, 16))
 
-    elif operation == 'sub':
+    elif alu_control_signal == 8:
         register_data = nhex(int(nint(operand1, 16) - nint(operand2, 16)))
+        print("EXECUTE:", operation.upper(), nint(operand1, 16), "and", nint(operand2, 16))
 
-    elif operation == 'and':
+    elif alu_control_signal == 1:
         register_data = nhex(int(int(operand1, 16) & int(operand2, 16)))
+        print("EXECUTE:", operation.upper(), nint(operand1, 16), "and", nint(operand2, 16))
 
-    elif operation == 'or':
+    elif alu_control_signal == 3:
         register_data = nhex(int(int(operand1, 16) | int(operand2, 16)))
+        print("EXECUTE:", operation.upper(), nint(operand1, 16), "and", nint(operand2, 16))
 
-    elif operation == 'sll':
+    elif alu_control_signal == 4:
         if(nint(operand2, 16) < 0):
-            print("ERROR IN SLL\n")
+            print("ERROR: Shift by negative!\n")
             swi_exit()
+            return
         else:
             register_data = nhex(int(int(operand1, 16) << int(operand2, 16)))
+            print("EXECUTE:", operation.upper(), nint(operand1, 16), "and", nint(operand2, 16))
 
-    elif operation == 'slt':
+    elif alu_control_signal == 5:
         if (nint(operand1, 16) < nint(operand2, 16)):
             register_data = hex(1)
         else:
             register_data = hex(0)
+        print("EXECUTE:", operation.upper(), nint(operand1, 16), "and", nint(operand2, 16))
 
-    elif operation == 'sra':
+    elif alu_control_signal == 6:
         if(nint(operand2, 16) < 0):
-            print("ERROR IN SRA\n")
+            print("ERROR: Shift by negative!\n")
             swi_exit()
+            return
         else:
-            register_data = hex(int(int(operand1, 16) >> int(operand2, 16)))
+            register_data = bin(int(int(operand1, 16) >> int(operand2, 16)))
             if operand1[2] == '8' or operand1[2] == '9' or operand1[2] == 'a' or operand1[2] == 'b' or operand1[2] == 'c' or operand1[2] == 'd' or operand1[2] == 'e' or operand1[2] == 'f':
-                i = 2
-                while register_data[i] != '8' and register_data[i] != '9' and register_data[i] != 'a' and register_data[i] != 'b' and register_data[i] != 'c' and register_data[i] != 'd' and register_data[i] != 'e' and register_data[i] != 'f':
-                    register_data[i] = 1
-                    i = i + 1
+                register_data = '0b' + (34 - len(register_data)) * '1' + register_data[2:]
+            register_data = hex(int(register_data, 2))
+            print("EXECUTE:", operation.upper(), nint(operand1, 16), "and", nint(operand2, 16))
 
-    elif operation == 'srl':
+    elif alu_control_signal == 7:
         if(nint(operand2, 16) < 0):
-            print("ERROR IN SRL\n")
+            print("ERROR: Shift by negative!\n")
             swi_exit()
+            return
         else:
             register_data = nhex(int(operand1, 16) >> int(operand2, 16))
+            print("EXECUTE:", operation.upper(), nint(operand1, 16), "and", nint(operand2, 16))
 
-    elif operation == 'xor':
+    elif alu_control_signal == 9:
         register_data = nhex(int(int(operand1, 16) ^ int(operand2, 16)))
+        print("EXECUTE:", operation.upper(), nint(operand1, 16), "and", nint(operand2, 16))
 
-    elif operation == 'mul':
+    elif alu_control_signal == 10:
         register_data = nhex(int(nint(operand1, 16) * nint(operand2, 16)))
+        print("EXECUTE:", operation.upper(), nint(operand1, 16), "and", nint(operand2, 16))
 
-    elif operation == 'div':
+    elif alu_control_signal == 11:
         if nint(operand2, 16) == 0:
-            print("ERROR: Division by zero!")
+            print("ERROR: Division by zero!\n")
             swi_exit()
+            return
         else:
             register_data = nhex(int(nint(operand1, 16) / nint(operand2, 16)))
+            print("EXECUTE:", operation.upper(), nint(operand1, 16), "and", nint(operand2, 16))
 
-    elif operation == 'rem':
+    elif alu_control_signal == 12:
         register_data = nhex(int(nint(operand1, 16) % nint(operand2, 16)))
+        print("EXECUTE:", operation.upper(), nint(operand1, 16), "and", nint(operand2, 16))
 
-    elif operation == 'addi':
+    elif alu_control_signal == 14:
         register_data = nhex(
             int(nint(operand1, 16) + nint(operand2, 2, len(operand2))))
+        print("EXECUTE: ADD", int(operand1, 16), "and", nint(operand2, 2, len(operand2)))
 
-    elif operation == 'andi':
+    elif alu_control_signal == 13:
         register_data = nhex(int(int(operand1, 16) & int(operand2, 2)))
+        print("EXECUTE: AND", int(operand1, 16), "and", nint(operand2, 2, len(operand2)))
 
-    elif operation == 'ori':
+    elif alu_control_signal == 15:
         register_data = nhex(int(int(operand1, 16) | int(operand2, 2)))
+        print("EXECUTE: OR", int(operand1, 16), "and", nint(operand2, 2, len(operand2)))
 
-    elif operation == 'lb':
+    elif alu_control_signal == 16:
         memory_address = int(int(operand1, 16) + nint(operand2, 2, len(operand2)))
         is_mem = [0, 0]
+        print("EXECUTE: ADD", int(operand1, 16), "and", nint(operand2, 2, len(operand2)))
 
-    elif operation == 'lh':
+    elif alu_control_signal == 17:
         memory_address = int(int(operand1, 16) + nint(operand2, 2, len(operand2)))
         is_mem = [0, 1]
+        print("EXECUTE: ADD", int(operand1, 16), "and", nint(operand2, 2, len(operand2)))
 
-    elif operation == 'lw':
+    elif alu_control_signal == 18:
         memory_address = int(int(operand1, 16) + nint(operand2, 2, len(operand2)))
         is_mem = [0, 3]
+        print("EXECUTE: ADD", int(operand1, 16), "and", nint(operand2, 2, len(operand2)))
 
-    elif operation == 'jalr':
+    elif alu_control_signal == 19:
         register_data = nhex(PC)
         PC = nint(operand2, 2, len(operand2)) + nint(operand1, 16)
+        print("EXECUTE: No execute operation") # check it
 
-    elif operation == 'sb':
+    elif alu_control_signal == 20:
         memory_address = int(int(operand1, 16) + nint(operand2, 2, len(operand2)))
         is_mem = [1, 0]
+        print("EXECUTE: ADD", int(operand1, 16), "and", nint(operand2, 2, len(operand2)))
 
-    elif operation == 'sh':
+    elif alu_control_signal == 22:
         memory_address = int(int(operand1, 16) + nint(operand2, 2, len(operand2)))
         is_mem = [1, 1]
+        print("EXECUTE: ADD", int(operand1, 16), "and", nint(operand2, 2, len(operand2)))
 
-    elif operation == 'sw':
+    elif alu_control_signal == 21:
         memory_address = int(int(operand1, 16) + nint(operand2, 2, len(operand2)))
         is_mem = [1, 3]
+        print("EXECUTE: ADD", int(operand1, 16), "and", nint(operand2, 2, len(operand2)))
 
-    elif operation == 'beq':
+    elif alu_control_signal == 23:
         if nint(operand1, 16) == nint(operand2, 16):
             PC += nint(offset, 2, len(offset)) - 4
+        print("EXECUTE:", operation.upper(), nint(operand1, 16), "and", nint(operand2, 16))
 
-    elif operation == 'bne':
+    elif alu_control_signal == 24:
         if nint(operand1, 16) != nint(operand2, 16):
             PC += nint(offset, 2, len(offset)) - 4
+        print("EXECUTE:", operation.upper(), nint(operand1, 16), "and", nint(operand2, 16))
 
-    elif operation == 'bge':
+    elif alu_control_signal == 25:
         if nint(operand1, 16) >= nint(operand2, 16):
-            PC += nint(offset, 2, len(offset)) - 4
+            PC += nint(offset, 2,  len(offset)) - 4
+        print("EXECUTE:",  operation.upper(), nint(operand1, 16), "and", nint(operand2, 16))
 
-    elif operation == 'blt':
+    elif alu_control_signal == 26:
         if nint(operand1, 16) < nint(operand2, 16):
             PC += nint(offset, 2, len(offset)) - 4
+        print("EXECUTE:", operation.upper(), nint(operand1, 16), "and", nint(operand2, 16))
 
-    elif operation == 'auipc':
+    elif alu_control_signal == 27:
         register_data = nhex(int(PC + int(operand2, 2)))
+        print("EXECUTE: Shift left", int(operand2[0:20], 2), "by 12 bits and ADD", PC)
 
-    elif operation == 'lui':
+    elif alu_control_signal == 28:
         register_data = nhex(int(operand2, 2))
+        print("EXECUTE: Shift left", int(operand2[0:20], 2), "by 12 bits")
 
-    elif operation == 'jal':
+    elif alu_control_signal == 29:
         register_data = nhex(PC)
         PC += nint(offset, 2, len(offset)) - 4
+        print("EXECUTE: No execute operation") # check it
 
     if(len(register_data) > 10):
         register_data = register_data[:2] + register_data[-8:]
@@ -380,7 +432,7 @@ def mem():
     global operation, operand1, operand2, instruction_word, rd, offset, register_data, memory_address, write_back_signal, PC, is_mem, MEM, R
 
     if is_mem[0] == -1:
-        print("No memory operation.")
+        print("MEMORY: No memory operation")
 
     elif is_mem[0] == 0:
         register_data = '0x'
@@ -393,6 +445,13 @@ def mem():
 
         register_data = sign_extend(register_data)
 
+        if is_mem[1] == 0:
+            print("MEMORY: Load(byte)", nint(register_data, 16), "from", hex(memory_address))
+        elif is_mem[1] == 1:
+            print("MEMORY: Load(half-word)", nint(register_data, 16), "from", hex(memory_address))
+        else:
+            print("MEMORY: Load(word)", nint(register_data, 16), "from", hex(memory_address))
+
     else:
         if is_mem[1] >= 3:
             MEM[memory_address + 3] = register_data[2:4]
@@ -402,23 +461,31 @@ def mem():
         if is_mem[1] >= 0:
             MEM[memory_address] = register_data[8:10]
 
+        if is_mem[1] == 0:
+            print("MEMORY: Store(byte)", nint(register_data[8:10], 16), "to", hex(memory_address))
+        elif is_mem[1] == 1:
+            print("MEMORY: Store(half-word)", nint(register_data[6:10], 16), "to", hex(memory_address))
+        else:
+            print("MEMORY: Store(word)",  nint(register_data[2:10], 16), "to", hex(memory_address))
+
 
 # Writes the results back to the register file
 def write_back():
     if write_back_signal == True:
         if int(rd, 2) != 0:
             R[int(rd, 2)] = register_data
+            print("WRITEBACK: Write", nint(register_data, 16), "to", "R" + str(int(rd, 2)))
         else:
-            print("WRITEBACK: No change in R0")
+            print("WRITEBACK: Value of R0 can not change")
 
     else:
-        print("No write-back operation.")
+        print("WRITEBACK: No write-back operation")
 
 
 # Memory write
 def write_word(address, instruction):
     idx = int(address[2:], 16)
-    MEM[idx] = instruction[8:10]
+    MEM[idx] =  instruction[8:10]
     MEM[idx + 1] = instruction[6:8]
     MEM[idx + 2] = instruction[4:6]
     MEM[idx + 3] = instruction[2:4]

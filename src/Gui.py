@@ -102,7 +102,7 @@ class display_data(object):
     def retranslateUi(self, MainWindow, filename):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "RISC-V Simulator"))
-        self.label.setText(_translate("MainWindow", "Data Memory"))
+        self.label.setText(_translate("MainWindow", "Memory Data"))
         self.memory_button.setText(_translate("MainWindow", "Data"))
         self.register_button.setText(_translate("MainWindow", "Register"))
         item = self.tableWidget.horizontalHeaderItem(0)
@@ -192,7 +192,7 @@ class display_register(object):
     def retranslateUi(self, MainWindow, filename):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "RISC-V Simulator"))
-        self.label.setText(_translate("MainWindow", "Register Memory"))
+        self.label.setText(_translate("MainWindow", "Register Data"))
         self.memory_button.setText(_translate("MainWindow", "Data"))
         self.register_button.setText(_translate("MainWindow", "Register"))
         item = self.tableWidget.horizontalHeaderItem(0)
