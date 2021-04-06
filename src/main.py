@@ -20,7 +20,6 @@ from myRISCVSim import run_RISCVsim, reset_proc, load_program_memory
 import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QInputDialog, QFileDialog
-import sys
 import time
 import os
 
@@ -31,10 +30,10 @@ class Ui_takeInput(object):
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.pushButton = QtWidgets.QPushButton(self.centralwidget)
-        self.pushButton.setGeometry(QtCore.QRect(310, 280, 161, 61))
+        self.pushButton.setGeometry(QtCore.QRect(295, 270, 161, 61))
         self.pushButton.setObjectName("pushButton")
         self.label = QtWidgets.QLabel(self.centralwidget)
-        self.label.setGeometry(QtCore.QRect(240, 150, 301, 41))
+        self.label.setGeometry(QtCore.QRect(250, 180, 301, 41))
         font = QtGui.QFont()
         font.setPointSize(16)
         self.label.setFont(font)
@@ -53,20 +52,20 @@ class Ui_takeInput(object):
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "RISC-V Simulator"))
         self.pushButton.setText(_translate("MainWindow", "Choose File"))
         self.label.setText(_translate("MainWindow", "Choose the input file "))
         self.pushButton.clicked.connect(lambda: self.pushButton_handler(MainWindow))
 
     def pushButton_handler(self, MainWindow):
         self.openDialogBox(MainWindow)
-    
+
     def openDialogBox(self, MainWindow):
         global filename
         path = os.getcwd()
         path = os.path.dirname(path)
         path = os.path.join(path, 'test')
-        filename = QFileDialog.getOpenFileName(MainWindow, 'Open file', path)
+        filename = QFileDialog.getOpenFileName(MainWindow, 'Open file', path, "*.mc")
         MainWindow.close()
 
 class display_data(object):
@@ -93,7 +92,7 @@ class display_data(object):
         self.tableWidget = QtWidgets.QTableWidget(self.centralwidget)
         self.tableWidget.setGeometry(QtCore.QRect(0, 95, MainWindow.width, MainWindow.height - 100))
         self.tableWidget.setObjectName("tableWidget")
-        self.tableWidget.setColumnCount(4)        
+        self.tableWidget.setColumnCount(4)
         self.tableWidget.setRowCount(8192) # changed
         font = QtGui.QFont()
         font.setPointSize(12)
@@ -120,7 +119,7 @@ class display_data(object):
 
     def retranslateUi(self, MainWindow, filename):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "RISC-V Simulator"))
         self.label.setText(_translate("MainWindow", "Data Memory"))
         self.memory_button.setText(_translate("MainWindow", "Data"))
         self.register_button.setText(_translate("MainWindow", "Register"))
@@ -183,7 +182,7 @@ class display_register(object):
         self.tableWidget = QtWidgets.QTableWidget(self.centralwidget)
         self.tableWidget.setGeometry(QtCore.QRect(0, 95, MainWindow.width, MainWindow.height - 100))
         self.tableWidget.setObjectName("tableWidget")
-        self.tableWidget.setColumnCount(4)        
+        self.tableWidget.setColumnCount(4)
         self.tableWidget.setRowCount(32) # changed
         font = QtGui.QFont()
         font.setPointSize(12)
@@ -210,7 +209,7 @@ class display_register(object):
 
     def retranslateUi(self, MainWindow, filename):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "RISC-V Simulator"))
         self.label.setText(_translate("MainWindow", "Register Memory"))
         self.memory_button.setText(_translate("MainWindow", "Data"))
         self.register_button.setText(_translate("MainWindow", "Register"))
@@ -275,7 +274,7 @@ if __name__ == '__main__':
     ui1 = display_data()
     ui1.setupUi(MainWindow2, "data_out.mc")
     ui2 = display_register()
-    ui2.setupUi(MainWindow3, "data_out.mc")
+    ui2.setupUi(MainWindow3, "reg_out.mc")
     widgets = QtWidgets.QStackedWidget()
     widgets.setFixedHeight(1000)
     widgets.setFixedWidth(1900)

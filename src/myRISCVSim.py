@@ -116,12 +116,12 @@ def write_data_memory():
         fp.close()
     except:
         print("Error opening data_out.mc file for writing.\n")
-    
+
     try:
         fp = open("reg_out.mc", "w")
         out_tmp = []
         for i in range(32):
-            out_tmp.append('x' + i + ' ' + R[i] + '\n')
+            out_tmp.append('x' + str(i) + ' ' + R[i] + '\n')
         fp.writelines(out_tmp)
         fp.close()
     except:
