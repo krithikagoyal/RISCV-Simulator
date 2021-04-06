@@ -43,7 +43,7 @@ class Ui_takeInput(object):
 
     def openDialogBox(self, MainWindow):
         global filename
-        path = os.getcwd()
+        path = os.path.dirname(__file__)
         path = os.path.dirname(path)
         path = os.path.join(path, 'test')
         filename = QFileDialog.getOpenFileName(MainWindow, 'Open file', path, "*.mc")
