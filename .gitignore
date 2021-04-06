@@ -1,2 +1,4 @@
 __pycache__/
 data_out.mc
+reg_out.mc
+input.mc
