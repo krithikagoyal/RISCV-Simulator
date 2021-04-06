@@ -398,8 +398,8 @@ def execute():
 
     elif operation == 'bge':
         if nint(operand1, 16) >= nint(operand2, 16):
-            PC += nint(offset, 2, len(offset)) - 4
-        print("EXECUTE:", operation.upper(), nint(operand1, 16), "and", nint(operand2, 16))
+            PC += nint(offset, 2,  len(offset)) - 4
+        print("EXECUTE:",  operation.upper(), nint(operand1, 16), "and", nint(operand2, 16))
 
     elif operation == 'blt':
         if nint(operand1, 16) < nint(operand2, 16):
@@ -465,7 +465,7 @@ def mem():
         elif is_mem[1] == 1:
             print("MEMORY: Store(half-word)", nint(register_data[6:10], 16), "to", hex(memory_address))
         else:
-            print("MEMORY: Store(word)", nint(register_data[2:10], 16), "to", hex(memory_address))
+            print("MEMORY: Store(word)",  nint(register_data[2:10], 16), "to", hex(memory_address))
 
 
 # Writes the results back to the register file
@@ -484,7 +484,7 @@ def write_back():
 # Memory write
 def write_word(address, instruction):
     idx = int(address[2:], 16)
-    MEM[idx] = instruction[8:10]
+    MEM[idx] =  instruction[8:10]
     MEM[idx + 1] = instruction[6:8]
     MEM[idx + 2] = instruction[4:6]
     MEM[idx + 3] = instruction[2:4]
