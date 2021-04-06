@@ -19,99 +19,6 @@ Project Name: Functional Simulator for subset of RISC-V Processor
 from collections import defaultdict
 from sys import exit
 import csv
-import sys
-from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtWidgets import QInputDialog, QFileDialog
-
-class Ui_displayOutput(object):
-    def setupUi(self, MainWindow, filename):
-        MainWindow.width = 1900
-        MainWindow.height = 1000
-        MainWindow.setObjectName("MainWindow")
-        MainWindow.setGeometry(0, 0, MainWindow.width, MainWindow.height)
-        self.centralwidget = QtWidgets.QWidget(MainWindow)
-        self.centralwidget.setObjectName("centralwidget")
-        self.label = QtWidgets.QLabel(self.centralwidget)
-        self.label.setGeometry(QtCore.QRect(890, 0, 141, 35))
-        font = QtGui.QFont()
-        font.setPointSize(12)
-        self.label.setFont(font)
-        self.label.setObjectName("label")
-        self.tableWidget = QtWidgets.QTableWidget(self.centralwidget)
-        self.tableWidget.setGeometry(QtCore.QRect(0, 40, MainWindow.width, MainWindow.height - 100))
-        self.tableWidget.setObjectName("tableWidget")
-        self.tableWidget.setColumnCount(4)
-        self.tableWidget.setRowCount(8192) # changed
-        font = QtGui.QFont()
-        font.setPointSize(12)
-        self.tableWidget.setFont(font)
-
-        item = QtWidgets.QTableWidgetItem()
-        self.tableWidget.setVerticalHeaderItem(0, item)
-        item = QtWidgets.QTableWidgetItem()
-        self.tableWidget.setHorizontalHeaderItem(0, item)
-        item = QtWidgets.QTableWidgetItem()
-        self.tableWidget.setHorizontalHeaderItem(1, item)
-        item = QtWidgets.QTableWidgetItem()
-        self.tableWidget.setHorizontalHeaderItem(2, item)
-        item = QtWidgets.QTableWidgetItem()
-        self.tableWidget.setHorizontalHeaderItem(3, item)
-        MainWindow.setCentralWidget(self.centralwidget)
-        self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 800, 31))
-        self.menubar.setObjectName("menubar")
-        MainWindow.setMenuBar(self.menubar)
-        self.statusbar = QtWidgets.QStatusBar(MainWindow)
-        self.statusbar.setObjectName("statusbar")
-        MainWindow.setStatusBar(self.statusbar)
-
-        self.tableWidget.setColumnWidth(0, int(MainWindow.width / 4) - 30)
-        self.tableWidget.setColumnWidth(1, int(MainWindow.width / 4) - 30)
-        self.tableWidget.setColumnWidth(2, int(MainWindow.width / 4) - 30)
-        self.tableWidget.setColumnWidth(3, int(MainWindow.width / 4) - 30)
-        self.retranslateUi(MainWindow, filename)
-        QtCore.QMetaObject.connectSlotsByName(MainWindow)
-
-    def retranslateUi(self, MainWindow, filename):
-        _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "RISC-V Simulator"))
-        self.label.setText(_translate("MainWindow", "Data Memory"))
-        item = self.tableWidget.horizontalHeaderItem(0)
-        item.setText(_translate("MainWindow", "ADDRESS"))
-        item = self.tableWidget.horizontalHeaderItem(1)
-        item.setText(_translate("MainWindow", "HEX"))
-        item = self.tableWidget.horizontalHeaderItem(2)
-        item.setText(_translate("MainWindow", "BINARY"))
-        item = self.tableWidget.horizontalHeaderItem(3)
-        item.setText(_translate("MainWindow", "DECIMAL"))
-
-        g = open(filename, "r")
-        f = g.readlines()
-        g.close()
-        for i in range(len(f)):
-            f[i] = f[i].split()
-        for i in range(8192):
-            item = QtWidgets.QTableWidgetItem()
-            item.setTextAlignment(QtCore.Qt.AlignCenter)
-            self.tableWidget.setItem(i, 0, item)
-            item.setTextAlignment(QtCore.Qt.AlignCenter)
-            item.setText(_translate("MainWindow", f[i][0]))
-            item = QtWidgets.QTableWidgetItem()
-            item.setTextAlignment(QtCore.Qt.AlignCenter)
-            self.tableWidget.setItem(i, 1, item)
-            item.setTextAlignment(QtCore.Qt.AlignCenter)
-            item.setText(_translate("MainWindow", hex(int(f[i][1], 16))))
-            item = QtWidgets.QTableWidgetItem()
-            item.setTextAlignment(QtCore.Qt.AlignCenter)
-            self.tableWidget.setItem(i, 2, item)
-            item.setTextAlignment(QtCore.Qt.AlignCenter)
-            item.setText(_translate("MainWindow", bin(int(f[i][1], 16))))
-            item = QtWidgets.QTableWidgetItem()
-            item.setTextAlignment(QtCore.Qt.AlignCenter)
-            self.tableWidget.setItem(i, 3, item)
-            item.setTextAlignment(QtCore.Qt.AlignCenter)
-            item.setText(_translate("MainWindow", str(int(f[i][1], 16))))
-
 
 # Register file
 R = [0]*32
@@ -136,7 +43,8 @@ register_data = '0x00000000'
 memory_address = 0
 is_mem = [-1, -1] # [-1/0/1(no memory operation/load/store), type of load/store if any]
 write_back_signal = False
-
+global terminate
+terminate = False
 
 # Utility functions
 def nhex(num):
@@ -164,6 +72,8 @@ def run_RISCVsim():
     while(1):
         fetch()
         decode()
+        if terminate:
+            return
         execute()
         mem()
         write_back()
@@ -210,7 +120,7 @@ def write_data_memory():
     try:
         fp = open("reg_out.mc", "w")
         out_tmp = []
-        for i in range(31):
+        for i in range(32):
             out_tmp.append('x' + i + ' ' + R[i] + '\n')
         fp.writelines(out_tmp)
         fp.close()
@@ -221,14 +131,8 @@ def write_data_memory():
 # It is called to end the program and write the updated data memory in "data_out.mc" file
 def swi_exit():
     write_data_memory()
-    app = QtWidgets.QApplication(sys.argv)
-    MainWindow = QtWidgets.QMainWindow()
-    ui = Ui_displayOutput()
-    ui.setupUi(MainWindow, "data_out.mc")
-    MainWindow.show()
-    sys.exit(app.exec_())
-    exit(0)
-
+    global terminate
+    terminate = True
 
 # Reads from the instruction memory and updates the instruction register
 def fetch():
@@ -245,6 +149,7 @@ def decode():
 
     if instruction_word == '0x401010BB' or instruction_word == '0x00000000':
         swi_exit()
+        return
 
     bin_instruction = bin(int(instruction_word[2:], 16))[2:]
     bin_instruction = (32 - len(bin_instruction)) * '0' + bin_instruction
