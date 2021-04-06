@@ -46,6 +46,7 @@ write_back_signal = False
 global terminate
 terminate = False
 
+
 # Utility functions
 def nhex(num):
     if num < 0:
@@ -136,6 +137,7 @@ def swi_exit():
     write_data_memory()
     terminate = True
 
+
 # Reads from the instruction memory and updates the instruction register
 def fetch():
     global PC, instruction_word
@@ -198,6 +200,8 @@ def decode():
         operand1 = R[int(rs1, 2)]
         operand2 = R[int(rs2, 2)]
         write_back_signal = True
+        print("DECODE: Operation is ", operation.upper(), ", first operand is R", str(int(rs1, 2)), ", second operand is R", str(int(rs2, 2)), ", destination register is R", str(int(rd, 2)), sep="")
+        print("DECODE: Read registers: R", str(int(rs1, 2)), " = ", nint(operand1, 16), ", R", str(int(rs2, 2)), " = ", nint(operand2, 16), sep="")
 
     elif op_type == 'I':
         rs1 = bin_instruction[12:17]
@@ -206,6 +210,8 @@ def decode():
         operand1 = R[int(rs1, 2)]
         operand2 = imm
         write_back_signal = True
+        print("DECODE: Operation is ", operation.upper(), ", first operand is R", str(int(rs1, 2)), ", immediate is ", nint(operand2, 2, len(operand2)), ", destination register is R", str(int(rd, 2)), sep="")
+        print("DECODE: Read registers: R", str(int(rs1, 2)), " = ", nint(operand1, 16), sep="")
 
     elif op_type == 'S':
         rs2 = bin_instruction[7:12]
@@ -215,6 +221,8 @@ def decode():
         operand2 = imm
         register_data = R[int(rs2, 2)]
         write_back_signal = False
+        print("DECODE: Operation is ", operation.upper(), ", first operand is R", str(int(rs1, 2)), ", immediate is ", nint(operand2, 2, len(operand2)), ", data to be stored is in R", str(int(rs2, 2)), sep="")
+        print("DECODE: Read registers: R", str(int(rs1, 2)), " = ", nint(operand1, 16), ", R", str(int(rs2, 2)), " = ", nint(register_data, 16), sep="")
 
     elif op_type == 'SB':
         rs2 = bin_instruction[7:12]
@@ -225,19 +233,27 @@ def decode():
             bin_instruction[1:7] + bin_instruction[20:24] + '0'
         offset = imm
         write_back_signal = False
+        print("DECODE: Operation is ", operation.upper(), ", first operand is R", str(int(rs1, 2)), ", second operand is R", str(int(rs2, 2)), ", immediate is ", nint(offset, 2, len(offset)), sep="")
+        print("DECODE: Read registers: R", str(int(rs1, 2)), " = ", nint(operand1, 16), ", R", str(int(rs2, 2)), " = ", nint(operand2, 16), sep="")
 
     elif op_type == 'U':
         rd = bin_instruction[20:25]
-        imm = bin_instruction[0:20] + '0'*12
-        operand2 = imm
+        imm = bin_instruction[0:20]
         write_back_signal = True
+        print("DECODE: Operation is ", operation.upper(), ", immediate is ", nint(imm, 2, len(imm)), ", destination register is R", str(int(rd, 2)), sep="")
+        print("DECODE: No register read")
+        imm += '0'*12
+        operand2 = imm
 
     elif op_type == 'UJ':
         rd = bin_instruction[20:25]
         imm = bin_instruction[0] + bin_instruction[12:20] + \
-            bin_instruction[11] + bin_instruction[1:11] + '0'
-        offset = imm
+            bin_instruction[11] + bin_instruction[1:11]
         write_back_signal = True
+        print("DECODE: Operation is ", operation.upper(), ", immediate is ", nint(imm, 2, len(imm)), ", destination register is R", str(int(rd, 2)), sep="")
+        print("DECODE: No register read")
+        imm += '0'
+        offset = imm
 
     else:
         print("ERROR: Unidentifiable machine code!\n")
