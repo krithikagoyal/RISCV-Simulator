@@ -23,8 +23,8 @@ import csv
 # Register file
 R = [0]*32
 
-# Flags and clock
-N = C = V = Z = clock = 0
+# Clock
+clock = 0
 
 # Program Counter
 PC = 0
@@ -43,7 +43,6 @@ register_data = '0x00000000'
 memory_address = 0
 is_mem = [-1, -1] # [-1/0/1(no memory operation/load/store), type of load/store if any]
 write_back_signal = False
-global terminate
 terminate = False
 
 
@@ -267,15 +266,19 @@ def execute():
 
     if operation == 'add':
         register_data = nhex(int(nint(operand1, 16) + nint(operand2, 16)))
+        print("EXECUTE:", operation.upper(), nint(operand1, 16), "and", nint(operand2, 16))
 
     elif operation == 'sub':
         register_data = nhex(int(nint(operand1, 16) - nint(operand2, 16)))
+        print("EXECUTE:", operation.upper(), nint(operand1, 16), "and", nint(operand2, 16))
 
     elif operation == 'and':
         register_data = nhex(int(int(operand1, 16) & int(operand2, 16)))
+        print("EXECUTE:", operation.upper(), nint(operand1, 16), "and", nint(operand2, 16))
 
     elif operation == 'or':
         register_data = nhex(int(int(operand1, 16) | int(operand2, 16)))
+        print("EXECUTE:", operation.upper(), nint(operand1, 16), "and", nint(operand2, 16))
 
     elif operation == 'sll':
         if(nint(operand2, 16) < 0):
@@ -284,12 +287,14 @@ def execute():
             return
         else:
             register_data = nhex(int(int(operand1, 16) << int(operand2, 16)))
+            print("EXECUTE:", operation.upper(), nint(operand1, 16), "and", nint(operand2, 16))
 
     elif operation == 'slt':
         if (nint(operand1, 16) < nint(operand2, 16)):
             register_data = hex(1)
         else:
             register_data = hex(0)
+        print("EXECUTE:", operation.upper(), nint(operand1, 16), "and", nint(operand2, 16))
 
     elif operation == 'sra':
         if(nint(operand2, 16) < 0):
@@ -301,6 +306,7 @@ def execute():
             if operand1[2] == '8' or operand1[2] == '9' or operand1[2] == 'a' or operand1[2] == 'b' or operand1[2] == 'c' or operand1[2] == 'd' or operand1[2] == 'e' or operand1[2] == 'f':
                 register_data = '0b' + (34 - len(register_data)) * '1' + register_data[2:]
             register_data = hex(int(register_data, 2))
+            print("EXECUTE:", operation.upper(), nint(operand1, 16), "and", nint(operand2, 16))
 
     elif operation == 'srl':
         if(nint(operand2, 16) < 0):
@@ -309,12 +315,15 @@ def execute():
             return
         else:
             register_data = nhex(int(operand1, 16) >> int(operand2, 16))
+            print("EXECUTE:", operation.upper(), nint(operand1, 16), "and", nint(operand2, 16))
 
     elif operation == 'xor':
         register_data = nhex(int(int(operand1, 16) ^ int(operand2, 16)))
+        print("EXECUTE:", operation.upper(), nint(operand1, 16), "and", nint(operand2, 16))
 
     elif operation == 'mul':
         register_data = nhex(int(nint(operand1, 16) * nint(operand2, 16)))
+        print("EXECUTE:", operation.upper(), nint(operand1, 16), "and", nint(operand2, 16))
 
     elif operation == 'div':
         if nint(operand2, 16) == 0:
@@ -323,73 +332,92 @@ def execute():
             return
         else:
             register_data = nhex(int(nint(operand1, 16) / nint(operand2, 16)))
+            print("EXECUTE:", operation.upper(), nint(operand1, 16), "and", nint(operand2, 16))
 
     elif operation == 'rem':
         register_data = nhex(int(nint(operand1, 16) % nint(operand2, 16)))
+        print("EXECUTE:", operation.upper(), nint(operand1, 16), "and", nint(operand2, 16))
 
     elif operation == 'addi':
         register_data = nhex(
             int(nint(operand1, 16) + nint(operand2, 2, len(operand2))))
+        print("EXECUTE: ADD", int(operand1, 16), "and", nint(operand2, 2, len(operand2)))
 
     elif operation == 'andi':
         register_data = nhex(int(int(operand1, 16) & int(operand2, 2)))
+        print("EXECUTE: AND", int(operand1, 16), "and", nint(operand2, 2, len(operand2)))
 
     elif operation == 'ori':
         register_data = nhex(int(int(operand1, 16) | int(operand2, 2)))
+        print("EXECUTE: OR", int(operand1, 16), "and", nint(operand2, 2, len(operand2)))
 
     elif operation == 'lb':
         memory_address = int(int(operand1, 16) + nint(operand2, 2, len(operand2)))
         is_mem = [0, 0]
+        print("EXECUTE: ADD", int(operand1, 16), "and", nint(operand2, 2, len(operand2)))
 
     elif operation == 'lh':
         memory_address = int(int(operand1, 16) + nint(operand2, 2, len(operand2)))
         is_mem = [0, 1]
+        print("EXECUTE: ADD", int(operand1, 16), "and", nint(operand2, 2, len(operand2)))
 
     elif operation == 'lw':
         memory_address = int(int(operand1, 16) + nint(operand2, 2, len(operand2)))
         is_mem = [0, 3]
+        print("EXECUTE: ADD", int(operand1, 16), "and", nint(operand2, 2, len(operand2)))
 
     elif operation == 'jalr':
         register_data = nhex(PC)
         PC = nint(operand2, 2, len(operand2)) + nint(operand1, 16)
+        print("EXECUTE: No execute operation") # check it
 
     elif operation == 'sb':
         memory_address = int(int(operand1, 16) + nint(operand2, 2, len(operand2)))
         is_mem = [1, 0]
+        print("EXECUTE: ADD", int(operand1, 16), "and", nint(operand2, 2, len(operand2)))
 
     elif operation == 'sh':
         memory_address = int(int(operand1, 16) + nint(operand2, 2, len(operand2)))
         is_mem = [1, 1]
+        print("EXECUTE: ADD", int(operand1, 16), "and", nint(operand2, 2, len(operand2)))
 
     elif operation == 'sw':
         memory_address = int(int(operand1, 16) + nint(operand2, 2, len(operand2)))
         is_mem = [1, 3]
+        print("EXECUTE: ADD", int(operand1, 16), "and", nint(operand2, 2, len(operand2)))
 
     elif operation == 'beq':
         if nint(operand1, 16) == nint(operand2, 16):
             PC += nint(offset, 2, len(offset)) - 4
+        print("EXECUTE:", operation.upper(), nint(operand1, 16), "and", nint(operand2, 16))
 
     elif operation == 'bne':
         if nint(operand1, 16) != nint(operand2, 16):
             PC += nint(offset, 2, len(offset)) - 4
+        print("EXECUTE:", operation.upper(), nint(operand1, 16), "and", nint(operand2, 16))
 
     elif operation == 'bge':
         if nint(operand1, 16) >= nint(operand2, 16):
             PC += nint(offset, 2, len(offset)) - 4
+        print("EXECUTE:", operation.upper(), nint(operand1, 16), "and", nint(operand2, 16))
 
     elif operation == 'blt':
         if nint(operand1, 16) < nint(operand2, 16):
             PC += nint(offset, 2, len(offset)) - 4
+        print("EXECUTE:", operation.upper(), nint(operand1, 16), "and", nint(operand2, 16))
 
     elif operation == 'auipc':
         register_data = nhex(int(PC + int(operand2, 2)))
+        print("EXECUTE: Shift left", int(operand2[0:20], 2), "by 12 bits and ADD", PC)
 
     elif operation == 'lui':
         register_data = nhex(int(operand2, 2))
+        print("EXECUTE: Shift left", int(operand2[0:20], 2), "by 12 bits")
 
     elif operation == 'jal':
         register_data = nhex(PC)
         PC += nint(offset, 2, len(offset)) - 4
+        print("EXECUTE: No execute operation") # check it
 
     if(len(register_data) > 10):
         register_data = register_data[:2] + register_data[-8:]
