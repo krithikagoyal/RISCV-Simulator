@@ -75,6 +75,8 @@ def run_RISCVsim():
         if terminate:
             return
         execute()
+        if terminate:
+            return
         mem()
         write_back()
         clock += 1
@@ -130,8 +132,8 @@ def write_data_memory():
 
 # It is called to end the program and write the updated data memory in "data_out.mc" file
 def swi_exit():
-    write_data_memory()
     global terminate
+    write_data_memory()
     terminate = True
 
 # Reads from the instruction memory and updates the instruction register
@@ -181,6 +183,7 @@ def decode():
     if match_found == False:
         print("Unidentifiable machine code!")
         swi_exit()
+        return
 
     op_type = instruction_set_list[track][0]
     operation = instruction_set_list[track][1]
@@ -238,6 +241,7 @@ def decode():
     else:
         print("Unidentifiable machine code!")
         swi_exit()
+        return
 
 
 # Executes the ALU operation based on ALUop
@@ -260,6 +264,7 @@ def execute():
         if(nint(operand2, 16) < 0):
             print("ERROR IN SLL\n")
             swi_exit()
+            return
         else:
             register_data = nhex(int(int(operand1, 16) << int(operand2, 16)))
 
@@ -273,18 +278,18 @@ def execute():
         if(nint(operand2, 16) < 0):
             print("ERROR IN SRA\n")
             swi_exit()
+            return
         else:
-            register_data = hex(int(int(operand1, 16) >> int(operand2, 16)))
+            register_data = bin(int(int(operand1, 16) >> int(operand2, 16)))
             if operand1[2] == '8' or operand1[2] == '9' or operand1[2] == 'a' or operand1[2] == 'b' or operand1[2] == 'c' or operand1[2] == 'd' or operand1[2] == 'e' or operand1[2] == 'f':
-                i = 2
-                while register_data[i] != '8' and register_data[i] != '9' and register_data[i] != 'a' and register_data[i] != 'b' and register_data[i] != 'c' and register_data[i] != 'd' and register_data[i] != 'e' and register_data[i] != 'f':
-                    register_data[i] = 1
-                    i = i + 1
+                register_data = '0b' + (34 - len(register_data)) * '1' + register_data[2:]
+            register_data = hex(int(register_data, 2))
 
     elif operation == 'srl':
         if(nint(operand2, 16) < 0):
             print("ERROR IN SRL\n")
             swi_exit()
+            return
         else:
             register_data = nhex(int(operand1, 16) >> int(operand2, 16))
 
@@ -298,6 +303,7 @@ def execute():
         if nint(operand2, 16) == 0:
             print("ERROR: Division by zero!")
             swi_exit()
+            return
         else:
             register_data = nhex(int(nint(operand1, 16) / nint(operand2, 16)))
 
