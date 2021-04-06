@@ -158,7 +158,7 @@ def decode():
     func3 = int(bin_instruction[17:20], 2)
     func7 = int(bin_instruction[0:7], 2)
 
-    f = open('src/Instruction_Set_List.csv')
+    f = open('Instruction_Set_List.csv')
     instruction_set_list = list(csv.reader(f))
     f.close()
 
