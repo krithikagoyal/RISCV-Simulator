@@ -1,4 +1,0 @@
-PyQt5
-pyqt5-tools
-os
-csv
