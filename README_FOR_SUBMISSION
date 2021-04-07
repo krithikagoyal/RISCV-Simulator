@@ -109,9 +109,9 @@ Run the following command in system terminal to install all requirements after i
 How to run ?
 ------------
 Place your input mc file in test directory. 
-Run the following command on the terminal in the root directory:
-*python src/main.py test/input_file.mc*
-here replace input_file.mc with name of your input file
+Run the following command on the terminal in the src directory:
+*python main.py*
+Select the input file in GUI
 ---Edit if GUI is used---
 
 
