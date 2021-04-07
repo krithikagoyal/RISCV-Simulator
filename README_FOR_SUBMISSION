@@ -100,14 +100,18 @@ number of clock cycles after each cycle.
 Project requirements / Libraries Used:
 --------------------------------------
 This simulator is built using Python.
-The user must have Python and Python Standard Library installed.
+The user must install python3 and all libraries stated in requirements.txt
+Run the following command in system terminal to install all requirements after isntalling python
+*pip install -r requirements.txt*
 ---Edit for GUI---
 
 
 How to run ?
 ------------
-Run the following command on the terminal in the src directory:
-*python main.py*
+Place your input mc file in test directory. 
+Run the following command on the terminal in the root directory:
+*python src/main.py test/input_file.mc*
+here replace input_file.mc with name of your input file
 ---Edit if GUI is used---
 
 
