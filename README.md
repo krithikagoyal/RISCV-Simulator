@@ -73,7 +73,7 @@ number of clock cycles after each cycle.
 #### How to run ?
 Run the following command to install the requirements
 ```
-$ pip install -r .\requirements.txt
+$ pip install -r requirements.txt
 ```
 
 Run the following command on the terminal in the src directory:
