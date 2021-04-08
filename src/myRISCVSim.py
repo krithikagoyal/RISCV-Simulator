@@ -50,6 +50,7 @@ pc_select = 0
 return_address = -1
 pc_offset = 0
 
+
 # Utility functions
 def nhex(num):
     if num < 0:
@@ -110,7 +111,8 @@ def load_program_memory(file_name):
         exit(1)
 
 
-# Creates a "data_out.mc" file and writes the data memory in it.
+# Creates a "data_out.mc" file and writes the data memory in it. It also creates
+# a reg_out.mc file and writes the contents of registers in it.
 def write_data_memory():
     try:
         fp = open("data_out.mc", "w")
@@ -135,6 +137,7 @@ def write_data_memory():
 
 
 # It is called to end the program and write the updated data memory in "data_out.mc" file
+# and the register contents in the "reg_out.mc" file.
 def swi_exit():
     global terminate
     write_data_memory()
@@ -155,7 +158,7 @@ def fetch():
 def decode():
     global alu_control_signal, operation, operand1, operand2, instruction_word, rd, offset, register_data, memory_address, write_back_signal, PC, is_mem, MEM, R
 
-    if instruction_word == '0x401010BB' or instruction_word == '0x00000000':
+    if instruction_word == '0x401080BB':
         print("END PROGRAM\n")
         swi_exit()
         return
@@ -263,6 +266,7 @@ def decode():
     else:
         print("ERROR: Unidentifiable machine code!\n")
         swi_exit()
+        return
 
 
 # Executes the ALU operation based on ALUop
@@ -375,7 +379,7 @@ def execute():
         register_data = nhex(PC + 4)
         return_address = nint(operand2, 2, len(operand2)) + nint(operand1, 16)
         pc_select = 1
-        print("EXECUTE: No execute operation") # check it
+        print("EXECUTE: No execute operation")
 
     elif alu_control_signal == 20:
         memory_address = int(int(operand1, 16) + nint(operand2, 2, len(operand2)))
@@ -428,7 +432,7 @@ def execute():
         register_data = nhex(PC + 4)
         pc_offset = nint(offset, 2, len(offset))
         inc_select = 1
-        print("EXECUTE: No execute operation") # check it
+        print("EXECUTE: No execute operation")
 
     if len(register_data) > 10:
         register_data = register_data[:2] + register_data[-8:]
@@ -437,7 +441,7 @@ def execute():
         (10 - len(register_data)) * '0' + register_data[2::]
 
 
-# Performs the memory operations
+# Performs the memory operations and also performs the operations of IAG.
 def mem():
     global operation, operand1, operand2, instruction_word, rd, offset, register_data, memory_address, write_back_signal, PC, is_mem, MEM, R, pc_offset, pc_select, return_address, inc_select
 
@@ -484,6 +488,7 @@ def mem():
         PC += pc_offset
     else:
         PC += 4
+
 
 # Writes the results back to the register file
 def write_back():

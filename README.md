@@ -29,6 +29,7 @@ RISCV-Simulator
       |- design-doc.docx
   |- src
       |
+      |- Gui.py
       |- Instruction_Set_List.csv
       |- main.py
       |- myRISCVSim.py
@@ -37,17 +38,25 @@ RISCV-Simulator
       |- bubble_sort.mc
       |- factorial.mc
       |- fibonacci.mc
-      |- Readme.md
       |- TC_1_Fibonacci_Assembly.s
       |- TC_2_Factorial_Assembly.s
       |- TC_1_BubbleSort_Assembly.s
+      |- Test.md
   |
   |- Project-statement.txt
-  |- Readme
+  |- README
+  |- requirements.txt
 ```
 
 ## Requirements
-This simulator is built using Python. The user must have Python and Python Standard Library installed.
+This simulator is built using Python.
+The user must install python3 and all libraries stated in requirements.txt.
+
+Run the following command in the terminal in the main directory to install all
+the requirements of the project after installing python.
+```
+pip install -r requirements.txt
+```
 
 ## PHASE 1 (Single cycle execution)
 *myRISCVSim.py* file will take .mc file as its argument and is executed as per the functional behaviour of the instructions.
@@ -66,17 +75,18 @@ Each instruction will go through the following steps:
 * **U Format:** auipc, lui.
 * **UJ Format:** jal.
 
-As an output, the simulator writes the updated memory contents in a data_out.mc
-file. Additionally, the simulator also prints messages for each stage and the
-number of clock cycles after each cycle.
+As an output, the simulator writes the updated memory contents in a "data_out.mc"
+file. A "reg_out.mc" file is also produced containing the contents of the
+registers. Additionally, the simulator also prints messages for each stage about
+what it is doing in that stage and the number of clock cycles after each cycle.
 
 #### How to run ?
-Run the following command to install the requirements
-```
-$ pip install -r requirements.txt
-```
+Place your input .mc file(new ones if any) in the test directory.
 
 Run the following command on the terminal in the src directory:
 ```
 $ python main.py
 ```
+
+A GUI window opens. Select the input file in the GUI. The program runs and the
+GUI window opens again to show the updated memory and register contents.

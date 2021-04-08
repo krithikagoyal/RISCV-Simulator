@@ -6,4 +6,4 @@ Description:
 Note:
 1. Above 3 test cases are implemented recursively.
 2. The test cases are mostly based on the tasks given in the labs.
-3. Exit instruction is 0x401010BB(i.e. subw x1, x1, x1).
+3. Exit instruction is 0x401080BB(i.e. subw x1, x1, x1).
