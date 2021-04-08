@@ -45,7 +45,10 @@ alu_control_signal = -1
 is_mem = [-1, -1] # [-1/0/1(no memory operation/load/store), type of load/store if any]
 write_back_signal = False
 terminate = False
-
+inc_select = 0
+pc_select = 0
+return_address = -1
+pc_offset = 0
 
 # Utility functions
 def nhex(num):
@@ -140,11 +143,12 @@ def swi_exit():
 
 # Reads from the instruction memory and updates the instruction register
 def fetch():
-    global PC, instruction_word
+    global PC, instruction_word, inc_select, pc_select
 
     instruction_word = '0x' + MEM[PC + 3] + MEM[PC + 2] + MEM[PC + 1] + MEM[PC]
     print("FETCH: Fetch instruction", instruction_word, "from address", nhex(PC))
-    PC += 4
+    inc_select = 0
+    pc_select = 0
 
 
 # Decodes the instruction and decides the operation to be performed in the execute stage; reads the operands from the register file.
@@ -183,7 +187,7 @@ def decode():
             break
         track += 1
 
-    if match_found == False:
+    if not match_found:
         print("ERROR: Unidentifiable machine code!\n")
         swi_exit()
         return
@@ -259,12 +263,11 @@ def decode():
     else:
         print("ERROR: Unidentifiable machine code!\n")
         swi_exit()
-        return
 
 
 # Executes the ALU operation based on ALUop
 def execute():
-    global alu_control_signal, operation, operand1, operand2, instruction_word, rd, offset, register_data, memory_address, write_back_signal, PC, is_mem, MEM, R
+    global alu_control_signal, operation, operand1, operand2, instruction_word, rd, offset, register_data, memory_address, write_back_signal, PC, is_mem, MEM, R, pc_offset, pc_select, inc_select, return_address
 
     if alu_control_signal == 2:
         register_data = nhex(int(nint(operand1, 16) + nint(operand2, 16)))
@@ -369,8 +372,9 @@ def execute():
         print("EXECUTE: ADD", int(operand1, 16), "and", nint(operand2, 2, len(operand2)))
 
     elif alu_control_signal == 19:
-        register_data = nhex(PC)
-        PC = nint(operand2, 2, len(operand2)) + nint(operand1, 16)
+        register_data = nhex(PC + 4)
+        return_address = nint(operand2, 2, len(operand2)) + nint(operand1, 16)
+        pc_select = 1
         print("EXECUTE: No execute operation") # check it
 
     elif alu_control_signal == 20:
@@ -390,38 +394,43 @@ def execute():
 
     elif alu_control_signal == 23:
         if nint(operand1, 16) == nint(operand2, 16):
-            PC += nint(offset, 2, len(offset)) - 4
+            pc_offset = nint(offset, 2, len(offset))
+            inc_select = 1
         print("EXECUTE:", operation.upper(), nint(operand1, 16), "and", nint(operand2, 16))
 
     elif alu_control_signal == 24:
         if nint(operand1, 16) != nint(operand2, 16):
-            PC += nint(offset, 2, len(offset)) - 4
+            pc_offset = nint(offset, 2, len(offset))
+            inc_select = 1
         print("EXECUTE:", operation.upper(), nint(operand1, 16), "and", nint(operand2, 16))
 
     elif alu_control_signal == 25:
         if nint(operand1, 16) >= nint(operand2, 16):
-            PC += nint(offset, 2,  len(offset)) - 4
+            pc_offset = nint(offset, 2,  len(offset))
+            inc_select = 1
         print("EXECUTE:",  operation.upper(), nint(operand1, 16), "and", nint(operand2, 16))
 
     elif alu_control_signal == 26:
         if nint(operand1, 16) < nint(operand2, 16):
-            PC += nint(offset, 2, len(offset)) - 4
+            pc_offset =  nint(offset, 2, len(offset))
+            inc_select = 1
         print("EXECUTE:", operation.upper(), nint(operand1, 16), "and", nint(operand2, 16))
 
     elif alu_control_signal == 27:
-        register_data = nhex(int(PC + int(operand2, 2)))
-        print("EXECUTE: Shift left", int(operand2[0:20], 2), "by 12 bits and ADD", PC)
+        register_data = nhex(int(PC + 4 + int(operand2, 2)))
+        print("EXECUTE: Shift left", int(operand2[0:20], 2), "by 12 bits and ADD", PC + 4)
 
     elif alu_control_signal == 28:
         register_data = nhex(int(operand2, 2))
         print("EXECUTE: Shift left", int(operand2[0:20], 2), "by 12 bits")
 
     elif alu_control_signal == 29:
-        register_data = nhex(PC)
-        PC += nint(offset, 2, len(offset)) - 4
+        register_data = nhex(PC + 4)
+        pc_offset = nint(offset, 2, len(offset))
+        inc_select = 1
         print("EXECUTE: No execute operation") # check it
 
-    if(len(register_data) > 10):
+    if len(register_data) > 10:
         register_data = register_data[:2] + register_data[-8:]
 
     register_data = register_data[:2] + \
@@ -430,7 +439,7 @@ def execute():
 
 # Performs the memory operations
 def mem():
-    global operation, operand1, operand2, instruction_word, rd, offset, register_data, memory_address, write_back_signal, PC, is_mem, MEM, R
+    global operation, operand1, operand2, instruction_word, rd, offset, register_data, memory_address, write_back_signal, PC, is_mem, MEM, R, pc_offset, pc_select, return_address, inc_select
 
     if is_mem[0] == -1:
         print("MEMORY: No memory operation")
@@ -469,10 +478,16 @@ def mem():
         else:
             print("MEMORY: Store(word)",  nint(register_data[2:10], 16), "to", hex(memory_address))
 
+    if pc_select:
+        PC = return_address
+    elif inc_select:
+        PC += pc_offset
+    else:
+        PC += 4
 
 # Writes the results back to the register file
 def write_back():
-    if write_back_signal == True:
+    if write_back_signal:
         if int(rd, 2) != 0:
             R[int(rd, 2)] = register_data
             print("WRITEBACK: Write", nint(register_data, 16), "to", "R" + str(int(rd, 2)))
