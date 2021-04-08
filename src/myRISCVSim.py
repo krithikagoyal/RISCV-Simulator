@@ -41,6 +41,7 @@ rd = 0
 offset = 0
 register_data = '0x00000000'
 memory_address = 0
+alu_control_signal = -1
 is_mem = [-1, -1] # [-1/0/1(no memory operation/load/store), type of load/store if any]
 write_back_signal = False
 terminate = False
