@@ -42,8 +42,9 @@ if __name__ == '__main__':
     terminate = False            # has the program terminated ? 
     forwarding_enabled = False
     while len(pipeline_instructions) != 5:   # initialising by adding starting 5 states
-        ctrl_hazard = control_hazard(pipeline_instructions, new_instruction):
-        data_hazard = data_hazard(pipeline_instructions, new_instruction, forwarding_enabled):
+        new_instruction = State(PC)
+        ctrl_hazard = control_hazard(pipeline_instructions, new_instruction) # will add the predicted instruction
+        data_hazard = data_hazard(pipeline_instructions, new_instruction, forwarding_enabled)
         if not ctrl_hazard and not data_hazard:
             pipeline_instructions.append(State(PC)) # State(PC) will return an object of a class State() 
             PC += 4
@@ -51,8 +52,8 @@ if __name__ == '__main__':
         x = [x.evaluate() for x in pipeline_instructions]
         x = [1:]
         new_instruction = State(PC)
-        ctrl_hazard = control_hazard(pipeline_instructions, new_instruction):
-        data_hazard = data_hazard(pipeline_instructions, new_instruction, forwarding_enabled):
+        ctrl_hazard = control_hazard(pipeline_instructions, new_instruction)
+        data_hazard = data_hazard(pipeline_instructions, new_instruction, forwarding_enabled)
         if not ctrl_hazard and not data_hazard:
             pipeline_instructions.append(State(PC)) # State(PC) will return an object of a class State() 
             PC += 4
