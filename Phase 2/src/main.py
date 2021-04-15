@@ -20,18 +20,39 @@ from Gui import display, take_input
 from myRISCVSim import run_RISCVsim, reset_proc, load_program_memory
 import time
 
+# if control_hazard returns true, it will add a dummy instruction in the pipeline instruction
+# else it will return false
+# similar for data_hazard
+# x.evaluate() will evaluate the particular stage of the instruction, all the information 
+# needed for evaluation will be stored in the state.
+# State() of an instruction will also store from where to pick the data for a particular
+# state, default will be buffer of previous stage of the instruction but can be changed due to,
+# data_hazard. 
+
 if __name__ == '__main__':
     # set .mc file
     prog_mc_file = take_input()
-
     # reset the processor
     reset_proc()
-
     # load the program memory
     load_program_memory(prog_mc_file)
-
-    # run the simulator
-    run_RISCVsim()
-
     # display the data
-    display()
+    # display()
+    pipeline_instructions = []   # instructions currently in the pipeline
+    terminate = False            # has the program terminated ? 
+    forwarding_enabled = False
+    while len(pipeline_instructions) != 5:   # initialising by adding starting 5 states
+        ctrl_hazard = control_hazard(pipeline_instructions, new_instruction):
+        data_hazard = data_hazard(pipeline_instructions, new_instruction, forwarding_enabled):
+        if not ctrl_hazard and not data_hazard:
+            pipeline_instructions.append(State(PC)) # State(PC) will return an object of a class State() 
+            PC += 4
+    while not terminate:
+        x = [x.evaluate() for x in pipeline_instructions]
+        x = [1:]
+        new_instruction = State(PC)
+        ctrl_hazard = control_hazard(pipeline_instructions, new_instruction):
+        data_hazard = data_hazard(pipeline_instructions, new_instruction, forwarding_enabled):
+        if not ctrl_hazard and not data_hazard:
+            pipeline_instructions.append(State(PC)) # State(PC) will return an object of a class State() 
+            PC += 4
