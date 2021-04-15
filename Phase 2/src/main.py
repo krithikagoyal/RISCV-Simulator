@@ -20,14 +20,15 @@ from Gui import display, take_input
 from myRISCVSim import run_RISCVsim, reset_proc, load_program_memory
 import time
 
-# if control_hazard returns true, it will add a dummy instruction in the pipeline instruction
+# if control_hazard returns true, it will add a predicted instruction to the pipeline_instructions
 # else it will return false
-# similar for data_hazard
+# if forwarding is enabled data_hazard will chnage the state of instruction by specifying from where it will pick data in a stage where hazard is occuring
+# else will add a dummy instruction
 # x.evaluate() will evaluate the particular stage of the instruction, all the information 
 # needed for evaluation will be stored in the state.
 # State() of an instruction will also store from where to pick the data for a particular
 # state, default will be buffer of previous stage of the instruction but can be changed due to,
-# data_hazard. 
+# data_hazard.
 
 if __name__ == '__main__':
     # set .mc file
