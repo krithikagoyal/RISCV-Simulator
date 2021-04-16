@@ -20,16 +20,41 @@ from Gui import display, take_input
 from myRISCVSim import run_RISCVsim, reset_proc, load_program_memory
 import time
 
-# if control_hazard returns true, it will add a predicted instruction to the pipeline_instructions
-# else it will return false
-# if forwarding is enabled data_hazard will chnage the state of instruction by specifying from where it will pick data in a stage where hazard is occuring
-# else will add a dummy instruction
-# x.evaluate() will evaluate the particular stage of the instruction, all the information
-# needed for evaluation will be stored in the state.
-# State() of an instruction will also store from where to pick the data for a particular
-# state, default will be buffer of previous stage of the instruction but can be changed due to,
-# data_hazard.
-# PC for a branch instruction, not present in BTB will be calculated in decode stage.
+'''
+if control_hazard returns true, it will add a predicted instruction to the pipeline_instructions
+else it will return false
+if forwarding is enabled data_hazard will change the state of instruction by specifying from where it will pick data in a stage where hazard is occuring
+else will add a dummy instruction
+x.evaluate() will evaluate the particular stage of the instruction, all the information
+needed for evaluation will be stored in the state.
+State() of an instruction will also store from where to pick the data for a particular
+state, default will be buffer of previous stage of the instruction but can be changed due to,
+data_hazard.
+PC for a branch instruction, not present in BTB will be calculated in decode stage.
+expected functions:
+class: State(PC): will take PC as an input
+                  ins = 0
+                  function evaluate(), 
+                  pc_update = False
+                  branch_taken = False
+                  pc_val = PC
+                  data_decode = [instruction_number, buffer_number]
+                  data_execute = [instruction_number, buffer_number] stores from where we will pick the data for
+                                                                    the execution of a particular instruction.
+data_hazard(pipeline_instructions, new_instruction, pc, forwarding_enabled), pass by reference
+            if forwarding_enabled:
+                check if new_instruction can be added or not
+                if cannot be added:
+                    then change the state of new_instruction to store, from where it will pick the data
+                    add it to pipeline_instructions
+                    update PC accordingly
+            else:
+                check if the new instruction can be added or not, else add a stall
+                
+            return was_there_hazard, new_pc
+            
+buffers = [5][5]
+'''
 
 if __name__ == '__main__':
     # set .mc file
