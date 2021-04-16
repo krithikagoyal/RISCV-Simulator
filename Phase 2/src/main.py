@@ -24,7 +24,7 @@ import time
 # else it will return false
 # if forwarding is enabled data_hazard will chnage the state of instruction by specifying from where it will pick data in a stage where hazard is occuring
 # else will add a dummy instruction
-# x.evaluate() will evaluate the particular stage of the instruction, all the information 
+# x.evaluate() will evaluate the particular stage of the instruction, all the information
 # needed for evaluation will be stored in the state.
 # State() of an instruction will also store from where to pick the data for a particular
 # state, default will be buffer of previous stage of the instruction but can be changed due to,
@@ -41,20 +41,25 @@ if __name__ == '__main__':
     # display the data
     # display()
     pipeline_instructions = []   # instructions currently in the pipeline
-    terminate = False            # has the program terminated ? 
+    terminate = False            # has the program terminated ?
     forwarding_enabled = False
     while not terminate:
         pipeline_instructions = [x.evaluate() for x in pipeline_instructions]
         for _ in pipeline_instructions: # check if the pc has been updated because of a conditional branch
-            if _.pc_update and _.pc_val == not_taken_pc: # if it is not equal to the branch we predicted.
-                pipeline_instructions.pop()
-                pipeline_instructions.pop()
-                PC = _.pc_val
+            if _.pc_update and _.branch_taken != branch_taken: # if it is not equal to the branch we predicted.
+                pipeline_instructions.pop() # flushing
+                pipeline_instructions.pop() # flushing
+                PC = _.pc_val   # updated PC
         if len(x) == 5:
             x = [1:]
         new_instruction = State(PC)
-        ctrl_hazard, PC = control_hazard(pipeline_instructions, new_instruction, PC)
-        data_hazard, PC = data_hazard(pipeline_instructions, new_instruction, forwarding_enabled, PC)
+        new_pc = PC
+        ctrl_hazard, new_pc = control_hazard(pipeline_instructions, new_instruction, PC)
+        data_hazard, new_pc = data_hazard(pipeline_instructions, new_instruction, forwarding_enabled, PC)
+        if ctrl_hazard and new_pc != PC + 4:
+            branch_taken = True
+        elif ctrl_hazard:
+            branch_taken = False
         if not ctrl_hazard and not data_hazard:
-            pipeline_instructions.append(State(PC)) # State(PC) will return an object of a class State() 
+            pipeline_instructions.append(State(PC)) # State(PC) will return an object of a class State()
             PC += not_taken_pc
