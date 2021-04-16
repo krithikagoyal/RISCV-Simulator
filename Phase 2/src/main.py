@@ -29,6 +29,7 @@ import time
 # State() of an instruction will also store from where to pick the data for a particular
 # state, default will be buffer of previous stage of the instruction but can be changed due to,
 # data_hazard.
+# PC for a branch instruction, not present in BTB will be calculated in decode stage.
 
 if __name__ == '__main__':
     # set .mc file
@@ -42,19 +43,18 @@ if __name__ == '__main__':
     pipeline_instructions = []   # instructions currently in the pipeline
     terminate = False            # has the program terminated ? 
     forwarding_enabled = False
-    while len(pipeline_instructions) != 5:   # initialising by adding starting 5 states
-        new_instruction = State(PC)
-        ctrl_hazard = control_hazard(pipeline_instructions, new_instruction) # will add the predicted instruction
-        data_hazard = data_hazard(pipeline_instructions, new_instruction, forwarding_enabled)
-        if not ctrl_hazard and not data_hazard:
-            pipeline_instructions.append(State(PC)) # State(PC) will return an object of a class State() 
-            PC += 4
     while not terminate:
-        x = [x.evaluate() for x in pipeline_instructions]
-        x = [1:]
+        pipeline_instructions = [x.evaluate() for x in pipeline_instructions]
+        for _ in pipeline_instructions: # check if the pc has been updated because of a conditional branch
+            if _.pc_update and _.pc_val == not_taken_pc: # if it is not equal to the branch we predicted.
+                pipeline_instructions.pop()
+                pipeline_instructions.pop()
+                PC = _.pc_val
+        if len(x) == 5:
+            x = [1:]
         new_instruction = State(PC)
-        ctrl_hazard = control_hazard(pipeline_instructions, new_instruction)
-        data_hazard = data_hazard(pipeline_instructions, new_instruction, forwarding_enabled)
+        ctrl_hazard, PC = control_hazard(pipeline_instructions, new_instruction, PC)
+        data_hazard, PC = data_hazard(pipeline_instructions, new_instruction, forwarding_enabled, PC)
         if not ctrl_hazard and not data_hazard:
             pipeline_instructions.append(State(PC)) # State(PC) will return an object of a class State() 
-            PC += 4
+            PC += not_taken_pc
