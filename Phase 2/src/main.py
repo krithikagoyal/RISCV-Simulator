@@ -14,30 +14,34 @@ Project Name: Functional Simulator for subset of RISC-V Processor
 """
 
 # main.py
-# Purpose of this file: This file handles the input and output, and invokes the simulator.
+# Purpose of this file: This file controls the overall functioning of the Simulator.
 
 from Gui import display, take_input
-from myRISCVSim import run_RISCVsim, reset_proc, load_program_memory
+from myRISCVSim import State, ProcessingUnit, BTB # Change names if used different
+# import from Hazard detection unit
 import time
 
 '''
-1. If control_hazard returns true, it will add a predicted instruction to the
+1. For non-pipelined version, each of the five stages takes pipelining_enabled,
+    and terminate as input. Implement it accordingly in myRISCVSim.py
+
+2. If control_hazard returns true, and it will add a predicted instruction to the
     pipeline_instructions, else it will return false.
 
-2. If forwarding is enabled, data_hazard will change the state of instruction
+3. If forwarding is enabled, data_hazard will change the state of instruction
     by specifying from where it will pick data in a stage where hazard is occuring,
     else will add a dummy instruction.
 
-3. x.evaluate() will evaluate the particular stage of the instruction,
+4. x.evaluate() will evaluate the particular stage of the instruction,
     all the information needed for evaluation will be stored in the state.
 
-4. State() of an instruction will also store from where to pick the data for a
+5. State() of an instruction will also store from where to pick the data for a
     particular state, default will be buffer of previous stage of the instruction
     but can be changed due to, data_hazard.
 
-5. PC for a branch instruction, not present in BTB will be calculated in decode stage.
+6. PC for a branch instruction, not present in BTB will be calculated in decode stage.
 
-6. Expected functions:
+7. Expected functions:
 a) class: State(PC): # will take PC as an input
                   ins = 0
                   function evaluate(),
@@ -68,24 +72,19 @@ if __name__ == '__main__':
     # set .mc file
     prog_mc_file = take_input()
 
-    # reset the processor
-    reset_proc()
-
-    # load the program memory
-    load_program_memory(prog_mc_file)
-
-    # display the data
-    # display()
+    # invoke the processing unit
+    # invoke BTB
+    # invoke hdu
 
     # Knobs
     pipelining_enabled = True                      # Knob1
     forwarding_enabled = False                     # Knob2
-    print_register = False                         # Knob3
-    print_pipeline_register_and_cycle = False      # Knob4
+    print_registers_each_cycle = False             # Knob3
+    print_pipeline_registers_and_cycle = False     # Knob4
     print_specific_pipeline_register = [False, -1] # Knob5
 
-    # Various counts
-    number_of_cycles = 0
+'''
+    # Various counts, Some might be already declared in myRISCVSim.py
     total_instructions_executed = 0
     cpi = cycles / total_instructions_executed # should be calculated at the end, shift at the end
     data_transfer_instructions = 0 # Loads and stores
@@ -97,16 +96,34 @@ if __name__ == '__main__':
     number_of_branch_mispredictions = 0
     number_of_stalls_due_to_data_hazards = 0
     number_of_stalls_due_to_control_hazards = 0
+'''
 
     # Other signals
     PC = 0
+    clock_cycles = 0
+    terminate = False            # has the program terminated ?
 
+    #
     if not pipelining_enabled:
-        print("Hello");
+        while(1):
+            instruction = State(PC)
+            Processor.fetch(pipelining_enabled, terminate)
+            Processor.decode(pipelining_enabled, terminate)
+            if terminate:
+                break
+            Processor.execute(pipelining_enabled, terminate)
+            if terminate:
+                break
+            Processor.memory(pipelining_enabled, terminate)
+            Processor.write_back(pipelining_enabled, terminate)
+            clock_cycles += 1
+
+            if print_registers_each_cycle:
+                # Print registers, also print cycle
+                print("\n");
 
     else:
         pipeline_instructions = []   # instructions currently in the pipeline
-        terminate = False            # has the program terminated ?
         branch_taken = {}
 
         while not terminate:
@@ -124,7 +141,7 @@ if __name__ == '__main__':
             new_instruction = State(PC)
             new_pc = PC
 
-            # What all is this?
+            # Check for control hazards
             ctrl_hazard, new_pc = control_hazard(pipeline_instructions, new_instruction, PC)
 
             # data_hazard will work according to whether forwarding is enabled or not.
@@ -140,6 +157,25 @@ if __name__ == '__main__':
                 pipeline_instructions.append(State(PC)) # State(PC) will return an object of a class State()
                 PC += 4
 
+            clock_cycles += 1
+
+            if print_registers_each_cycle:
+                # Print registers
+                print("\n");
+
+            # Shift this above among instructions or elsewhere
+            if print_specific_pipeline_register[0]:
+                # Print specific pipeline register
+                print("\n");
+
+            if print_pipeline_registers_and_cycle:
+                # Print pipeline registers and cycle
+                print("\n");
+
             # How terminate?
 
+
 # Print Messages
+
+# display the data
+# display()
