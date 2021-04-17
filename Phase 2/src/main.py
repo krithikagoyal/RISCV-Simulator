@@ -117,7 +117,7 @@ if __name__ == '__main__':
 
     #
     if not pipelining_enabled:
-        while(1):
+        while True:
             instruction = State(PC)
             Processor.fetch(instruction, pipelining_enabled, terminate)
             Processor.decode(instruction, pipelining_enabled, terminate)
@@ -139,50 +139,65 @@ if __name__ == '__main__':
 
         while True:
             if not forwarding_enabled:
-            	pipeline_instructions = [x.evaluate() for x in pipeline_instructions]
+                pipeline_instructions = [x.evaluate() for x in pipeline_instructions]
 
-            	for _ in pipeline_instructions:
+                for _ in pipeline_instructions:
                     if _.stage == 3 and _.pc_update and _.branch_taken != btb.get_Target[PC]
                         pipeline_instructions.pop() # Flush
                         # Add a dummy instruction
-                        number_of_branch_mispredictions++
-                        number_of_stalls_due_to_control_hazards++
+                        branch_mispredictions += 1
+                        stalls_due_to_control_hazards += 1
                         PC = _.pc_val
 
                 if len(pipeline_instructions) == 5:
                         pipeline_instructions = pipeline_instructions[1:]
 
-            	data_hazard = hdu.check_data_hazard(pipeline_instructions) # check if data hazard is there or not
+                data_hazard = hdu.check_data_hazard(pipeline_instructions) # check if data hazard is there or not
 
-            	if not data_hazard:
-            	    new_instruction = State(PC)
-            	    pipeline_instructions.append(State(PC))
+                if not data_hazard:
+                    new_instruction = State(PC)
+                    pipeline_instructions.append(State(PC))
                     PC += 4
                 else:
-            	    last_inst = pipeline_instructions[-1]
+                    last_inst = pipeline_instructions[-1]
                     pipeline_instructions.pop()
                     # Add a dummy instruction
                     pipeline_instructions.append(last_inst)
-            	    number_of_data_hazards++
-                    number_of_stalls_due_to_data_hazards++
+                    data_hazards += 1
+                    stalls_due_to_data_hazards += 1
 
             else:
-                print("\n");
+                pipeline_instructions = [x.evaluate() for x in pipeline_instructions]
+                if len(pipeline_instructions) == 5:
+                    pipeline_instructions = pipeline_instructions[1:]
+
+                control_hazard = False
+                for _ in pipeline_instructions:
+                    if _.control_hazard and _.pc_update != _.pc_next:
+                        control_hazard = True
+                        control_hazards += 1
+                        pipeline_instructions.pop()
+                        pipeline_instructions.append(State(_.pc_update))
+                        PC = _.pc_update
+
+                if not control_hazard:
+                    new_instruction = State(PC)
+                    pipeline_instructions.append(new_instruction) # if data_hazard is there, then execute will itself pick the data required form the buffer.
 
             clock_cycles += 1
 
             if print_registers_each_cycle:
                 # Print registers
-                print("\n");
+                print("\n")
 
             # Shift this above among instructions or elsewhere
             if print_specific_pipeline_register[0]:
                 # Print specific pipeline register
-                print("\n");
+                print("\n")
 
             if print_pipeline_registers_and_cycle:
                 # Print pipeline registers and cycle
-                print("\n");
+                print("\n")
 
             # How terminate? One possible solution is to add a dummy instruction in fetch after program instructions.
             # The program then can be terminated if all the instructions are dummy instructions
