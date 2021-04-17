@@ -25,25 +25,38 @@ import time
 1. For non-pipelined version, each of the five stages takes pipelining_enabled,
     and terminate as input. Implement it accordingly in myRISCVSim.py
 
-2. If control_hazard returns true, and it will add a predicted instruction to the
-    pipeline_instructions, else it will return false.
-
-3. If forwarding is enabled, data_hazard will change the state of instruction
-    by specifying from where it will pick data in a stage where hazard is occuring,
-    else will add a dummy instruction.
-
-4. x.evaluate() will evaluate the particular stage of the instruction,
-    all the information needed for evaluation will be stored in the state.
-
-5. State() of an instruction will also store from where to pick the data for a
+2. State() of an instruction will also store from where to pick the data for a
     particular state, default will be buffer of previous stage of the instruction
     but can be changed due to, data_hazard.
 
-6. PC for a branch instruction, not present in BTB will be calculated in decode stage.
+3. x.evaluate() will evaluate the particular stage of the instruction,
+    all the information needed for evaluation will be stored in the state.
+    For this, the class will have a variable as self.stage = -1.
+    This variable will increase in each stage.
 
-7. Expected functions:
+    def evaluate(instruction, pipelining_enabled):
+        terminate = false
+        if instruction.stage == 1:
+            fetch(instruction, pipelining_enabled, terminate) # even though terminate is not required
+        ...
+        return instruction
+
+4. PC for a branch instruction, not present in BTB will be calculated in decode stage.
+
+5. check_data_hazard in HDU returns if data_hazard is there or not
+
+---Later---
+1. If control_hazard returns true, and it will add a predicted instruction to the
+    pipeline_instructions, else it will return false.
+
+2. If forwarding is enabled, data_hazard will change the state of instruction
+    by specifying from where it will pick data in a stage where hazard is occuring,
+    else will add a dummy instruction.
+
+3. Expected functions:
 a) class: State(PC): # will take PC as an input
                   ins = 0
+                  stage = -1
                   function evaluate(),
                   pc_update = False
                   branch_taken = False
@@ -63,8 +76,7 @@ b) data_hazard(pipeline_instructions, new_instruction, pc, forwarding_enabled) #
                 check if the new instruction can be added or not, else add a stall
 
             return was_there_hazard, new_pc
-
-buffers = [5][5]
+------
 '''
 
 if __name__ == '__main__':
@@ -74,7 +86,7 @@ if __name__ == '__main__':
 
     # invoke the processing unit
     # invoke BTB
-    # invoke hdu
+    # invoke HDU
 
     # Knobs
     pipelining_enabled = True                      # Knob1
@@ -107,15 +119,15 @@ if __name__ == '__main__':
     if not pipelining_enabled:
         while(1):
             instruction = State(PC)
-            Processor.fetch(pipelining_enabled, terminate)
-            Processor.decode(pipelining_enabled, terminate)
+            Processor.fetch(instruction, pipelining_enabled, terminate)
+            Processor.decode(instruction, pipelining_enabled, terminate)
             if terminate:
                 break
-            Processor.execute(pipelining_enabled, terminate)
+            Processor.execute(instruction, pipelining_enabled, terminate)
             if terminate:
                 break
-            Processor.memory(pipelining_enabled, terminate)
-            Processor.write_back(pipelining_enabled, terminate)
+            Processor.memory(instruction, pipelining_enabled, terminate)
+            Processor.write_back(instruction, pipelining_enabled, terminate)
             clock_cycles += 1
 
             if print_registers_each_cycle:
@@ -124,6 +136,59 @@ if __name__ == '__main__':
 
     else:
         pipeline_instructions = []   # instructions currently in the pipeline
+
+        while True:
+            if not forwarding_enabled:
+            	pipeline_instructions = [x.evaluate() for x in pipeline_instructions]
+
+            	for _ in pipeline_instructions:
+                    if _.stage == 3 and _.pc_update and _.branch_taken != btb.get_Target[PC]
+                        pipeline_instructions.pop() # Flush
+                        # Add a dummy instruction
+                        number_of_branch_mispredictions++
+                        number_of_stalls_due_to_control_hazards++
+                        PC = _.pc_val
+
+                if len(pipeline_instructions) == 5:
+                        pipeline_instructions = pipeline_instructions[1:]
+
+            	data_hazard = hdu.check_data_hazard(pipeline_instructions) # check if data hazard is there or not
+
+            	if not data_hazard:
+            	    new_instruction = State(PC)
+            	    pipeline_instructions.append(State(PC))
+                    PC += 4
+                else:
+            	    last_inst = pipeline_instructions[-1]
+                    pipeline_instructions.pop()
+                    # Add a dummy instruction
+                    pipeline_instructions.append(last_inst)
+            	    number_of_data_hazards++
+                    number_of_stalls_due_to_data_hazards++
+
+            else:
+                print("\n");
+
+            clock_cycles += 1
+
+            if print_registers_each_cycle:
+                # Print registers
+                print("\n");
+
+            # Shift this above among instructions or elsewhere
+            if print_specific_pipeline_register[0]:
+                # Print specific pipeline register
+                print("\n");
+
+            if print_pipeline_registers_and_cycle:
+                # Print pipeline registers and cycle
+                print("\n");
+
+            # How terminate? One possible solution is to add a dummy instruction in fetch after program instructions.
+            # The program then can be terminated if all the instructions are dummy instructions
+
+'''
+---For later reference---
         branch_taken = {}
 
         while not terminate:
@@ -156,24 +221,8 @@ if __name__ == '__main__':
             if not ctrl_hazard and not data_hazard:
                 pipeline_instructions.append(State(PC)) # State(PC) will return an object of a class State()
                 PC += 4
-
-            clock_cycles += 1
-
-            if print_registers_each_cycle:
-                # Print registers
-                print("\n");
-
-            # Shift this above among instructions or elsewhere
-            if print_specific_pipeline_register[0]:
-                # Print specific pipeline register
-                print("\n");
-
-            if print_pipeline_registers_and_cycle:
-                # Print pipeline registers and cycle
-                print("\n");
-
-            # How terminate?
-
+------
+'''
 
 # Print Messages
 
