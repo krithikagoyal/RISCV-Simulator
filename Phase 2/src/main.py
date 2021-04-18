@@ -58,11 +58,8 @@ a) class: State(PC): # will take PC as an input
                   ins = 0
                   stage = -1
                   function evaluate(),
-                  pc_update = False
+                  pc_update = value of the pc up_date depending on branch taken or not taken
                   branch_taken = False
-                  pc_val = PC
-                  data_decode = [instruction_number, buffer_number]
-                  data_execute = [instruction_number, buffer_number]
                   # stores from where we will pick the data for the execution of a particular instruction.
 
 b) data_hazard(pipeline_instructions, new_instruction, pc, forwarding_enabled) # pass by reference
@@ -95,27 +92,31 @@ if __name__ == '__main__':
     print_pipeline_registers_and_cycle = False     # Knob4
     print_specific_pipeline_register = [False, -1] # Knob5
 
-'''
-    # Various counts, Some might be already declared in myRISCVSim.py
-    total_instructions_executed = 0
-    cpi = cycles / total_instructions_executed # should be calculated at the end, shift at the end
-    data_transfer_instructions = 0 # Loads and stores
-    alu_instructions = 0
-    control_instructions = 0
-    number_of_stalls = 0 # or bubbles in the pipeline
-    number_of_data_hazards = 0
-    number_of_control_hazard = 0
-    number_of_branch_mispredictions = 0
-    number_of_stalls_due_to_data_hazards = 0
-    number_of_stalls_due_to_control_hazards = 0
-'''
+    '''
+        # Various counts, Some might be already declared in myRISCVSim.py
+        total_instructions_executed = 0
+        cpi = cycles / total_instructions_executed # should be calculated at the end, shift at the end
+        data_transfer_instructions = 0 # Loads and stores
+        alu_instructions = 0
+        control_instructions = 0
+        number_of_stalls = 0 # or bubbles in the pipeline
+        number_of_data_hazards = 0
+        number_of_control_hazard = 0
+        number_of_branch_mispredictions = 0
+        number_of_stalls_due_to_data_hazards = 0
+        number_of_stalls_due_to_control_hazards = 0
+    '''
 
     # Other signals
     PC = 0
     clock_cycles = 0
     terminate = False            # has the program terminated ?
+    number_of_data_hazards = 0
+    number_of_branch_mispredictions = 0
+    number_of_stalls_due_to_control_hazards = 0
+    number_of_control_hazards = 0
+    number_of_stalls_due_to_data_hazards = 0
 
-    #
     if not pipelining_enabled:
         while True:
             instruction = State(PC)
@@ -145,8 +146,8 @@ if __name__ == '__main__':
                     if _.stage == 3 and _.pc_update and _.branch_taken != btb.get_Target[PC]
                         pipeline_instructions.pop() # Flush
                         # Add a dummy instruction
-                        branch_mispredictions += 1
-                        stalls_due_to_control_hazards += 1
+                        number_of_branch_mispredictions += 1
+                        number_of_stalls_due_to_control_hazards += 1
                         PC = _.pc_val
 
                 if len(pipeline_instructions) == 5:
@@ -163,8 +164,8 @@ if __name__ == '__main__':
                     pipeline_instructions.pop()
                     # Add a dummy instruction
                     pipeline_instructions.append(last_inst)
-                    data_hazards += 1
-                    stalls_due_to_data_hazards += 1
+                    number_of_data_hazards += 1
+                    number_of_stalls_due_to_data_hazards += 1
 
             else:
                 pipeline_instructions = [x.evaluate() for x in pipeline_instructions]
@@ -175,10 +176,11 @@ if __name__ == '__main__':
                 for _ in pipeline_instructions:
                     if _.control_hazard and _.pc_update != _.pc_next:
                         control_hazard = True
-                        control_hazards += 1
+                        number_of_control_hazards += 1
                         pipeline_instructions.pop()
                         pipeline_instructions.append(State(_.pc_update))
-                        PC = _.pc_update
+                        PC = _.pc_update + 4
+                        break
 
                 if not control_hazard:
                     new_instruction = State(PC)
