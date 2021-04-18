@@ -58,11 +58,8 @@ a) class: State(PC): # will take PC as an input
                   ins = 0
                   stage = -1
                   function evaluate(),
-                  pc_update = False
+                  pc_update = value of the pc up_date depending on branch taken or not taken
                   branch_taken = False
-                  pc_val = PC
-                  data_decode = [instruction_number, buffer_number]
-                  data_execute = [instruction_number, buffer_number]
                   # stores from where we will pick the data for the execution of a particular instruction.
 
 b) data_hazard(pipeline_instructions, new_instruction, pc, forwarding_enabled) # pass by reference
@@ -95,29 +92,33 @@ if __name__ == '__main__':
     print_pipeline_registers_and_cycle = False     # Knob4
     print_specific_pipeline_register = [False, -1] # Knob5
 
-'''
-    # Various counts, Some might be already declared in myRISCVSim.py
-    total_instructions_executed = 0
-    cpi = cycles / total_instructions_executed # should be calculated at the end, shift at the end
-    data_transfer_instructions = 0 # Loads and stores
-    alu_instructions = 0
-    control_instructions = 0
-    number_of_stalls = 0 # or bubbles in the pipeline
-    number_of_data_hazards = 0
-    number_of_control_hazard = 0
-    number_of_branch_mispredictions = 0
-    number_of_stalls_due_to_data_hazards = 0
-    number_of_stalls_due_to_control_hazards = 0
-'''
+    '''
+        # Various counts, Some might be already declared in myRISCVSim.py
+        total_instructions_executed = 0
+        cpi = cycles / total_instructions_executed # should be calculated at the end, shift at the end
+        data_transfer_instructions = 0 # Loads and stores
+        alu_instructions = 0
+        control_instructions = 0
+        number_of_stalls = 0 # or bubbles in the pipeline
+        number_of_data_hazards = 0
+        number_of_control_hazard = 0
+        number_of_branch_mispredictions = 0
+        number_of_stalls_due_to_data_hazards = 0
+        number_of_stalls_due_to_control_hazards = 0
+    '''
 
     # Other signals
     PC = 0
     clock_cycles = 0
     terminate = False            # has the program terminated ?
+    number_of_data_hazards = 0
+    number_of_branch_mispredictions = 0
+    number_of_stalls_due_to_control_hazards = 0
+    number_of_control_hazards = 0
+    number_of_stalls_due_to_data_hazards = 0
 
-    #
     if not pipelining_enabled:
-        while(1):
+        while True:
             instruction = State(PC)
             Processor.fetch(instruction, pipelining_enabled, terminate)
             Processor.decode(instruction, pipelining_enabled, terminate)
@@ -139,50 +140,66 @@ if __name__ == '__main__':
 
         while True:
             if not forwarding_enabled:
-            	pipeline_instructions = [x.evaluate() for x in pipeline_instructions]
+                pipeline_instructions = [x.evaluate() for x in pipeline_instructions]
 
-            	for _ in pipeline_instructions:
+                for _ in pipeline_instructions:
                     if _.stage == 3 and _.pc_update and _.branch_taken != btb.get_Target[PC]
                         pipeline_instructions.pop() # Flush
                         # Add a dummy instruction
-                        number_of_branch_mispredictions++
-                        number_of_stalls_due_to_control_hazards++
+                        number_of_branch_mispredictions += 1
+                        number_of_stalls_due_to_control_hazards += 1
                         PC = _.pc_val
 
                 if len(pipeline_instructions) == 5:
                         pipeline_instructions = pipeline_instructions[1:]
 
-            	data_hazard = hdu.check_data_hazard(pipeline_instructions) # check if data hazard is there or not
+                data_hazard = hdu.check_data_hazard(pipeline_instructions) # check if data hazard is there or not
 
-            	if not data_hazard:
-            	    new_instruction = State(PC)
-            	    pipeline_instructions.append(State(PC))
+                if not data_hazard:
+                    new_instruction = State(PC)
+                    pipeline_instructions.append(State(PC))
                     PC += 4
                 else:
-            	    last_inst = pipeline_instructions[-1]
+                    last_inst = pipeline_instructions[-1]
                     pipeline_instructions.pop()
                     # Add a dummy instruction
                     pipeline_instructions.append(last_inst)
-            	    number_of_data_hazards++
-                    number_of_stalls_due_to_data_hazards++
+                    number_of_data_hazards += 1
+                    number_of_stalls_due_to_data_hazards += 1
 
             else:
-                print("\n");
+                pipeline_instructions = [x.evaluate() for x in pipeline_instructions]
+                if len(pipeline_instructions) == 5:
+                    pipeline_instructions = pipeline_instructions[1:]
+
+                control_hazard = False
+                for _ in pipeline_instructions:
+                    if _.control_hazard and _.pc_update != _.pc_next:
+                        control_hazard = True
+                        number_of_control_hazards += 1
+                        pipeline_instructions.pop()
+                        pipeline_instructions.append(State(_.pc_update))
+                        PC = _.pc_update + 4
+                        break
+
+                if not control_hazard:
+                    new_instruction = State(PC)
+                    pipeline_instructions.append(new_instruction) # if data_hazard is there, then execute will itself pick the data required form the buffer.
 
             clock_cycles += 1
 
             if print_registers_each_cycle:
                 # Print registers
-                print("\n");
+                print("\n")
 
             # Shift this above among instructions or elsewhere
             if print_specific_pipeline_register[0]:
                 # Print specific pipeline register
-                print("\n");
+                print("\n")
 
             if print_pipeline_registers_and_cycle:
                 # Print pipeline registers and cycle
-                print("\n");
+                print("\n")
 
             # How terminate? One possible solution is to add a dummy instruction in fetch after program instructions.
             # The program then can be terminated if all the instructions are dummy instructions
