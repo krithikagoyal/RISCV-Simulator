@@ -169,8 +169,122 @@ class Processor:
                     state.branch_taken = btb.predict(state.PC)
                     state.pc_update = btb.predict(state.PC)
 
+    def decode(self, pipelining_enabled, stage):
+        global alu_control_signal, operation, operand1, operand2, instruction_word, rd, offset, register_data, memory_address, write_back_signal, PC, is_mem, MEM, R
+
+        if not pipelining_enabled and instruction_word == '0x401080BB':
+            print("END PROGRAM\n")
+            swi_exit()
+            return
+
+        bin_instruction = bin(int(instruction_word[2:], 16))[2:]
+        bin_instruction = (32 - len(bin_instruction)) * '0' + bin_instruction
+
+        opcode = int(bin_instruction[25:32], 2)
+        func3 = int(bin_instruction[17:20], 2)
+        func7 = int(bin_instruction[0:7], 2)
+
+        f = open('Instruction_Set_List.csv')
+        instruction_set_list = list(csv.reader(f))
+        f.close()
+
+        match_found = False
+        track = 0
+
+        for ins in instruction_set_list:
+            if track == 0:
+                match_found = False
+            elif ins[4] != 'NA' and [int(ins[2], 2), int(ins[3], 2), int(ins[4], 2)] == [opcode, func3, func7]:
+                match_found = True
+            elif ins[4] == 'NA' and ins[3] != 'NA' and [int(ins[2], 2), int(ins[3], 2)] == [opcode, func3]:
+                match_found = True
+            elif ins[4] == 'NA' and ins[3] == 'NA' and int(ins[2], 2) == opcode:
+                match_found = True
+            if match_found:
+                break
+            track += 1
+
+        if not match_found:
+            print("ERROR: Unidentifiable machine code!\n")
+            swi_exit()
+            return
+
+        op_type = instruction_set_list[track][0]
+        operation = instruction_set_list[track][1]
+        alu_control_signal = track
+
+        if op_type == 'R':
+            rs2 = bin_instruction[7:12]
+            rs1 = bin_instruction[12:17]
+            stage.rd = bin_instruction[20:25]
+            stage.operand1 = R[int(rs1, 2)]
+            stage.operand2 = R[int(rs2, 2)]
+            stage.write_back_signal = True
+            print("DECODE: Operation is ", operation.upper(), ", first operand is R", str(int(rs1, 2)), ", second operand is R", str(int(rs2, 2)), ", destination register is R", str(int(rd, 2)), sep="")
+            print("DECODE: Read registers: R", str(int(rs1, 2)), " = ", nint(operand1, 16), ", R", str(int(rs2, 2)), " = ", nint(operand2, 16), sep="")
+
+        elif op_type == 'I':
+            rs1 = bin_instruction[12:17]
+            stage.rd = bin_instruction[20:25]
+            imm = bin_instruction[0:12]
+            stage.operand1 = R[int(rs1, 2)]
+            stage.operand2 = imm
+            stage.write_back_signal = True
+            print("DECODE: Operation is ", operation.upper(), ", first operand is R", str(int(rs1, 2)), ", immediate is ", nint(operand2, 2, len(operand2)), ", destination register is R", str(int(rd, 2)), sep="")
+            print("DECODE: Read registers: R", str(int(rs1, 2)), " = ", nint(operand1, 16), sep="")
+
+        elif op_type == 'S':
+            rs2 = bin_instruction[7:12]
+            rs1 = bin_instruction[12:17]
+            imm = bin_instruction[0:7] + bin_instruction[20:25]
+            stage.operand1 = R[int(rs1, 2)]
+            stage.operand2 = imm
+            stage.register_data = R[int(rs2, 2)]
+            stage.write_back_signal = False
+            print("DECODE: Operation is ", operation.upper(), ", first operand is R", str(int(rs1, 2)), ", immediate is ", nint(operand2, 2, len(operand2)), ", data to be stored is in R", str(int(rs2, 2)), sep="")
+            print("DECODE: Read registers: R", str(int(rs1, 2)), " = ", nint(operand1, 16), ", R", str(int(rs2, 2)), " = ", nint(register_data, 16), sep="")
+
+        elif op_type == 'SB':
+            rs2 = bin_instruction[7:12]
+            rs1 = bin_instruction[12:17]
+            stage.operand1 = R[int(rs1, 2)]
+            stage.operand2 = R[int(rs2, 2)]
+            imm = bin_instruction[0] + bin_instruction[24] + \
+                bin_instruction[1:7] + bin_instruction[20:24] + '0'
+            stage.offset = imm
+            stage.write_back_signal = False
+            print("DECODE: Operation is ", operation.upper(), ", first operand is R", str(int(rs1, 2)), ", second operand is R", str(int(rs2, 2)), ", immediate is ", nint(offset, 2, len(offset)), sep="")
+            print("DECODE: Read registers: R", str(int(rs1, 2)), " = ", nint(operand1, 16), ", R", str(int(rs2, 2)), " = ", nint(operand2, 16), sep="")
+
+        elif op_type == 'U':
+            stage.rd = bin_instruction[20:25]
+            imm = bin_instruction[0:20]
+            stage.write_back_signal = True
+            print("DECODE: Operation is ", operation.upper(), ", immediate is ", nint(imm, 2, len(imm)), ", destination register is R", str(int(rd, 2)), sep="")
+            print("DECODE: No register read")
+            imm += '0'*12
+            stage.operand2 = imm
+
+        elif op_type == 'UJ':
+            stage.rd = bin_instruction[20:25]
+            imm = bin_instruction[0] + bin_instruction[12:20] + \
+                bin_instruction[11] + bin_instruction[1:11]
+            stage.write_back_signal = True
+            print("DECODE: Operation is ", operation.upper(), ", immediate is ", nint(imm, 2, len(imm)), ", destination register is R", str(int(rd, 2)), sep="")
+            print("DECODE: No register read")
+            imm += '0'
+            stage.offset = imm
+
+        else:
+            print("ERROR: Unidentifiable machine code!\n")
+            swi_exit()
+            return
+
+        if not btb.find(state.PC) and (alu_control_signal == 29 or alu_control_signal == 19):
+            self.execute(self, pipelining_enabled, state)
+
     # Executes the ALU operation based on ALUop
-    def execute(pipelining_enabled, state):
+    def execute(self, pipelining_enabled, state):
         state.stage += 1
         if state.is_dummy:
             return True
