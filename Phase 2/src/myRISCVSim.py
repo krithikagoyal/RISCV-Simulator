@@ -141,7 +141,7 @@ class Processor:
 			out_tmp = []
 			for i in range(268435456, 268468221, 4):
 				out_tmp.append(
-					hex(i) + ' 0x' + MEM[i + 3] + MEM[i + 2] + MEM[i + 1] + MEM[i] + '\n')
+					hex(i) + ' 0x' + self.MEM[i + 3] + self.MEM[i + 2] + self.MEM[i + 1] + self.MEM[i] + '\n')
 			fp.writelines(out_tmp)
 			fp.close()
 		except:
@@ -451,22 +451,22 @@ class Processor:
 		elif state.is_mem[0] == 0:
 			state.register_data = '0x'
 			if state.is_mem[1] == 0:
-				state.register_data += MEM[state.memory_address]
+				state.register_data += self.MEM[state.memory_address]
 			elif is_mem[1] == 1:
-				state.register_data += (MEM[state.memory_address + 1] + MEM[state.memory_address])
+				state.register_data += (self.MEM[state.memory_address + 1] + self.MEM[state.memory_address])
 			else:
-				state.register_data += (MEM[state.memory_address + 3] + MEM[state.memory_address + 2] + MEM[state.memory_address + 1] + MEM[state.memory_address])
+				state.register_data += (self.MEM[state.memory_address + 3] + self.MEM[state.memory_address + 2] + self.MEM[state.memory_address + 1] + self.MEM[state.memory_address])
 
 			state.register_data = sign_extend(state.register_data)
 
 		else:
 			if state.is_mem[1] >= 3:
-				MEM[state.memory_address + 3] = state.register_data[2:4]
-				MEM[state.memory_address + 2] = state.register_data[4:6]
+				self.MEM[state.memory_address + 3] = state.register_data[2:4]
+				self.MEM[state.memory_address + 2] = state.register_data[4:6]
 			if is_mem[1] >= 1:
-				MEM[state.memory_address + 1] = state.register_data[6:8]
+				self.MEM[state.memory_address + 1] = state.register_data[6:8]
 			if is_mem[1] >= 0:
-				MEM[state.memory_address] = state.register_data[8:10]
+				self.MEM[state.memory_address] = state.register_data[8:10]
 
 		if self.pipelining_enabled:
 			return
