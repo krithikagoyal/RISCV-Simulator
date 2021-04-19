@@ -18,6 +18,7 @@ Project Name: Functional Simulator for subset of RISC-V Processor
 
 from collections import defaultdict
 from sys import exit
+import os
 import csv
 
 
@@ -58,7 +59,7 @@ class State:
 		self.register_data = '0x00000000'
 		self.memory_address = 0
 		self.alu_control_signal = -1
-		self.is_mem = is_mem = [-1, -1] # [-1/0/1(no memory operation/load/store), type of load/store if any]
+		self.is_mem = [-1, -1] # [-1/0/1(no memory operation/load/store), type of load/store if any]
 		self.write_back_signal = False
 		#
 		self.is_dummy = False
@@ -200,7 +201,8 @@ class Processor:
 		func3 = int(bin_instruction[17:20], 2)
 		func7 = int(bin_instruction[0:7], 2)
 
-		f = open('Instruction_Set_List.csv')
+		path = os.path.dirname(__file__)
+		f = open(os.path.join(path,'Instruction_Set_List.csv'))
 		instruction_set_list = list(csv.reader(f))
 		f.close()
 
