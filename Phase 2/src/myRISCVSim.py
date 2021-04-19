@@ -471,7 +471,7 @@ class Processor:
 		if self.pipelining_enabled:
 			return
 
-		IAG()
+		self.IAG()
 
 	# Writes the results back to the register file
 	def write_back(self, state):
