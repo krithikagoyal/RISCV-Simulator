@@ -234,15 +234,15 @@ class Processor:
 			state.rs2 = bin_instruction[7:12]
 			state.rs1 = bin_instruction[12:17]
 			state.rd = bin_instruction[20:25]
-			state.operand1 = self.R[int(rs1, 2)]
-			state.operand2 = self.R[int(rs2, 2)]
+			state.operand1 = self.R[int(state.rs1, 2)]
+			state.operand2 = self.R[int(state.rs2, 2)]
 			state.write_back_signal = True
 
 		elif op_type == 'I':
 			state.rs1 = bin_instruction[12:17]
 			state.rd = bin_instruction[20:25]
 			imm = bin_instruction[0:12]
-			state.operand1 = self.R[int(rs1, 2)]
+			state.operand1 = self.R[int(state.rs1, 2)]
 			state.operand2 = imm
 			state.write_back_signal = True
 
@@ -250,16 +250,16 @@ class Processor:
 			state.rs2 = bin_instruction[7:12]
 			state.rs1 = bin_instruction[12:17]
 			imm = bin_instruction[0:7] + bin_instruction[20:25]
-			state.operand1 = self.R[int(rs1, 2)]
+			state.operand1 = self.R[int(state.rs1, 2)]
 			state.operand2 = imm
-			state.register_data = self.R[int(rs2, 2)]
+			state.register_data = self.R[int(state.rs2, 2)]
 			state.write_back_signal = False
 
 		elif op_type == 'SB':
 			state.rs2 = bin_instruction[7:12]
 			state.rs1 = bin_instruction[12:17]
-			state.operand1 = self.R[int(rs1, 2)]
-			state.operand2 = self.R[int(rs2, 2)]
+			state.operand1 = self.R[int(state.rs1, 2)]
+			state.operand2 = self.R[int(state.rs2, 2)]
 			imm = bin_instruction[0] + bin_instruction[24] + \
 				bin_instruction[1:7] + bin_instruction[20:24] + '0'
 			state.offset = imm
