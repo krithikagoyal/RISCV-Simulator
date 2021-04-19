@@ -17,18 +17,11 @@ Project Name: Functional Simulator for subset of RISC-V Processor
 # Purpose of this file: This file controls the overall functioning of the Simulator.
 
 from Gui import display, take_input
-from myRISCVSim import State, Processor, BTB # Also, import Hazard detection unit
+from myRISCVSim import State, Processor, BTB, HDU # Also, import Hazard detection unit
 import time
 
 '''
-1. For non-pipelined version, each of the five stages takes pipelining_enabled,
-    and terminate as input. Implement it accordingly in myRISCVSim.py
-
-2. State() of an instruction will also store from where to pick the data for a
-    particular state, default will be buffer of previous stage of the instruction
-    but can be changed due to, data_hazard.
-
-3. x.evaluate() will evaluate the particular stage of the instruction,
+1. x.evaluate() will evaluate the particular stage of the instruction,
     all the information needed for evaluation will be stored in the state.
     For this, the class will have a variable as self.stage = -1.
     This variable will increase in each stage.
@@ -40,9 +33,9 @@ import time
         ...
         return instruction
 
-4. PC for a branch instruction, not present in BTB will be calculated in decode stage.
+2. PC for a branch instruction, not present in BTB will be calculated in decode stage.
 
-5. check_data_hazard in HDU returns if data_hazard is there or not
+3. check_data_hazard in HDU returns if data_hazard is there or not
 
 ---Later---
 1. If control_hazard returns true, and it will add a predicted instruction to the
@@ -82,8 +75,7 @@ if __name__ == '__main__':
 
     processor = Processor(prog_mc_file)
     btb = BTB()
-    # invoke BTB
-    # invoke HDU
+    hdu = HDU()
 
     # Knobs
     pipelining_enabled = False                     # Knob1
@@ -134,10 +126,10 @@ if __name__ == '__main__':
             PC = processor.next_PC
             clock_cycles += 1
 
-            if print_registers_each_cycle:
-                for i in range(32):
-                    print(processor.R[i], end=" ")
-            print("\n")
+            # if print_registers_each_cycle:
+            #     for i in range(32):
+            #         print(processor.R[i], end=" ")
+            # print("\n")
 
         processor.write_data_memory()
 

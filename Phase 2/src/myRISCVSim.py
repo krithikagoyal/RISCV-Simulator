@@ -151,7 +151,7 @@ class Processor:
 			fp = open("reg_out.mc", "w")
 			out_tmp = []
 			for i in range(32):
-				out_tmp.append('x' + str(i) + ' ' + R[i] + '\n')
+				out_tmp.append('x' + str(i) + ' ' + self.R[i] + '\n')
 			fp.writelines(out_tmp)
 			fp.close()
 		except:
@@ -452,7 +452,7 @@ class Processor:
 			state.register_data = '0x'
 			if state.is_mem[1] == 0:
 				state.register_data += self.MEM[state.memory_address]
-			elif is_mem[1] == 1:
+			elif state.is_mem[1] == 1:
 				state.register_data += (self.MEM[state.memory_address + 1] + self.MEM[state.memory_address])
 			else:
 				state.register_data += (self.MEM[state.memory_address + 3] + self.MEM[state.memory_address + 2] + self.MEM[state.memory_address + 1] + self.MEM[state.memory_address])
@@ -463,9 +463,9 @@ class Processor:
 			if state.is_mem[1] >= 3:
 				self.MEM[state.memory_address + 3] = state.register_data[2:4]
 				self.MEM[state.memory_address + 2] = state.register_data[4:6]
-			if is_mem[1] >= 1:
+			if state.is_mem[1] >= 1:
 				self.MEM[state.memory_address + 1] = state.register_data[6:8]
-			if is_mem[1] >= 0:
+			if state.is_mem[1] >= 0:
 				self.MEM[state.memory_address] = state.register_data[8:10]
 
 		if self.pipelining_enabled:
