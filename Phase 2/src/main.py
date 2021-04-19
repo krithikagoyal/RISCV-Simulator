@@ -17,8 +17,7 @@ Project Name: Functional Simulator for subset of RISC-V Processor
 # Purpose of this file: This file controls the overall functioning of the Simulator.
 
 from Gui import display, take_input
-from myRISCVSim import State, ProcessingUnit, BTB # Change names if used different
-# import from Hazard detection unit
+from myRISCVSim import State, Processor, BTB # Also, import Hazard detection unit
 import time
 
 '''
@@ -81,12 +80,13 @@ if __name__ == '__main__':
     # set .mc file
     prog_mc_file = take_input()
 
-    # invoke the processing unit
+    processor = Processor(prog_mc_file)
+    btb = BTB()
     # invoke BTB
     # invoke HDU
 
     # Knobs
-    pipelining_enabled = True                      # Knob1
+    pipelining_enabled = False                     # Knob1
     forwarding_enabled = False                     # Knob2
     print_registers_each_cycle = False             # Knob3
     print_pipeline_registers_and_cycle = False     # Knob4
@@ -110,30 +110,36 @@ if __name__ == '__main__':
     # Other signals
     PC = 0
     clock_cycles = 0
-    terminate = False            # has the program terminated ?
-    number_of_data_hazards = 0
-    number_of_branch_mispredictions = 0
-    number_of_stalls_due_to_control_hazards = 0
+    # terminate = False            # has the program terminated ?
     number_of_control_hazards = 0
+    number_of_stalls_due_to_control_hazards = 0
+    number_of_data_hazards = 0
     number_of_stalls_due_to_data_hazards = 0
+    total_number_of_stalls = 0
+    number_of_branch_mispredictions = 0
 
     if not pipelining_enabled:
+        processor.pipelining_enabled = False
         while True:
             instruction = State(PC)
-            Processor.fetch(instruction, pipelining_enabled, terminate)
-            Processor.decode(instruction, pipelining_enabled, terminate)
-            if terminate:
+            processor.fetch(instruction)
+            processor.decode(instruction)
+            if processor.terminate:
                 break
-            Processor.execute(instruction, pipelining_enabled, terminate)
-            if terminate:
+            processor.execute(instruction)
+            if processor.terminate:
                 break
-            Processor.memory(instruction, pipelining_enabled, terminate)
-            Processor.write_back(instruction, pipelining_enabled, terminate)
+            processor.mem(instruction)
+            processor.write_back(instruction)
+            PC = processor.next_PC
             clock_cycles += 1
 
             if print_registers_each_cycle:
-                # Print registers, also print cycle
-                print("\n");
+                for i in range(32):
+                    print(processor.R[i], end=" ")
+            print("\n")
+
+        processor.write_data_memory()
 
     else:
         pipeline_instructions = []   # instructions currently in the pipeline
@@ -143,7 +149,7 @@ if __name__ == '__main__':
                 pipeline_instructions = [x.evaluate() for x in pipeline_instructions]
 
                 for _ in pipeline_instructions:
-                    if _.stage == 3 and _.pc_update and _.branch_taken != btb.get_Target[PC]
+                    if _.stage == 3 and _.pc_update and _.branch_taken != btb.getTarget(PC):
                         pipeline_instructions.pop() # Flush
                         # Add a dummy instruction
                         number_of_branch_mispredictions += 1
@@ -244,4 +250,4 @@ if __name__ == '__main__':
 # Print Messages
 
 # display the data
-# display()
+display()
