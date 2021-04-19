@@ -266,8 +266,6 @@ def decode():
     else:
         print("ERROR: Unidentifiable machine code!\n")
         swi_exit()
-        return
-
 
 # Executes the ALU operation based on ALUop
 def execute():
