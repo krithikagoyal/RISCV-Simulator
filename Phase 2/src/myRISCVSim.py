@@ -20,6 +20,7 @@ from collections import defaultdict
 from sys import exit
 import csv
 
+
 # Utility Functions
 def nhex(num):
 	if num < 0:
