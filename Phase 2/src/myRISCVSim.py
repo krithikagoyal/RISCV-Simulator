@@ -442,6 +442,7 @@ class Processor:
 	# Performs the memory operations
 	def mem(self, state):
 		state.stage += 1
+		self.IAG()
 		if state.is_dummy:
 			return
 
@@ -471,7 +472,6 @@ class Processor:
 		if self.pipelining_enabled:
 			return
 
-		self.IAG()
 
 	# Writes the results back to the register file
 	def write_back(self, state):
