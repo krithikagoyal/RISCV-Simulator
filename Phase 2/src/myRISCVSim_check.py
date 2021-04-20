@@ -18,6 +18,7 @@ Project Name: Functional Simulator for subset of RISC-V Processor
 
 from collections import defaultdict
 from sys import exit
+import os
 import csv
 
 # Utility Functions
