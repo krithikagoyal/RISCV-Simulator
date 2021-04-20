@@ -94,8 +94,8 @@ class Processor:
 	def __init__(self, file_name):
 		self.MEM = defaultdict(lambda: '00')
 		self.R = ['0x00000000' for i in range(32)]
-		self.R[2]='0x7FFFFFF0'
-		self.R[3]='0x10000000'
+		self.R[2] = '0x7FFFFFF0'
+		self.R[3] = '0x10000000'
 		self.load_program_memory(file_name)
 		self.pipelining_enabled = False
 		self.terminate = False
@@ -166,9 +166,13 @@ class Processor:
 		else:
 			self.next_PC += 4
 
+		self.pc_select = 0
+		self.inc_select = 0
+
 	# Reads from the instruction memory and updates the instruction register
 	def fetch(self, state, *args):
 		state.stage += 1
+
 		if state.is_dummy:
 			return
 
@@ -185,6 +189,7 @@ class Processor:
 	# Decodes the instruction and decides the operation to be performed in the execute stage; reads the operands from the register file.
 	def decode(self, state, *args):
 		state.stage += 1
+
 		if state.is_dummy:
 			return
 
@@ -286,6 +291,7 @@ class Processor:
 	# Executes the ALU operation based on ALUop
 	def execute(self, state):
 		state.stage += 1
+
 		if state.is_dummy:
 			return True
 
@@ -411,7 +417,7 @@ class Processor:
 				return
 			if nint(state.operand1, 16) >= nint(state.operand2, 16):
 				self.pc_offset = nint(state.offset, 2,  len(state.offset))
-				state.inc_select = 1
+				self.inc_select = 1
 
 		elif state.alu_control_signal == 26:
 			if self.pipelining_enabled:
@@ -442,7 +448,10 @@ class Processor:
 	# Performs the memory operations
 	def mem(self, state):
 		state.stage += 1
-		self.IAG()
+
+		if not self.pipelining_enabled:
+			self.IAG()
+
 		if state.is_dummy:
 			return
 
@@ -469,15 +478,11 @@ class Processor:
 			if state.is_mem[1] >= 0:
 				self.MEM[state.memory_address] = state.register_data[8:10]
 
-		if self.pipelining_enabled:
-			return
-
-
 	# Writes the results back to the register file
 	def write_back(self, state):
 		state.stage += 1
+
 		if not state.is_dummy:
-			state.stage += 1
 			if state.write_back_signal:
 				if int(state.rd, 2) != 0:
 					self.R[int(state.rd, 2)] = state.register_data

@@ -80,29 +80,15 @@ if __name__ == '__main__':
     # Knobs
     pipelining_enabled = False                     # Knob1
     forwarding_enabled = False                     # Knob2
-    print_registers_each_cycle = False             # Knob3
+    print_registers_each_cycle = True              # Knob3
     print_pipeline_registers_and_cycle = False     # Knob4
     print_specific_pipeline_register = [False, -1] # Knob5
-
-    '''
-        # Various counts, Some might be already declared in myRISCVSim.py
-        total_instructions_executed = 0
-        cpi = cycles / total_instructions_executed # should be calculated at the end, shift at the end
-        data_transfer_instructions = 0 # Loads and stores
-        alu_instructions = 0
-        control_instructions = 0
-        number_of_stalls = 0 # or bubbles in the pipeline
-        number_of_data_hazards = 0
-        number_of_control_hazard = 0
-        number_of_branch_mispredictions = 0
-        number_of_stalls_due_to_data_hazards = 0
-        number_of_stalls_due_to_control_hazards = 0
-    '''
 
     # Other signals
     PC = 0
     clock_cycles = 0
-    # terminate = False            # has the program terminated ?
+
+    # Various Counts
     number_of_control_hazards = 0
     number_of_stalls_due_to_control_hazards = 0
     number_of_data_hazards = 0
@@ -126,10 +112,10 @@ if __name__ == '__main__':
             PC = processor.next_PC
             clock_cycles += 1
 
-            # if print_registers_each_cycle:
-            #     for i in range(32):
-            #         print(processor.R[i], end=" ")
-            # print("\n")
+            if print_registers_each_cycle:
+                for i in range(32):
+                    print(processor.R[i], end=" ")
+            print("\n")
 
         processor.write_data_memory()
 
