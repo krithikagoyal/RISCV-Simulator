@@ -196,7 +196,6 @@ class Processor:
 			state.rs1 = bin_instruction[12:17]
 			state.rs2 = -1
             
-            
 		#R S SB format
 		else:
 			state.rs1 = bin_instruction[12:17]

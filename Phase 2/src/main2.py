@@ -81,8 +81,6 @@ if __name__ == '__main__':
 				print("\n")
 			print(clock_cycles)
 
-		processor.write_data_memory()
-
 	else:
 		# add dummy instructions at the beginning
 		processor.pipelining_enabled = True
@@ -155,8 +153,8 @@ if __name__ == '__main__':
 				print("\n")
 
 	if prog_end:
-		for i in range(32):
-			print(processor.R[i], end=" ")
+		processor.write_data_memory()
+		display()
 
 		# display()
 		
