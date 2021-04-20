@@ -187,9 +187,8 @@ class Processor:
 		
 		bin_instruction = bin(int(state.instruction_word[2:], 16))[2:]
 		bin_instruction = (32 - len(bin_instruction)) * '0' + bin_instruction
-        opcode = int(bin_instruction[25:32], 2)
-        
-        if opcode == 23 or opcode == 55 or opcode == 111:
+		opcode = int(bin_instruction[25:32], 2)
+		if opcode == 23 or opcode == 55 or opcode == 111:
 			pass
         
 		#I format
@@ -231,7 +230,8 @@ class Processor:
 		func3 = int(bin_instruction[17:20], 2)
 		func7 = int(bin_instruction[0:7], 2)
 
-		f = open('Instruction_Set_List.csv')
+		path = os.path.dirname(__file__)
+		f = open(os.path.join(path,'Instruction_Set_List.csv'))
 		instruction_set_list = list(csv.reader(f))
 		f.close()
 
