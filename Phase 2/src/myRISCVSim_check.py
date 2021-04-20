@@ -161,7 +161,7 @@ class Processor:
 		if state.pc_select:
 			self.next_PC = state.return_address
 		elif state.inc_select:
-			print("Enter inc select")
+			# print("Enter inc select")
 			self.next_PC += state.pc_offset
 		else:
 			self.next_PC += 4
@@ -484,10 +484,10 @@ class Processor:
 
 		elif state.alu_control_signal == 25:
 			if nint(state.operand1, 16) >= nint(state.operand2, 16):
-				print("BGE is true")
+				# print("BGE is true")
 				state.pc_offset = nint(state.offset, 2,  len(state.offset))
 				state.inc_select = 1
-			print("pc select and inc select = ", state.pc_select, state.inc_select)
+			# print("pc select and inc select = ", state.pc_select, state.inc_select)
 			# state.pc_offset = nint(state.offset, 2,  len(state.offset))
 			# state.inc_select = 1
 

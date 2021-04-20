@@ -41,7 +41,7 @@ if __name__ == '__main__':
 	# invoke HDU
 
 	# Knobs
-	pipelining_enabled = True                     # Knob1
+	pipelining_enabled = False                     # Knob1
 	forwarding_enabled = False                     # Knob2
 	print_registers_each_cycle = False             # Knob3
 	print_pipeline_registers_and_cycle = False     # Knob4
@@ -95,8 +95,8 @@ if __name__ == '__main__':
 			if not forwarding_enabled:
 				data_hazard = hdu.data_hazard_stalling(pipeline_instructions)
 
-				for x in pipeline_instructions:
-					print("x.pcp = ", x.PC)
+				# for x in pipeline_instructions:
+					# print("x.pcp = ", x.PC, x.is_dummy)
 
 				old_states = pipeline_instructions
 				pipeline_instructions, control_hazard, control_pc = evaluate(processor, pipeline_instructions)
@@ -108,13 +108,13 @@ if __name__ == '__main__':
 
 				if branch_taken and not data_hazard[0]:
 					PC = branch_pc
-					print("branch_pc", branch_pc)
+					# print("branch_pc", branch_pc)
 
 				if control_hazard and not data_hazard[0]:
 					number_of_control_hazards += 1
 					number_of_stalls_due_to_control_hazards += 1
 					PC = control_pc
-					print("control_pc = ", control_pc)
+					# print("control_pc = ", control_pc)
 					pipeline_instructions.append(State(PC))
 					pipeline_instructions[-2].is_dummy = True
 
@@ -125,23 +125,22 @@ if __name__ == '__main__':
 					pipeline_instructions[2].is_dummy = True
 					PC -= 4
 
-				print("lll ", control_hazard, data_hazard, PC)
+				# print("lll ", control_hazard, data_hazard, PC)
 				if not control_hazard and not data_hazard[0]:
 					pipeline_instructions.append(State(PC))
 
 				pipeline_instructions[-2].next_pc = PC
-				print("len ", len(pipeline_instructions))
+				# print("len ", len(pipeline_instructions))
 				prog_end = True
-				for x in pipeline_instructions:
-					print("X.pc ", x.PC)
+				for i in range(4):
+					x = pipeline_instructions[i]
+					# print("X.pc ", x.PC)
 					if not x.is_dummy:
 						prog_end = False
 						break
 
 			clock_cycles += 1
-			print("clock_cycles = ", clock_cycles)
-			if clock_cycles> 40:
-				break
+			# print("clock_cycles = ", clock_cycles)
 			if print_registers_each_cycle:
 				# Print registers
 				print("\n")
@@ -156,6 +155,10 @@ if __name__ == '__main__':
 				print("\n")
 
 	if prog_end:
-		display()
+		for i in range(32):
+			print(processor.R[i], end=" ")
+
+		# display()
+		
 			# How terminate? One possible solution is to add a dummy instruction in fetch after program instructions.
 			# The program then can be terminated if all the instructions are dummy instructions
