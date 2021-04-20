@@ -66,10 +66,12 @@ class State:
 		self.stage = 0
 		self.pc_update = -1
 		self.branch_taken = False
+		#
 		self.inc_select = 0
 		self.pc_select = 0
-		self.next_pc = -1
 		self.pc_offset = 0
+		self.return_address = -1
+		self.next_pc = -1
 
 
 # Brach table buffer
@@ -104,8 +106,8 @@ class Processor:
 		self.next_PC = 0
 		# self.inc_select = 0
 		# self.pc_select = 0
-		self.return_address = -1
-		self.pc_offset = 0
+		# self.return_address = -1
+		# self.pc_offset = 0
 		# Various Counts
 		self.count_total_inst = 0
 		self.count_alu_inst = 0
@@ -194,7 +196,7 @@ class Processor:
 		opcode = int(bin_instruction[25:32], 2)
 		if opcode == 23 or opcode == 55 or opcode == 111:
 			pass
-
+		
 		# I format
 		elif opcode == 3 or opcode == 19 or opcode == 103:
 			state.rs1 = bin_instruction[12:17]
