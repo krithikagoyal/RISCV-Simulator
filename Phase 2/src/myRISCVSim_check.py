@@ -21,6 +21,7 @@ from sys import exit
 import os
 import csv
 
+
 # Utility Functions
 def nhex(num):
 	if num < 0:
@@ -70,6 +71,7 @@ class State:
 		self.next_pc = -1
 		self.pc_offset = 0
 
+
 # Brach table buffer
 class BTB:
 	table = {}
@@ -87,6 +89,7 @@ class BTB:
 
 	def getTarget(self, pc):
 		return self.table[pc][1]
+
 
 # Processor
 class Processor:
@@ -181,22 +184,23 @@ class Processor:
 			return state
 
 		state.instruction_word = '0x' + self.MEM[state.PC + 3] + self.MEM[state.PC + 2] + self.MEM[state.PC + 1] + self.MEM[state.PC]
-		print("FETCH: Fetch instruction", state.instruction_word, "from address", nhex(state.PC))
+		# print("FETCH: Fetch instruction", state.instruction_word, "from address", nhex(state.PC))
 		if not self.pipelining_enabled:
 			return
 
 		bin_instruction = bin(int(state.instruction_word[2:], 16))[2:]
 		bin_instruction = (32 - len(bin_instruction)) * '0' + bin_instruction
+
 		opcode = int(bin_instruction[25:32], 2)
 		if opcode == 23 or opcode == 55 or opcode == 111:
 			pass
 
-		#I format
+		# I format
 		elif opcode == 3 or opcode == 19 or opcode == 103:
 			state.rs1 = bin_instruction[12:17]
 			state.rs2 = -1
 
-		#R S SB format
+		# R S SB format
 		else:
 			state.rs1 = bin_instruction[12:17]
 			state.rs2 = bin_instruction[7:12]
@@ -268,8 +272,8 @@ class Processor:
 			state.operand1 = self.R[int(state.rs1, 2)]
 			state.operand2 = self.R[int(state.rs2, 2)]
 			state.write_back_signal = True
-			print("DECODE: Operation is ", operation.upper(), ", first operand is R", str(int(state.rs1, 2)), ", second operand is R", str(int(state.rs2, 2)), ", destination register is R", str(int(state.rd, 2)), sep="")
-			print("DECODE: Read registers: R", str(int(state.rs1, 2)), " = ", nint(state.operand1, 16), ", R", str(int(state.rs2, 2)), " = ", nint(state.operand2, 16), sep="")
+			# print("DECODE: Operation is ", operation.upper(), ", first operand is R", str(int(state.rs1, 2)), ", second operand is R", str(int(state.rs2, 2)), ", destination register is R", str(int(state.rd, 2)), sep="")
+			# print("DECODE: Read registers: R", str(int(state.rs1, 2)), " = ", nint(state.operand1, 16), ", R", str(int(state.rs2, 2)), " = ", nint(state.operand2, 16), sep="")
 
 		elif op_type == 'I':
 			state.rs1 = bin_instruction[12:17]
@@ -278,8 +282,8 @@ class Processor:
 			state.operand1 = self.R[int(state.rs1, 2)]
 			state.operand2 = imm
 			state.write_back_signal = True
-			print("DECODE: Operation is ", operation.upper(), ", first operand is R", str(int(state.rs1, 2)), ", immediate is ", nint(state.operand2, 2, len(state.operand2)), ", destination register is R", str(int(state.rd, 2)), sep="")
-			print("DECODE: Read registers: R", str(int(state.rs1, 2)), " = ", nint(state.operand1, 16), sep="")
+			# print("DECODE: Operation is ", operation.upper(), ", first operand is R", str(int(state.rs1, 2)), ", immediate is ", nint(state.operand2, 2, len(state.operand2)), ", destination register is R", str(int(state.rd, 2)), sep="")
+			# print("DECODE: Read registers: R", str(int(state.rs1, 2)), " = ", nint(state.operand1, 16), sep="")
 
 		elif op_type == 'S':
 			state.rs2 = bin_instruction[7:12]
@@ -289,8 +293,8 @@ class Processor:
 			state.operand2 = imm
 			state.register_data = self.R[int(state.rs2, 2)]
 			state.write_back_signal = False
-			print("DECODE: Operation is ", operation.upper(), ", first operand is R", str(int(state.rs1, 2)), ", immediate is ", nint(state.operand2, 2, len(state.operand2)), ", data to be stored is in R", str(int(state.rs2, 2)), sep="")
-			print("DECODE: Read registers: R", str(int(state.rs1, 2)), " = ", nint(state.operand1, 16), ", R", str(int(state.rs2, 2)), " = ", nint(state.register_data, 16), sep="")
+			# print("DECODE: Operation is ", operation.upper(), ", first operand is R", str(int(state.rs1, 2)), ", immediate is ", nint(state.operand2, 2, len(state.operand2)), ", data to be stored is in R", str(int(state.rs2, 2)), sep="")
+			# print("DECODE: Read registers: R", str(int(state.rs1, 2)), " = ", nint(state.operand1, 16), ", R", str(int(state.rs2, 2)), " = ", nint(state.register_data, 16), sep="")
 
 		elif op_type == 'SB':
 			state.rs2 = bin_instruction[7:12]
@@ -301,15 +305,15 @@ class Processor:
 				bin_instruction[1:7] + bin_instruction[20:24] + '0'
 			state.offset = imm
 			state.write_back_signal = False
-			print("DECODE: Operation is ", operation.upper(), ", first operand is R", str(int(state.rs1, 2)), ", second operand is R", str(int(state.rs2, 2)), ", immediate is ", nint(state.offset, 2, len(state.offset)), sep="")
-			print("DECODE: Read registers: R", str(int(state.rs1, 2)), " = ", nint(state.operand1, 16), ", R", str(int(state.rs2, 2)), " = ", nint(state.operand2, 16), sep="")
+			# print("DECODE: Operation is ", operation.upper(), ", first operand is R", str(int(state.rs1, 2)), ", second operand is R", str(int(state.rs2, 2)), ", immediate is ", nint(state.offset, 2, len(state.offset)), sep="")
+			# print("DECODE: Read registers: R", str(int(state.rs1, 2)), " = ", nint(state.operand1, 16), ", R", str(int(state.rs2, 2)), " = ", nint(state.operand2, 16), sep="")
 
 		elif op_type == 'U':
 			state.rd = bin_instruction[20:25]
 			imm = bin_instruction[0:20]
 			state.write_back_signal = True
-			print("DECODE: Operation is ", operation.upper(), ", immediate is ", nint(imm, 2, len(imm)), ", destination register is R", str(int(state.rd, 2)), sep="")
-			print("DECODE: No register read")
+			# print("DECODE: Operation is ", operation.upper(), ", immediate is ", nint(imm, 2, len(imm)), ", destination register is R", str(int(state.rd, 2)), sep="")
+			# print("DECODE: No register read")
 			imm += '0'*12
 			state.operand2 = imm
 
@@ -319,8 +323,8 @@ class Processor:
 				bin_instruction[11] + bin_instruction[1:11] + '0'
 			state.write_back_signal = True
 			state.offset = imm
-			print("DECODE: Operation is ", operation.upper(), ", immediate is ", nint(imm, 2, len(imm)), ", destination register is R", str(int(state.rd, 2)), sep="")
-			print("DECODE: No register read")
+			# print("DECODE: Operation is ", operation.upper(), ", immediate is ", nint(imm, 2, len(imm)), ", destination register is R", str(int(state.rd, 2)), sep="")
+			# print("DECODE: No register read")
 
 		else:
 			print("ERROR: Unidentifiable machine code!\n")
@@ -335,8 +339,8 @@ class Processor:
 			else:
 				self.execute(state)
 				self.next_PC = state.PC
-				print("state.alu_control_signal", state.alu_control_signal)
-				print("pc_offset = ", self.pc_offset)
+				# print("state.alu_control_signal", state.alu_control_signal)
+				# print("pc_offset = ", self.pc_offset)
 				self.IAG(state)
 				orig_pc = self.next_PC
 				btb = args[0]
@@ -349,7 +353,7 @@ class Processor:
 					# state.pc_update = self.next_PC
 					btb.enter(state.PC, state.PC + 4)
 				if orig_pc != state.next_pc:
-					print("orig_pc = ", orig_pc)
+					# print("orig_pc = ", orig_pc)
 					return True, orig_pc, state
 				else:
 					return False, 0, state
@@ -558,8 +562,8 @@ class Processor:
 			if state.write_back_signal:
 				if int(state.rd, 2) != 0:
 					self.R[int(state.rd, 2)] = state.register_data
-					print("WRITEBACK: Write", nint(state.register_data, 16), "to", "R" + str(int(state.rd, 2)))
-		print("x20 = ", self.R[20])
+					# print("WRITEBACK: Write", nint(state.register_data, 16), "to", "R" + str(int(state.rd, 2)))
+		# print("x20 = ", self.R[20])
 
 
 class HDU:
@@ -667,7 +671,7 @@ class HDU:
 
 	def data_hazard_stalling(self, pipeline_instructions):
 		states_to_check = pipeline_instructions[:-1] #removed the fetch stage instruction
-		print(len(states_to_check))
+		# print(len(states_to_check))
 		exe_state = states_to_check[-2]
 		decode_state = states_to_check[-1]
 		if exe_state.rd != -1 and decode_state.rs1 != -1:
@@ -683,7 +687,3 @@ class HDU:
 				return [True, 1]
 
 		return [False, -1]
-
-# Add decode part, When are we entering in BTB?, How handle jal and jalr?
-# Returns...what required? Return states also
-# Use variable arguments in fetch and decode

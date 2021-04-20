@@ -34,23 +34,24 @@ if __name__ == '__main__':
 	# set .mc file
 	prog_mc_file = take_input()
 
+	# invoke classes
 	processor = Processor(prog_mc_file)
 	hdu = HDU()
 	btb = BTB()
-	# invoke BTB
-	# invoke HDU
 
 	# Knobs
-	pipelining_enabled = False                     # Knob1
+	pipelining_enabled = True                      # Knob1
 	forwarding_enabled = False                     # Knob2
-	print_registers_each_cycle = False             # Knob3
+	print_registers_each_cycle = True              # Knob3
 	print_pipeline_registers_and_cycle = False     # Knob4
 	print_specific_pipeline_register = [False, -1] # Knob5
 
-	# Other signals
+	# Signals
 	PC = 0
 	clock_cycles = 0
 	prog_end = False
+
+	# Various Counts
 	number_of_control_hazards = 0
 	number_of_stalls_due_to_control_hazards = 0
 	number_of_data_hazards = 0
@@ -60,6 +61,7 @@ if __name__ == '__main__':
 
 	if not pipelining_enabled:
 		processor.pipelining_enabled = False
+
 		while True:
 			instruction = State(PC)
 			processor.fetch(instruction)
@@ -73,19 +75,21 @@ if __name__ == '__main__':
 				break
 			processor.mem(instruction)
 			processor.write_back(instruction)
+
 			PC = processor.next_PC
-			clock_cycles += 1
+			clock_cycles += 5
+
 			if print_registers_each_cycle:
 				for i in range(32):
 					print(processor.R[i], end=" ")
 				print("\n")
+
 			print(clock_cycles)
 
 	else:
-		# add dummy instructions at the beginning
 		processor.pipelining_enabled = True
-		terminate = False
-		pipeline_instructions = [State(0) for _ in range(5)]   # instructions currently in the pipeline
+
+		pipeline_instructions = [State(0) for _ in range(5)]
 		for i in range(4):
 			pipeline_instructions[i].is_dummy = True
 
@@ -137,26 +141,33 @@ if __name__ == '__main__':
 						prog_end = False
 						break
 
-			clock_cycles += 1
-			# print("clock_cycles = ", clock_cycles)
-			if print_registers_each_cycle:
-				# Print registers
-				print("\n")
+			else:
+				pass
 
+			clock_cycles += 1
+
+			if print_registers_each_cycle:
+				for i in range(32):
+					print(processor.R[i], end=" ")
+			print("\n")
+
+			# Print specific pipeline register
 			# Shift this above among instructions or elsewhere
 			if print_specific_pipeline_register[0]:
-				# Print specific pipeline register
-				print("\n")
+				pass
 
+			# Print pipeline registers and cycle
 			if print_pipeline_registers_and_cycle:
-				# Print pipeline registers and cycle
-				print("\n")
+				pass
+
+			print(clock_cycles)
+
+	# Print Messages
 
 	if prog_end:
 		processor.write_data_memory()
 		display()
 
-		# display()
 
-			# How terminate? One possible solution is to add a dummy instruction in fetch after program instructions.
-			# The program then can be terminated if all the instructions are dummy instructions
+# Redundant stages and all dummy maybe
+# use of second argument of data_hazard_stalling?
