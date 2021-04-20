@@ -17,62 +17,31 @@ Project Name: Functional Simulator for subset of RISC-V Processor
 # Purpose of this file: This file controls the overall functioning of the Simulator.
 
 from Gui import display, take_input
-from myRISCVSim import State, Processor, BTB, HDU # Also, import Hazard detection unit
+from myRISCVSim import State, Processor, BTB, HDU
 import time
 
-'''
-1. x.evaluate() will evaluate the particular stage of the instruction,
-    all the information needed for evaluation will be stored in the state.
-    For this, the class will have a variable as self.stage = -1.
-    This variable will increase in each stage.
+def evaluate(processor, pipeline_instructions):
+    for idx, x in pipeline_instructions:
+        if idx == 0:
+            processor.write_back(x)
+        elif idx == 1:
+            state1 = processor.mem(x)
+        elif idx == 2:
+            state2 = processor.execute(x)
+        elif idx == 3:
+            control_hazard, control_pc, state3 = processor.decode(x)
+        elif idx == 4:
+            branch_taken, branch_pc, state4 = processor.fetch(x)
 
-    def evaluate(instruction, pipelining_enabled):
-        terminate = false
-        if instruction.stage == 1:
-            fetch(instruction, pipelining_enabled, terminate) # even though terminate is not required
-        ...
-        return instruction
-
-2. PC for a branch instruction, not present in BTB will be calculated in decode stage.
-
-3. check_data_hazard in HDU returns if data_hazard is there or not
-
----Later---
-1. If control_hazard returns true, and it will add a predicted instruction to the
-    pipeline_instructions, else it will return false.
-
-2. If forwarding is enabled, data_hazard will change the state of instruction
-    by specifying from where it will pick data in a stage where hazard is occuring,
-    else will add a dummy instruction.
-
-3. Expected functions:
-a) class: State(PC): # will take PC as an input
-                  ins = 0
-                  stage = -1
-                  function evaluate(),
-                  pc_update = value of the pc up_date depending on branch taken or not taken
-                  branch_taken = False
-                  # stores from where we will pick the data for the execution of a particular instruction.
-
-b) data_hazard(pipeline_instructions, new_instruction, pc, forwarding_enabled) # pass by reference
-            if forwarding_enabled:
-                check if new_instruction can be added or not
-                if cannot be added:
-                    then change the state of new_instruction to store, from where it will pick the data
-                    add it to pipeline_instructions
-                    update PC accordingly
-            else:
-                check if the new instruction can be added or not, else add a stall
-
-            return was_there_hazard, new_pc
-------
-'''
+    pipeline_instructions = [state1, state2, stage3, stage4]
+    return pipeline_instructions, branch_taken, branch_pc, control_hazard, control_pc
 
 if __name__ == '__main__':
 
     # set .mc file
     prog_mc_file = take_input()
 
+    # invoke classes
     processor = Processor(prog_mc_file)
     btb = BTB()
     hdu = HDU()
@@ -80,7 +49,7 @@ if __name__ == '__main__':
     # Knobs
     pipelining_enabled = False                     # Knob1
     forwarding_enabled = False                     # Knob2
-    print_registers_each_cycle = True              # Knob3
+    print_registers_each_cycle = False             # Knob3
     print_pipeline_registers_and_cycle = False     # Knob4
     print_specific_pipeline_register = [False, -1] # Knob5
 
@@ -187,43 +156,6 @@ if __name__ == '__main__':
 
             # How terminate? One possible solution is to add a dummy instruction in fetch after program instructions.
             # The program then can be terminated if all the instructions are dummy instructions
-
-'''
----For later reference---
-        branch_taken = {}
-
-        while not terminate:
-            pipeline_instructions = [x.evaluate() for x in pipeline_instructions]
-
-            for _ in pipeline_instructions:                              # check if the pc has been updated because of a conditional branch
-                if _.pc_update and _.branch_taken != branch_taken[_.pc]: # if it is not equal to the branch we predicted.
-                    branch_taken.pop(_.pc)
-                    pipeline_instructions.pop()                          # flushing 1 time assuming branch decision is calculated during decode stage
-                    PC = _.pc_val                                        # updated PC
-
-            if len(pipeline_instructions) == 5:
-                pipeline_instructions = pipeline_instructions[1:]        # removing the first instruction since it has been executed
-
-            new_instruction = State(PC)
-            new_pc = PC
-
-            # Check for control hazards
-            ctrl_hazard, new_pc = control_hazard(pipeline_instructions, new_instruction, PC)
-
-            # data_hazard will work according to whether forwarding is enabled or not.
-            data_hazard, new_pc = data_hazard(pipeline_instructions, new_instruction, forwarding_enabled, PC)
-
-            if ctrl_hazard and new_pc != PC + 4:
-                branch_taken[PC] = True
-            elif ctrl_hazard:
-                branch_taken[PC] = False
-
-            PC = new_pc
-            if not ctrl_hazard and not data_hazard:
-                pipeline_instructions.append(State(PC)) # State(PC) will return an object of a class State()
-                PC += 4
-------
-'''
 
 # Print Messages
 

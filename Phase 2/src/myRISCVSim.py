@@ -85,9 +85,6 @@ class BTB:
 	def getTarget(self, pc):
 		return self.table[pc][1]
 
-	# def changeprediction(self, pc):
-	# 	self.table[pc][0] = not self.table[pc][0]
-
 
 # Processor
 class Processor:
@@ -174,29 +171,31 @@ class Processor:
 		state.stage += 1
 
 		if state.is_dummy:
-			return
+			return state
 
 		state.instruction_word = '0x' + self.MEM[state.PC + 3] + self.MEM[state.PC + 2] + self.MEM[state.PC + 1] + self.MEM[state.PC]
 
 		if not self.pipelining_enabled:
-			return
+			return state
 
 		btb = args[0]
 		if btb.find(state.PC):
 			state.branch_taken = btb.predict(state.PC)
 			state.pc_update = btb.predict(state.PC)
 
+		return state
+
 	# Decodes the instruction and decides the operation to be performed in the execute stage; reads the operands from the register file.
 	def decode(self, state, *args):
 		state.stage += 1
 
 		if state.is_dummy:
-			return
+			return state
 
 		if state.instruction_word == '0x401080BB':
 			self.terminate = True
 			print("END PROGRAM\n")
-			return
+			return state
 
 		bin_instruction = bin(int(state.instruction_word[2:], 16))[2:]
 		bin_instruction = (32 - len(bin_instruction)) * '0' + bin_instruction
@@ -228,7 +227,7 @@ class Processor:
 		if not match_found:
 			print("ERROR: Unidentifiable machine code!\n")
 			self.terminate = True
-			return
+			return state
 
 		op_type = instruction_set_list[track][0]
 		state.alu_control_signal = track
@@ -286,14 +285,14 @@ class Processor:
 		else:
 			print("ERROR: Unidentifiable machine code!\n")
 			self.terminate = True
-			return
+			return state
 
 	# Executes the ALU operation based on ALUop
 	def execute(self, state):
 		state.stage += 1
 
 		if state.is_dummy:
-			return True
+			return state
 
 		if state.alu_control_signal == 2:
 			state.register_data = nhex(int(nint(state.operand1, 16) + nint(state.operand2, 16)))
@@ -311,7 +310,7 @@ class Processor:
 			if(nint(state.operand2, 16) < 0):
 				print("ERROR: Shift by negative!\n")
 				self.terminate = True
-				return
+				return state
 			else:
 				state.register_data = nhex(int(int(state.operand1, 16) << int(state.operand2, 16)))
 
@@ -325,7 +324,7 @@ class Processor:
 			if(nint(state.operand2, 16) < 0):
 				print("ERROR: Shift by negative!\n")
 				self.terminate = True
-				return
+				return state
 			else:
 				state.register_data = bin(int(int(state.operand1, 16) >> int(state.operand2, 16)))
 				if state.operand1[2] == '8' or state.operand1[2] == '9' or state.operand1[2] == 'a' or state.operand1[2] == 'b' or state.operand1[2] == 'c' or state.operand1[2] == 'd' or state.operand1[2] == 'e' or state.operand1[2] == 'f':
@@ -336,7 +335,7 @@ class Processor:
 			if(nint(state.operand2, 16) < 0):
 				print("ERROR: Shift by negative!\n")
 				self.terminate = True
-				return
+				return state
 			else:
 				state.register_data = nhex(int(state.operand1, 16) >> int(state.operand2, 16))
 
@@ -350,7 +349,7 @@ class Processor:
 			if nint(state.operand2, 16) == 0:
 				print("ERROR: Division by zero!\n")
 				self.terminate = True
-				return
+				return state
 			else:
 				state.register_data = nhex(int(nint(state.operand1, 16) / nint(state.operand2, 16)))
 
@@ -382,7 +381,7 @@ class Processor:
 		elif state.alu_control_signal == 19: # Jalr
 			state.register_data = nhex(state.PC + 4)
 			if self.pipelining_enabled:
-				return
+				return state
 			self.return_address = nint(state.operand2, 2, len(state.operand2)) + nint(state.operand1, 16)
 			self.pc_select = 1
 
@@ -400,28 +399,28 @@ class Processor:
 
 		elif state.alu_control_signal == 23:
 			if self.pipelining_enabled:
-				return
+				return state
 			if nint(state.operand1, 16) == nint(state.operand2, 16):
 				self.pc_offset = nint(state.offset, 2, len(state.offset))
 				self.inc_select = 1
 
 		elif state.alu_control_signal == 24:
 			if self.pipelining_enabled:
-				return
+				return state
 			if nint(state.operand1, 16) != nint(state.operand2, 16):
 				self.pc_offset = nint(state.offset, 2, len(state.offset))
 				self.inc_select = 1
 
 		elif state.alu_control_signal == 25:
 			if self.pipelining_enabled:
-				return
+				return state
 			if nint(state.operand1, 16) >= nint(state.operand2, 16):
 				self.pc_offset = nint(state.offset, 2,  len(state.offset))
 				self.inc_select = 1
 
 		elif state.alu_control_signal == 26:
 			if self.pipelining_enabled:
-				return
+				return state
 			if nint(state.operand1, 16) < nint(state.operand2, 16):
 				self.pc_offset =  nint(state.offset, 2, len(state.offset))
 				self.inc_select = 1
@@ -435,7 +434,7 @@ class Processor:
 		elif state.alu_control_signal == 29: # Jal
 			state.register_data = nhex(state.PC + 4)
 			if self.pipelining_enabled:
-				return
+				return state
 			self.pc_offset = nint(state.offset, 2, len(state.offset))
 			self.inc_select = 1
 
@@ -445,6 +444,8 @@ class Processor:
 		state.register_data = state.register_data[:2] + \
 			(10 - len(state.register_data)) * '0' + state.register_data[2::]
 
+		return state
+
 	# Performs the memory operations
 	def mem(self, state):
 		state.stage += 1
@@ -453,10 +454,10 @@ class Processor:
 			self.IAG()
 
 		if state.is_dummy:
-			return
+			return state
 
 		if state.is_mem[0] == -1:
-			return
+			return state
 
 		elif state.is_mem[0] == 0:
 			state.register_data = '0x'
@@ -478,6 +479,8 @@ class Processor:
 			if state.is_mem[1] >= 0:
 				self.MEM[state.memory_address] = state.register_data[8:10]
 
+		return state
+
 	# Writes the results back to the register file
 	def write_back(self, state):
 		state.stage += 1
@@ -487,6 +490,7 @@ class Processor:
 				if int(state.rd, 2) != 0:
 					self.R[int(state.rd, 2)] = state.register_data
 
+		return state
 
 class HDU:
 	def __init__(self):
@@ -496,7 +500,7 @@ class HDU:
 		self.E2D=0
 		self.M2D=0
 
-	def check_data_hazard(self,states):
+	def data_hazard_forwarding(self,states):
 		forwarding_paths = set()
 		# forwarding_paths.add("X->X")
 		new_states = []     # updated states
@@ -591,36 +595,22 @@ class HDU:
 		new_states = new_states + [toDecode, toExecute, toMem, toWB]
 		return [isHazard, doStall, new_states, stallWhere, forwarding_paths]
 
-	def check_data_hazard_stalling(self,states):
-		states=states[1:] #removed the fetch stage instruction
-		if len(states)==1:
-			return [False,-1]
-		elif len(states)>=2:
-			exe_state=states[1]
-			decode_state=states[0]
-			if exe_state.rd!=-1 and decode_state.rs1!=-1:
-				if exe_state.rd==decode_state.rs1 :
-					if exe_state.rd!=0:
-						# self.count_data_hazards+=1
-						return [True,2]
-				if exe_state.rd==decode_state.rs2:
-					if exe_state.rd!=0:
-						# self.count_data_hazards+=1
-						return [True,2]
-			if len(states)>=3:
-				mem_state=states[2]
-				if mem_state.rd!=-1 and decode_state.rs1!=-1:
-					if mem_state.rd==decode_state.rs1 :
-						if mem_state.rd!=0:
-							# self.count_data_hazards+=1
-							return [True,1]
-					if mem_state.rd==decode_state.rs2:
-						if mem_state.rd!=0:
-							# self.count_data_hazards+=1
-							return [True,1]
+	def data_hazard_stalling(self, pipeline_instructions):
+        states_to_check = pipeline_instructions[:-2] # remove the fetch stage instruction
 
-		return [False,-1]
+        exe_state = states_to_check[-2]
+        decode_state = states_to_check[-1]
+        if exe_state.rd != -1 and decode_state.rs1 != -1:
+            if exe_state.rd == decode_state.rs1 and exe_state.rd:
+                return [True, 2]
+            if exe_state.rd == decode_state.rs2 and exe_state.rd:
+                return [True, 2]
+				
+        mem_state = states_to_check[-3]
+        if mem_state.rd != -1 and decode_state.rs1 != -1:
+            if mem_state.rd == decode_state.rs1 and mem_state.rd != 0:
+                return [True, 1]
+            if mem_state.rd == decode_state.rs2 and mem_state.rd != 0:
+                return [True, 1]
 
-# Add decode part, When are we entering in BTB?, How handle jal and jalr?
-# Returns...what required? Return states also
-# Use variable arguments in fetch and decode
+        return [False, -1]
