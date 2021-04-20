@@ -65,10 +65,10 @@ class State:
 		self.stage = 0
 		self.pc_update = -1
 		self.branch_taken = False
-		#self.inc_select = 0
-		#self.pc_select = 0
+		self.inc_select = 0
+		self.pc_select = 0
 		self.next_pc = -1
-		#self.pc_offset = 0
+		self.pc_offset = 0
 
 # Brach table buffer
 class BTB:
@@ -99,9 +99,8 @@ class Processor:
 		self.pipelining_enabled = False
 		self.terminate = False
 		self.next_PC = 0
-		#
-		self.inc_select = 0
-		self.pc_select = 0
+		# self.inc_select = 0
+		# self.pc_select = 0
 		self.return_address = -1
 		self.pc_offset = 0
 		# Various Counts
@@ -160,12 +159,12 @@ class Processor:
 	# Instruction address generator
 	def IAG(self, state):
 		if state.pc_select:
-			state.next_PC = state.return_address
+			self.next_PC = state.return_address
 		elif state.inc_select:
 			print("Enter inc select")
-			state.next_PC += state.pc_offset
+			self.next_PC += state.pc_offset
 		else:
-			state.next_PC += 4
+			self.next_PC += 4
 
 		state.pc_select = 0
 		state.inc_select = 0
@@ -178,7 +177,6 @@ class Processor:
 			return state
 
 		if self.all_dummy:
-			print("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
 			state.is_dummy = True
 			return state
 
@@ -201,7 +199,7 @@ class Processor:
             
 		#R S SB format
 		else:
-			state.rs1=bin_instruction[12:17]
+			state.rs1 = bin_instruction[12:17]
 			state.rs2 = bin_instruction[7:12]
 
 		btb = args[0]
@@ -219,11 +217,10 @@ class Processor:
 			return False, 0, state
 
 		if state.instruction_word == '0x401080BB':
-			print("#############################################################################")
 			self.terminate = True
 			self.all_dummy = True
 			print("END PROGRAM\n")
-			return
+			return False, 0, state
 
 		bin_instruction = bin(int(state.instruction_word[2:], 16))[2:]
 		bin_instruction = (32 - len(bin_instruction)) * '0' + bin_instruction
@@ -257,7 +254,7 @@ class Processor:
 			print("ERROR: Unidentifiable machine code!\n")
 			self.all_dummy = True
 			self.terminate = True
-			return
+			return False, 0, state
 
 		op_type = instruction_set_list[track][0]
 		operation = instruction_set_list[track][1]
@@ -341,7 +338,7 @@ class Processor:
 				self.next_PC = state.PC
 				print("state.alu_control_signal", state.alu_control_signal)
 				print("pc_offset = ", self.pc_offset)
-				self.IAG()		
+				self.IAG(state)		
 				orig_pc = self.next_PC
 				btb = args[0]
 				if not btb.find(state.PC):
