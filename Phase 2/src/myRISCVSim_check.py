@@ -67,6 +67,7 @@ class State:
 		self.inc_select = 0
 		self.pc_select = 0
 		self.next_pc = -1
+		self.pc_offset = 0
 
 # Brach table buffer
 class BTB:
@@ -174,14 +175,15 @@ class Processor:
 		if state.is_dummy:
 			return state
 
+		if self.all_dummy:
+			print("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+			state.is_dummy = True
+			return state
+
 		state.instruction_word = '0x' + self.MEM[state.PC + 3] + self.MEM[state.PC + 2] + self.MEM[state.PC + 1] + self.MEM[state.PC]
 
 		if not self.pipelining_enabled:
 			return
-
-		if self.all_dummy:
-			state.is_dummy = True
-			return state
 		
 		bin_instruction = bin(int(state.instruction_word[2:], 16))[2:]
 		bin_instruction = (32 - len(bin_instruction)) * '0' + bin_instruction
@@ -202,6 +204,7 @@ class Processor:
 			return False, 0, state
 
 		if state.instruction_word == '0x401080BB':
+			print("#############################################################################")
 			self.terminate = True
 			self.all_dummy = True
 			print("END PROGRAM\n")
@@ -297,16 +300,18 @@ class Processor:
 			print("ERROR: Unidentifiable machine code!\n")
 			self.terminate = True
 			self.all_dummy = True
+			return False, 0, state
 		
 		if self.pipelining_enabled:
 			branch_ins = [23, 24, 25, 26, 29, 19]
 			if state.alu_control_signal not in branch_ins:
 				return False, 0, state
 			else:
-				state = self.execute(state)
+				self.execute(state)
 				self.next_PC = state.PC
 				self.IAG()		
 				orig_pc = self.next_PC
+				btb = args[0]
 				if not btb.find(state.PC):
 					# self.inc_select = state.inc_select
 					# self.pc_select = state.pc_select
@@ -437,28 +442,28 @@ class Processor:
 			if nint(state.operand1, 16) == nint(state.operand2, 16):
 				self.pc_offset = nint(state.offset, 2, len(state.offset))
 				self.inc_select = 1
-			state.offset = nint(state.offset, 2, len(state.offset))
+			state.pc_offset = nint(state.offset, 2, len(state.offset))
 			state.inc_select = 1
 
 		elif state.alu_control_signal == 24:
 			if nint(state.operand1, 16) != nint(state.operand2, 16):
 				self.pc_offset = nint(state.offset, 2, len(state.offset))
 				self.inc_select = 1
-			state.offset = nint(state.offset, 2, len(state.offset))
+			state.pc_offset = nint(state.offset, 2, len(state.offset))
 			state.inc_select = 1
 
 		elif state.alu_control_signal == 25:
 			if nint(state.operand1, 16) >= nint(state.operand2, 16):
 				self.pc_offset = nint(state.offset, 2,  len(state.offset))
 				self.inc_select = 1
-			state.offset = nint(state.offset, 2,  len(state.offset))
+			state.pc_offset = nint(state.offset, 2,  len(state.offset))
 			state.inc_select = 1
 
 		elif state.alu_control_signal == 26:
 			if nint(state.operand1, 16) < nint(state.operand2, 16):
 				self.pc_offset =  nint(state.offset, 2, len(state.offset))
 				self.inc_select = 1
-			state.offset =  nint(state.offset, 2, len(state.offset))
+			state.pc_offset =  nint(state.offset, 2, len(state.offset))
 			state.inc_select = 1
 
 		elif state.alu_control_signal == 27:
@@ -471,7 +476,7 @@ class Processor:
 			state.register_data = nhex(state.PC + 4)
 			self.pc_offset = nint(state.offset, 2, len(state.offset))
 			self.inc_select = 1
-			state.offset = nint(state.offset, 2, len(state.offset))
+			state.pc_offset = nint(state.offset, 2, len(state.offset))
 			state.inc_select = 1
 
 		if len(state.register_data) > 10:

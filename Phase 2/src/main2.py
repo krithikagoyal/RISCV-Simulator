@@ -24,7 +24,7 @@ def evaluate(processor, pipeline_ins):
 	processor.write_back(pipeline_ins[0])
 	processor.mem(pipeline_ins[1])
 	processor.execute(pipeline_ins[2])
-	control_hazard, control_pc, state3 = processor.decode(pipeline_ins[3])
+	control_hazard, control_pc, state3 = processor.decode(pipeline_ins[3], btb)
 	processor.fetch(pipeline_ins[4], btb)
 	pipeline_ins = [pipeline_ins[1], pipeline_ins[2], pipeline_ins[3], pipeline_ins[4]]
 	return pipeline_ins, control_hazard, control_pc
@@ -121,8 +121,9 @@ if __name__ == '__main__':
 					number_of_stalls_due_to_data_hazards += 1
 					pipeline_instructions = pipeline_instructions[:2] + [State(0)] + old_states[3:]
 					pipeline_instructions[2].is_dummy = True
+					PC -= 4
 
-				print("lll ", control_hazard, data_hazard)
+				print("lll ", control_hazard, data_hazard, PC)
 				if not control_hazard and not data_hazard[0]:
 					pipeline_instructions.append(State(PC))
 
