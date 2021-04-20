@@ -18,6 +18,7 @@ Project Name: Functional Simulator for subset of RISC-V Processor
 
 from collections import defaultdict
 from sys import exit
+import os
 import csv
 
 # Register file
@@ -85,6 +86,8 @@ def run_RISCVsim():
         mem()
         write_back()
         clock += 1
+        if clock > 16:
+            return
         print("CLOCK CYCLE:", clock, '\n')
 
 
@@ -170,7 +173,8 @@ def decode():
     func3 = int(bin_instruction[17:20], 2)
     func7 = int(bin_instruction[0:7], 2)
 
-    f = open('Instruction_Set_List.csv')
+    path = os.path.dirname(__file__)
+    f = open(os.path.join(path,'Instruction_Set_List.csv'))
     instruction_set_list = list(csv.reader(f))
     f.close()
 

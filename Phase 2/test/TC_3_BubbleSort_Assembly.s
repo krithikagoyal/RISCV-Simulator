@@ -18,7 +18,7 @@
         addi x21 x21 4 # Increment address of original array
         addi x22 x22 4 # Increment address of sorted array
         beq x0 x0 loop
-		end_loop: # End loop
+	end_loop: # End loop
 
     add x20 x11 x0 # Copy of n
     addi x22 x0 1 # 1
