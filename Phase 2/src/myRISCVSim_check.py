@@ -187,10 +187,24 @@ class Processor:
 		
 		bin_instruction = bin(int(state.instruction_word[2:], 16))[2:]
 		bin_instruction = (32 - len(bin_instruction)) * '0' + bin_instruction
-		state.rs2 = bin_instruction[7:12]
-		state.rs1 = bin_instruction[12:17]
+        opcode = int(bin_instruction[25:32], 2)
+        
+        if opcode == 23 or opcode == 55 or opcode == 111:
+			pass
+        
+		#I format
+		elif opcode == 3 or opcode == 19 or opcode == 103:
+			state.rs1 = bin_instruction[12:17]
+			state.rs2 = -1
+            
+            
+		#R S SB format
+		else:
+			state.rs1=bin_instruction[12:17]
+			state.rs2=bin_instruction[12:17]
 
 		btb = args[0]
+        
 		if btb.find(state.PC):
 			state.branch_taken = btb.predict(state.PC)
 			state.next_pc = btb.getTarget(state.PC)
