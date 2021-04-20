@@ -82,7 +82,8 @@ if __name__ == '__main__':
             if print_registers_each_cycle:
                 for i in range(32):
                     print(processor.R[i], end=" ")
-            print("\n")
+                print("\n")
+            print(PC)
 
         processor.write_data_memory()
 
@@ -143,9 +144,9 @@ if __name__ == '__main__':
                 # Print pipeline registers and cycle
                 print("\n")
 
-            if terminate:
-                display()
-                break
+    if terminate:
+        display()
+        break
 
             # How terminate? One possible solution is to add a dummy instruction in fetch after program instructions.
             # The program then can be terminated if all the instructions are dummy instructions
