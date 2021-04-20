@@ -65,10 +65,10 @@ class State:
 		self.stage = 0
 		self.pc_update = -1
 		self.branch_taken = False
-		self.inc_select = 0
-		self.pc_select = 0
+		#self.inc_select = 0
+		#self.pc_select = 0
 		self.next_pc = -1
-		self.pc_offset = 0
+		#self.pc_offset = 0
 
 # Brach table buffer
 class BTB:
@@ -158,16 +158,17 @@ class Processor:
 			print("ERROR: Error opening reg_out.mc file for writing\n")
 
 	# Instruction address generator
-	def IAG(self):
-		if self.pc_select:
-			self.next_PC = self.return_address
-		elif self.inc_select:
-			self.next_PC += self.pc_offset
+	def IAG(self, state):
+		if state.pc_select:
+			state.next_PC = state.return_address
+		elif state.inc_select:
+			print("Enter inc select")
+			state.next_PC += state.pc_offset
 		else:
-			self.next_PC += 4
+			state.next_PC += 4
 
-		self.pc_select = 0
-		self.inc_select = 0
+		state.pc_select = 0
+		state.inc_select = 0
 
 	# Reads from the instruction memory and updates the instruction register
 	def fetch(self, state, *args):
@@ -182,7 +183,7 @@ class Processor:
 			return state
 
 		state.instruction_word = '0x' + self.MEM[state.PC + 3] + self.MEM[state.PC + 2] + self.MEM[state.PC + 1] + self.MEM[state.PC]
-
+		print("FETCH: Fetch instruction", state.instruction_word, "from address", nhex(state.PC))
 		if not self.pipelining_enabled:
 			return
 		
@@ -201,7 +202,7 @@ class Processor:
 		#R S SB format
 		else:
 			state.rs1=bin_instruction[12:17]
-			state.rs2=bin_instruction[12:17]
+			state.rs2 = bin_instruction[7:12]
 
 		btb = args[0]
         
@@ -259,6 +260,7 @@ class Processor:
 			return
 
 		op_type = instruction_set_list[track][0]
+		operation = instruction_set_list[track][1]
 		state.alu_control_signal = track
 
 		state.is_mem = [-1, -1]
@@ -270,6 +272,8 @@ class Processor:
 			state.operand1 = self.R[int(state.rs1, 2)]
 			state.operand2 = self.R[int(state.rs2, 2)]
 			state.write_back_signal = True
+			print("DECODE: Operation is ", operation.upper(), ", first operand is R", str(int(state.rs1, 2)), ", second operand is R", str(int(state.rs2, 2)), ", destination register is R", str(int(state.rd, 2)), sep="")
+			print("DECODE: Read registers: R", str(int(state.rs1, 2)), " = ", nint(state.operand1, 16), ", R", str(int(state.rs2, 2)), " = ", nint(state.operand2, 16), sep="")
 
 		elif op_type == 'I':
 			state.rs1 = bin_instruction[12:17]
@@ -278,6 +282,8 @@ class Processor:
 			state.operand1 = self.R[int(state.rs1, 2)]
 			state.operand2 = imm
 			state.write_back_signal = True
+			print("DECODE: Operation is ", operation.upper(), ", first operand is R", str(int(state.rs1, 2)), ", immediate is ", nint(state.operand2, 2, len(state.operand2)), ", destination register is R", str(int(state.rd, 2)), sep="")
+			print("DECODE: Read registers: R", str(int(state.rs1, 2)), " = ", nint(state.operand1, 16), sep="")
 
 		elif op_type == 'S':
 			state.rs2 = bin_instruction[7:12]
@@ -287,6 +293,8 @@ class Processor:
 			state.operand2 = imm
 			state.register_data = self.R[int(state.rs2, 2)]
 			state.write_back_signal = False
+			print("DECODE: Operation is ", operation.upper(), ", first operand is R", str(int(state.rs1, 2)), ", immediate is ", nint(state.operand2, 2, len(state.operand2)), ", data to be stored is in R", str(int(state.rs2, 2)), sep="")
+			print("DECODE: Read registers: R", str(int(state.rs1, 2)), " = ", nint(state.operand1, 16), ", R", str(int(state.rs2, 2)), " = ", nint(state.register_data, 16), sep="")
 
 		elif op_type == 'SB':
 			state.rs2 = bin_instruction[7:12]
@@ -297,11 +305,16 @@ class Processor:
 				bin_instruction[1:7] + bin_instruction[20:24] + '0'
 			state.offset = imm
 			state.write_back_signal = False
+			print("DECODE: Operation is ", operation.upper(), ", first operand is R", str(int(state.rs1, 2)), ", second operand is R", str(int(state.rs2, 2)), ", immediate is ", nint(state.offset, 2, len(state.offset)), sep="")
+			print("DECODE: Read registers: R", str(int(state.rs1, 2)), " = ", nint(state.operand1, 16), ", R", str(int(state.rs2, 2)), " = ", nint(state.operand2, 16), sep="")
 
 		elif op_type == 'U':
 			state.rd = bin_instruction[20:25]
-			imm = bin_instruction[0:20] + '0'*12
+			imm = bin_instruction[0:20] 
 			state.write_back_signal = True
+			print("DECODE: Operation is ", operation.upper(), ", immediate is ", nint(imm, 2, len(imm)), ", destination register is R", str(int(state.rd, 2)), sep="")
+			print("DECODE: No register read")
+			imm += '0'*12
 			state.operand2 = imm
 
 		elif op_type == 'UJ':
@@ -310,6 +323,8 @@ class Processor:
 				bin_instruction[11] + bin_instruction[1:11] + '0'
 			state.write_back_signal = True
 			state.offset = imm
+			print("DECODE: Operation is ", operation.upper(), ", immediate is ", nint(imm, 2, len(imm)), ", destination register is R", str(int(state.rd, 2)), sep="")
+			print("DECODE: No register read")
 
 		else:
 			print("ERROR: Unidentifiable machine code!\n")
@@ -324,6 +339,8 @@ class Processor:
 			else:
 				self.execute(state)
 				self.next_PC = state.PC
+				print("state.alu_control_signal", state.alu_control_signal)
+				print("pc_offset = ", self.pc_offset)
 				self.IAG()		
 				orig_pc = self.next_PC
 				btb = args[0]
@@ -336,6 +353,7 @@ class Processor:
 					# state.pc_update = self.next_PC
 					btb.enter(state.PC, state.PC + 4)
 				if orig_pc != state.next_pc:
+					print("orig_pc = ", orig_pc)
 					return True, orig_pc, state
 				else:
 					return False, 0, state
@@ -436,8 +454,8 @@ class Processor:
 
 		elif state.alu_control_signal == 19: # Jalr
 			state.register_data = nhex(state.PC + 4)
-			self.return_address = nint(state.operand2, 2, len(state.operand2)) + nint(state.operand1, 16)
-			self.pc_select = 1
+			#self.return_address = nint(state.operand2, 2, len(state.operand2)) + nint(state.operand1, 16)
+			#self.pc_select = 1
 			state.pc_select = 1
 			state.return_address = nint(state.operand2, 2, len(state.operand2)) + nint(state.operand1, 16)
 
@@ -455,31 +473,33 @@ class Processor:
 
 		elif state.alu_control_signal == 23:
 			if nint(state.operand1, 16) == nint(state.operand2, 16):
-				self.pc_offset = nint(state.offset, 2, len(state.offset))
-				self.inc_select = 1
-			state.pc_offset = nint(state.offset, 2, len(state.offset))
-			state.inc_select = 1
+				state.pc_offset = nint(state.offset, 2, len(state.offset))
+				state.inc_select = 1
+			#state.pc_offset = nint(state.offset, 2, len(state.offset))
+			#state.inc_select = 1
 
 		elif state.alu_control_signal == 24:
 			if nint(state.operand1, 16) != nint(state.operand2, 16):
-				self.pc_offset = nint(state.offset, 2, len(state.offset))
-				self.inc_select = 1
-			state.pc_offset = nint(state.offset, 2, len(state.offset))
-			state.inc_select = 1
+				state.pc_offset = nint(state.offset, 2, len(state.offset))
+				state.inc_select = 1
+			#state.pc_offset = nint(state.offset, 2, len(state.offset))
+			#state.inc_select = 1
 
 		elif state.alu_control_signal == 25:
 			if nint(state.operand1, 16) >= nint(state.operand2, 16):
-				self.pc_offset = nint(state.offset, 2,  len(state.offset))
-				self.inc_select = 1
-			state.pc_offset = nint(state.offset, 2,  len(state.offset))
-			state.inc_select = 1
+				print("BGE is true")
+				state.pc_offset = nint(state.offset, 2,  len(state.offset))
+				state.inc_select = 1
+			print("pc select and inc select = ", state.pc_select, state.inc_select)
+			# state.pc_offset = nint(state.offset, 2,  len(state.offset))
+			# state.inc_select = 1
 
 		elif state.alu_control_signal == 26:
 			if nint(state.operand1, 16) < nint(state.operand2, 16):
-				self.pc_offset =  nint(state.offset, 2, len(state.offset))
-				self.inc_select = 1
-			state.pc_offset =  nint(state.offset, 2, len(state.offset))
-			state.inc_select = 1
+				state.pc_offset =  nint(state.offset, 2, len(state.offset))
+				state.inc_select = 1
+			# state.pc_offset =  nint(state.offset, 2, len(state.offset))
+			# state.inc_select = 1
 
 		elif state.alu_control_signal == 27:
 			state.register_data = nhex(int(state.PC + 4 + int(state.operand2, 2)))
@@ -489,8 +509,8 @@ class Processor:
 
 		elif state.alu_control_signal == 29: # Jal
 			state.register_data = nhex(state.PC + 4)
-			self.pc_offset = nint(state.offset, 2, len(state.offset))
-			self.inc_select = 1
+			# self.pc_offset = nint(state.offset, 2, len(state.offset))
+			# self.inc_select = 1
 			state.pc_offset = nint(state.offset, 2, len(state.offset))
 			state.inc_select = 1
 
@@ -505,7 +525,7 @@ class Processor:
 		state.stage += 1
 
 		if not self.pipelining_enabled:
-			self.IAG()
+			self.IAG(state)
 
 		if state.is_dummy:
 			return
@@ -542,6 +562,8 @@ class Processor:
 			if state.write_back_signal:
 				if int(state.rd, 2) != 0:
 					self.R[int(state.rd, 2)] = state.register_data
+					print("WRITEBACK: Write", nint(state.register_data, 16), "to", "R" + str(int(state.rd, 2)))
+		print("x20 = ", self.R[20])
 
 
 class HDU:

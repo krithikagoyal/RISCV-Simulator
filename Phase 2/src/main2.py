@@ -108,13 +108,15 @@ if __name__ == '__main__':
 
 				if branch_taken and not data_hazard[0]:
 					PC = branch_pc
+					print("branch_pc", branch_pc)
 
 				if control_hazard and not data_hazard[0]:
 					number_of_control_hazards += 1
 					number_of_stalls_due_to_control_hazards += 1
 					PC = control_pc
-					pipeline_instructions.append(State(0))
-					pipeline_instructions[-1].is_dummy = True
+					print("control_pc = ", control_pc)
+					pipeline_instructions.append(State(PC))
+					pipeline_instructions[-2].is_dummy = True
 
 				if data_hazard[0]:
 					number_of_data_hazards += 1
@@ -138,7 +140,8 @@ if __name__ == '__main__':
 
 			clock_cycles += 1
 			print("clock_cycles = ", clock_cycles)
-
+			if clock_cycles> 40:
+				break
 			if print_registers_each_cycle:
 				# Print registers
 				print("\n")
