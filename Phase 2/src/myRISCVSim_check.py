@@ -86,8 +86,13 @@ class BTB:
 			return True
 		return False
 
-	def enter(self, pc, to_take_address):
-		self.table[pc] = [False, to_take_address]
+	def enter(self, type, pc, to_take_address):
+		if type:
+			self.table[pc] = [True, to_take_address]
+		elif to_take_address > pc:
+			self.table[pc] = [False, to_take_address]
+		else:
+			self.table[pc] = [True, to_take_address]
 
 	def predict(self, pc):
 		return self.table[pc][0]
@@ -98,6 +103,22 @@ class BTB:
 
 # Processor
 class Processor:
+	def reset(self, *args):
+		if len(args) > 0:
+			state = args[0]
+			state.inc_select = 0
+			state.pc_select = 0
+			state.pc_offset = 0
+			state.return_address = 0
+
+		else:
+			self.inc_select = 0
+			self.pc_select = 0
+			self.pc_offset = 0
+			self.return_address = 0
+
+
+
 	def __init__(self, file_name):
 		self.MEM = defaultdict(lambda: '00')
 		self.R = ['0x00000000' for i in range(32)]
@@ -107,10 +128,10 @@ class Processor:
 		self.pipelining_enabled = False
 		self.terminate = False
 		self.next_PC = 0
-		# self.inc_select = 0
-		# self.pc_select = 0
-		# self.return_address = -1
-		# self.pc_offset = 0
+		self.inc_select = 0
+		self.pc_select = 0
+		self.return_address = -1
+		self.pc_offset = 0
 		# Various Counts
 		self.count_total_inst = 0
 		self.count_alu_inst = 0
@@ -214,7 +235,10 @@ class Processor:
 
 		if btb.find(state.PC):
 			state.branch_taken = btb.predict(state.PC)
-			state.next_pc = btb.getTarget(state.PC)
+			if state.branch_taken:
+				state.next_pc = btb.getTarget(state.PC)
+			else:
+				state.next_pc = state.PC + 4
 
 		return state
 
@@ -347,19 +371,23 @@ class Processor:
 			else:
 				self.execute(state)
 				self.next_PC = state.PC
-				# print("state.alu_control_signal", state.alu_control_signal)
-				# print("pc_offset = ", self.pc_offset)
 				self.IAG(state)
 				orig_pc = self.next_PC
 				btb = args[0]
 				if not btb.find(state.PC):
-					# self.inc_select = state.inc_select
-					# self.pc_select = state.pc_select
-					# self.pc_offset = state.pc_offset
-					# self.return_address = state.return_address
-					# self.IAG()
-					# state.pc_update = self.next_PC
-					btb.enter(state.PC, state.PC + 4)
+					state.inc_select = self.inc_select
+					state.pc_select = self.pc_select
+					state.pc_offset = self.pc_offset
+					state.return_address = self.return_address
+					self.next_PC = state.PC
+					self.IAG(state)
+					state.pc_update = self.next_PC
+					if state.alu_control_signal == 19 or state.alu_control_signal == 29:
+						btb.enter(True, state.PC, state.pc_update)
+					else:
+						btb.enter(False, state.PC, state.pc_update)
+					self.reset()
+					self.reset(state)
 				if orig_pc != state.next_pc:
 					# print("orig_pc = ", orig_pc)
 					return True, orig_pc, state
@@ -462,8 +490,8 @@ class Processor:
 
 		elif state.alu_control_signal == 19: # Jalr
 			state.register_data = nhex(state.PC + 4)
-			#self.return_address = nint(state.operand2, 2, len(state.operand2)) + nint(state.operand1, 16)
-			#self.pc_select = 1
+			self.return_address = nint(state.operand2, 2, len(state.operand2)) + nint(state.operand1, 16)
+			self.pc_select = 1
 			state.pc_select = 1
 			state.return_address = nint(state.operand2, 2, len(state.operand2)) + nint(state.operand1, 16)
 
@@ -483,31 +511,30 @@ class Processor:
 			if nint(state.operand1, 16) == nint(state.operand2, 16):
 				state.pc_offset = nint(state.offset, 2, len(state.offset))
 				state.inc_select = 1
-			#state.pc_offset = nint(state.offset, 2, len(state.offset))
-			#state.inc_select = 1
+			self.pc_offset = nint(state.offset, 2, len(state.offset))
+			self.inc_select = 1
 
 		elif state.alu_control_signal == 24:
 			if nint(state.operand1, 16) != nint(state.operand2, 16):
 				state.pc_offset = nint(state.offset, 2, len(state.offset))
 				state.inc_select = 1
-			#state.pc_offset = nint(state.offset, 2, len(state.offset))
-			#state.inc_select = 1
+			self.pc_offset = nint(state.offset, 2, len(state.offset))
+			self.inc_select = 1
 
 		elif state.alu_control_signal == 25:
 			if nint(state.operand1, 16) >= nint(state.operand2, 16):
-				# print("BGE is true")
 				state.pc_offset = nint(state.offset, 2,  len(state.offset))
 				state.inc_select = 1
 			# print("pc select and inc select = ", state.pc_select, state.inc_select)
-			# state.pc_offset = nint(state.offset, 2,  len(state.offset))
-			# state.inc_select = 1
+			self.pc_offset = nint(state.offset, 2,  len(state.offset))
+			self.inc_select = 1
 
 		elif state.alu_control_signal == 26:
 			if nint(state.operand1, 16) < nint(state.operand2, 16):
 				state.pc_offset =  nint(state.offset, 2, len(state.offset))
 				state.inc_select = 1
-			# state.pc_offset =  nint(state.offset, 2, len(state.offset))
-			# state.inc_select = 1
+			self.pc_offset =  nint(state.offset, 2, len(state.offset))
+			self.inc_select = 1
 
 		elif state.alu_control_signal == 27:
 			state.register_data = nhex(int(state.PC + 4 + int(state.operand2, 2)))
@@ -517,8 +544,8 @@ class Processor:
 
 		elif state.alu_control_signal == 29: # Jal
 			state.register_data = nhex(state.PC + 4)
-			# self.pc_offset = nint(state.offset, 2, len(state.offset))
-			# self.inc_select = 1
+			self.pc_offset = nint(state.offset, 2, len(state.offset))
+			self.inc_select = 1
 			state.pc_offset = nint(state.offset, 2, len(state.offset))
 			state.inc_select = 1
 
