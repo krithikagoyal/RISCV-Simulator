@@ -202,7 +202,7 @@ if __name__ == '__main__':
 						break
 
 			clock_cycles += 1
-			if clock_cycles > 1100:
+			if clock_cycles > 200:
 				break
 
 

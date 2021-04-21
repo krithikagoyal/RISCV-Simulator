@@ -202,8 +202,10 @@ if __name__ == '__main__':
 						break
 
 			clock_cycles += 1
-			# if clock_cycles > 1000:
-			# 	break
+			if clock_cycles == 120:
+					print("yaha tak same h!\n\n\n\n\n")
+			if clock_cycles > 240:
+				break
 
 			# if print_registers_each_cycle:
 			# 	for i in range(32):

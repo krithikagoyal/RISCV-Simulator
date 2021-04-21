@@ -59,7 +59,7 @@ class State:
 		self.register_data = '0x00000000'
 		self.memory_address = 0
 		self.alu_control_signal = -1
-		self.is_mem = is_mem = [-1, -1] # [-1/0/1(no memory operation/load/store), type of load/store if any]
+		self.is_mem = [-1, -1] # [-1/0/1(no memory operation/load/store), type of load/store if any]
 		self.write_back_signal = False
 		#
 		self.is_dummy = False
