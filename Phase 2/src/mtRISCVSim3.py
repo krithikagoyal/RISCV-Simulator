@@ -298,8 +298,10 @@ class Processor:
 			state.rs2 = bin_instruction[7:12]
 			state.rs1 = bin_instruction[12:17]
 			state.rd = bin_instruction[20:25]
-			state.operand1 = self.R[int(state.rs1, 2)]
-			state.operand2 = self.R[int(state.rs2, 2)]
+            if not state.decode_forwarding_op1:
+			    state.operand1 = self.R[int(state.rs1, 2)
+            if not state.decode_forwarding_op2:
+			    state.operand2 = self.R[int(state.rs2, 2)]
 			state.write_back_signal = True
 			print("DECODE: Operation is ", operation.upper(), ", first operand is R", str(int(state.rs1, 2)), ", second operand is R", str(int(state.rs2, 2)), ", destination register is R", str(int(state.rd, 2)), sep="")
 			print("DECODE: Read registers: R", str(int(state.rs1, 2)), " = ", nint(state.operand1, 16), ", R", str(int(state.rs2, 2)), " = ", nint(state.operand2, 16), sep="")
@@ -319,7 +321,8 @@ class Processor:
 			state.rs2 = bin_instruction[7:12]
 			state.rs1 = bin_instruction[12:17]
 			imm = bin_instruction[0:7] + bin_instruction[20:25]
-			state.operand1 = self.R[int(state.rs1, 2)]
+            if not state.decode_forwarding_op1:
+			    state.operand1 = self.R[int(state.rs1, 2)]
 			state.operand2 = imm
 			state.register_data = self.R[int(state.rs2, 2)]
 			state.write_back_signal = False
@@ -363,9 +366,6 @@ class Processor:
 			self.terminate = True
 			self.all_dummy = True
 			return False, 0, state
-
-		state.decode_forwarding_op1 = False
-		state.decode_forwarding_op2 = False
 
 		if self.pipelining_enabled:
 			branch_ins = [23, 24, 25, 26, 29, 19]
