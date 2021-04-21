@@ -16,7 +16,7 @@ Project Name: Functional Simulator for subset of RISC-V Processor
 # main.py
 # Purpose of this file: This file controls the overall functioning of the Simulator.
 
-from Gui import display, take_input
+# from Gui import display, take_input
 from myRISCVSim_check import State, Processor, BTB, HDU
 import time
 
@@ -32,7 +32,10 @@ def evaluate(processor, pipeline_ins):
 if __name__ == '__main__':
 
 	# set .mc file
-	prog_mc_file = take_input()
+	# prog_mc_file = take_input()
+
+	prog_mc_file = 'C:/Users/Himanshu/Downloads/RISCV-Simulator/Phase 2/test/factorial.mc'
+	print(prog_mc_file)
 
 	# invoke classes
 	processor = Processor(prog_mc_file)
@@ -41,7 +44,7 @@ if __name__ == '__main__':
 
 	# Knobs
 	pipelining_enabled = True                      # Knob1
-	forwarding_enabled = False                     # Knob2
+	forwarding_enabled = True                      # Knob2
 	print_registers_each_cycle = True              # Knob3
 	print_pipeline_registers_and_cycle = False     # Knob4
 	print_specific_pipeline_register = [False, -1] # Knob5
@@ -142,31 +145,85 @@ if __name__ == '__main__':
 						break
 
 			else:
-				pass
+				data_hazard, if_stall, stall_position, pipeline_instructions = hdu.data_hazard_forwarding(pipeline_instructions)
 
-			clock_cycles += 1
+				# for x in pipeline_instructions:
+					# print("x.pcp = ", x.PC, x.is_dummy)
 
-			if print_registers_each_cycle:
-				for i in range(32):
-					print(processor.R[i], end=" ")
-			print("\n")
+				old_states = pipeline_instructions
+				pipeline_instructions, control_hazard, control_pc = evaluate(processor, pipeline_instructions)
+
+				branch_taken = pipeline_instructions[3].branch_taken
+				branch_pc = pipeline_instructions[3].next_pc
+
+				PC += 4
+
+				if branch_taken and not if_stall:
+					PC = branch_pc
+					# print("branch_pc", branch_pc)
+
+				if control_hazard and not if_stall:
+					number_of_control_hazards += 1
+					number_of_stalls_due_to_control_hazards += 1
+					PC = control_pc
+					# print("control_pc = ", control_pc)
+					pipeline_instructions.append(State(PC))
+					pipeline_instructions[-2].is_dummy = True
+
+				if if_stall:
+					number_of_stalls_due_to_data_hazards += 1
+					if stall_position == 1:
+						pipeline_instructions = pipeline_instructions[:2] + [State(0)] + old_states[3:]
+						pipeline_instructions[2].is_dummy = True
+					elif stall_position == 2:
+						pipeline_instructions = pipeline_instructions[:3] + [State(0)] + old_states[4:]
+						pipeline_instructions[3].is_dummy = True
+					PC -= 4
+
+				number_of_data_hazards += data_hazard
+
+				# print("lll ", control_hazard, data_hazard, PC)
+				if not control_hazard and not if_stall:
+					pipeline_instructions.append(State(PC))
+
+				pipeline_instructions[-2].next_pc = PC
+
+				for inst in pipeline_instructions:
+					inst.decode_forwarding_op1 = False
+					inst.decode_forwarding_op2 = False
+
+				# print("len ", len(pipeline_instructions))
+				prog_end = True
+				for i in range(4):
+					x = pipeline_instructions[i]
+					# print("X.pc ", x.PC)
+					if not x.is_dummy:
+						prog_end = False
+						break
+
+			# clock_cycles += 1
+
+			# if print_registers_each_cycle:
+			# 	for i in range(32):
+			# 		print(processor.R[i], end=" ")
+			# print("\n")
 
 			# Print specific pipeline register
 			# Shift this above among instructions or elsewhere
-			if print_specific_pipeline_register[0]:
-				pass
+			# if print_specific_pipeline_register[0]:
+			# 	pass
 
 			# Print pipeline registers and cycle
-			if print_pipeline_registers_and_cycle:
-				pass
+			# if print_pipeline_registers_and_cycle:
+			# 	pass
 
-			print(clock_cycles)
+			# print(clock_cycles)
 
 	# Print Messages
 
 	if prog_end:
 		processor.write_data_memory()
-		display()
+		# display()
 
 
 # Redundant stages and all dummy maybe

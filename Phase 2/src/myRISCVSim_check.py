@@ -49,7 +49,7 @@ class State:
 		self.PC = pc
 
 	def reset_interRegisters(self):
-		self.instruction_word = 0
+		self.instruction_word = '0x0'
 		self.rs1 = -1
 		self.rs2 = -1
 		self.operand1 = 0
@@ -72,6 +72,9 @@ class State:
 		self.pc_offset = 0
 		self.return_address = -1
 		self.next_pc = -1
+		#
+		self.decode_forwarding_op1 = False
+		self.decode_forwarding_op2 = False
 
 
 # Brach table buffer
@@ -186,7 +189,7 @@ class Processor:
 			return state
 
 		state.instruction_word = '0x' + self.MEM[state.PC + 3] + self.MEM[state.PC + 2] + self.MEM[state.PC + 1] + self.MEM[state.PC]
-		# print("FETCH: Fetch instruction", state.instruction_word, "from address", nhex(state.PC))
+		print("FETCH: Fetch instruction", state.instruction_word, "from address", nhex(state.PC))
 		if not self.pipelining_enabled:
 			return
 
@@ -196,7 +199,7 @@ class Processor:
 		opcode = int(bin_instruction[25:32], 2)
 		if opcode == 23 or opcode == 55 or opcode == 111:
 			pass
-		
+
 		# I format
 		elif opcode == 3 or opcode == 19 or opcode == 103:
 			state.rs1 = bin_instruction[12:17]
@@ -274,18 +277,19 @@ class Processor:
 			state.operand1 = self.R[int(state.rs1, 2)]
 			state.operand2 = self.R[int(state.rs2, 2)]
 			state.write_back_signal = True
-			# print("DECODE: Operation is ", operation.upper(), ", first operand is R", str(int(state.rs1, 2)), ", second operand is R", str(int(state.rs2, 2)), ", destination register is R", str(int(state.rd, 2)), sep="")
-			# print("DECODE: Read registers: R", str(int(state.rs1, 2)), " = ", nint(state.operand1, 16), ", R", str(int(state.rs2, 2)), " = ", nint(state.operand2, 16), sep="")
+			print("DECODE: Operation is ", operation.upper(), ", first operand is R", str(int(state.rs1, 2)), ", second operand is R", str(int(state.rs2, 2)), ", destination register is R", str(int(state.rd, 2)), sep="")
+			print("DECODE: Read registers: R", str(int(state.rs1, 2)), " = ", nint(state.operand1, 16), ", R", str(int(state.rs2, 2)), " = ", nint(state.operand2, 16), sep="")
 
 		elif op_type == 'I':
 			state.rs1 = bin_instruction[12:17]
 			state.rd = bin_instruction[20:25]
 			imm = bin_instruction[0:12]
-			state.operand1 = self.R[int(state.rs1, 2)]
+			if not state.decode_forwarding_op1:
+				state.operand1 = self.R[int(state.rs1, 2)]
 			state.operand2 = imm
 			state.write_back_signal = True
-			# print("DECODE: Operation is ", operation.upper(), ", first operand is R", str(int(state.rs1, 2)), ", immediate is ", nint(state.operand2, 2, len(state.operand2)), ", destination register is R", str(int(state.rd, 2)), sep="")
-			# print("DECODE: Read registers: R", str(int(state.rs1, 2)), " = ", nint(state.operand1, 16), sep="")
+			print("DECODE: Operation is ", operation.upper(), ", first operand is R", str(int(state.rs1, 2)), ", immediate is ", nint(state.operand2, 2, len(state.operand2)), ", destination register is R", str(int(state.rd, 2)), sep="")
+			print("DECODE: Read registers: R", str(int(state.rs1, 2)), " = ", nint(state.operand1, 16), sep="")
 
 		elif op_type == 'S':
 			state.rs2 = bin_instruction[7:12]
@@ -295,27 +299,29 @@ class Processor:
 			state.operand2 = imm
 			state.register_data = self.R[int(state.rs2, 2)]
 			state.write_back_signal = False
-			# print("DECODE: Operation is ", operation.upper(), ", first operand is R", str(int(state.rs1, 2)), ", immediate is ", nint(state.operand2, 2, len(state.operand2)), ", data to be stored is in R", str(int(state.rs2, 2)), sep="")
-			# print("DECODE: Read registers: R", str(int(state.rs1, 2)), " = ", nint(state.operand1, 16), ", R", str(int(state.rs2, 2)), " = ", nint(state.register_data, 16), sep="")
+			print("DECODE: Operation is ", operation.upper(), ", first operand is R", str(int(state.rs1, 2)), ", immediate is ", nint(state.operand2, 2, len(state.operand2)), ", data to be stored is in R", str(int(state.rs2, 2)), sep="")
+			print("DECODE: Read registers: R", str(int(state.rs1, 2)), " = ", nint(state.operand1, 16), ", R", str(int(state.rs2, 2)), " = ", nint(state.register_data, 16), sep="")
 
 		elif op_type == 'SB':
 			state.rs2 = bin_instruction[7:12]
 			state.rs1 = bin_instruction[12:17]
-			state.operand1 = self.R[int(state.rs1, 2)]
-			state.operand2 = self.R[int(state.rs2, 2)]
+			if not state.decode_forwarding_op1:
+				state.operand1 = self.R[int(state.rs1, 2)]
+			if not state.decode_forwarding_op2:
+				state.operand2 = self.R[int(state.rs2, 2)]
 			imm = bin_instruction[0] + bin_instruction[24] + \
 				bin_instruction[1:7] + bin_instruction[20:24] + '0'
 			state.offset = imm
 			state.write_back_signal = False
-			# print("DECODE: Operation is ", operation.upper(), ", first operand is R", str(int(state.rs1, 2)), ", second operand is R", str(int(state.rs2, 2)), ", immediate is ", nint(state.offset, 2, len(state.offset)), sep="")
-			# print("DECODE: Read registers: R", str(int(state.rs1, 2)), " = ", nint(state.operand1, 16), ", R", str(int(state.rs2, 2)), " = ", nint(state.operand2, 16), sep="")
+			print("DECODE: Operation is ", operation.upper(), ", first operand is R", str(int(state.rs1, 2)), ", second operand is R", str(int(state.rs2, 2)), ", immediate is ", nint(state.offset, 2, len(state.offset)), sep="")
+			print("DECODE: Read registers: R", str(int(state.rs1, 2)), " = ", nint(state.operand1, 16), ", R", str(int(state.rs2, 2)), " = ", nint(state.operand2, 16), sep="")
 
 		elif op_type == 'U':
 			state.rd = bin_instruction[20:25]
 			imm = bin_instruction[0:20]
 			state.write_back_signal = True
-			# print("DECODE: Operation is ", operation.upper(), ", immediate is ", nint(imm, 2, len(imm)), ", destination register is R", str(int(state.rd, 2)), sep="")
-			# print("DECODE: No register read")
+			print("DECODE: Operation is ", operation.upper(), ", immediate is ", nint(imm, 2, len(imm)), ", destination register is R", str(int(state.rd, 2)), sep="")
+			print("DECODE: No register read")
 			imm += '0'*12
 			state.operand2 = imm
 
@@ -325,8 +331,8 @@ class Processor:
 				bin_instruction[11] + bin_instruction[1:11] + '0'
 			state.write_back_signal = True
 			state.offset = imm
-			# print("DECODE: Operation is ", operation.upper(), ", immediate is ", nint(imm, 2, len(imm)), ", destination register is R", str(int(state.rd, 2)), sep="")
-			# print("DECODE: No register read")
+			print("DECODE: Operation is ", operation.upper(), ", immediate is ", nint(imm, 2, len(imm)), ", destination register is R", str(int(state.rd, 2)), sep="")
+			print("DECODE: No register read")
 
 		else:
 			print("ERROR: Unidentifiable machine code!\n")
@@ -564,115 +570,114 @@ class Processor:
 			if state.write_back_signal:
 				if int(state.rd, 2) != 0:
 					self.R[int(state.rd, 2)] = state.register_data
-					# print("WRITEBACK: Write", nint(state.register_data, 16), "to", "R" + str(int(state.rd, 2)))
+					print("WRITEBACK: Write", nint(state.register_data, 16), "to", "R" + str(int(state.rd, 2)))
 		# print("x20 = ", self.R[20])
 
 
 class HDU:
-	def __init__(self):
-		self.E2E=0#data in EtoE data line.
-		self.M2E=0
-		self.M2M=0
-		self.E2D=0
-		self.M2D=0
+	def data_hazard_forwarding(self, pipeline_instructions):
+		decode_state = pipeline_instructions[-2]
+		exe_state = pipeline_instructions[-3]
+		mem_state = pipeline_instructions[-4]
+		wb_state = pipeline_instructions[-5]
+		data_hazard = 0
+		if_stall = False
+		stall_position = 3 # 1 = at execute, 2 = at decode, 3 = don't stall # Sorted according to priority
 
-	def data_hazard_forwarding(self,states):
-		forwarding_paths = set()
-		# forwarding_paths.add("X->X")
-		new_states = []     # updated states
-		new_states = [states[0]]
-		toDecode = states[1]
-		toExecute = states[2]
-		toMem = states[3]
-		toWB = states[4]
-		isHazard = False    # is there a data hazard?
-		doStall = False     # do we need to stall in case of data forwarding?
-		stallWhere = 3      # stall at the decode stage or execute stage?
-							# 1 = at execute, 2 = at decode, 3 = don't stall
-							# Sorted according to priority
+		decode_opcode = int(decode_state.instruction_word, 16) & int('0x7F', 16)
+		exe_opcode = int(exe_state.instruction_word, 16) & int('0x7F', 16)
+		mem_opcode = int(mem_state.instruction_word, 16) & int('0x7F', 16)
+		wb_opcode = int(wb_state.instruction_word, 16) & int('0x7F', 16)
+		print(decode_opcode, exe_opcode, mem_opcode, wb_opcode)
 
-		toDecode_opcode = toDecode.instruction_word & (0x7F)
-		toExecute_opcode = toExecute.instruction_word & (0x7F)
-		toMem_opcode = toMem.instruction_word & (0x7F)
-		toWB_opcode = toWB.instruction_word & (0x7F)
+		# M -> M forwarding
+		if (wb_opcode == 3) and (mem_opcode == 35): # 3 == load and 35 == store
+			if wb_state.rd != -1 and wb_state.rd != '00000' and wb_state.rd == mem_state.rs2:
+				mem_state.register_data = wb_state.register_data
+				data_hazard += 1
 
-		# M->E and M->M forwarding before E->E forwarding, because E->E forward takes
-		# precedence over the other two, and should have the capacity to overwrite
+		# M -> E forwarding
+		if (wb_state.rd != -1) and (wb_state.rd != '00000'):
+			if wb_state.rd == exe_state.rs1:
+				exe_state.operand1 = wb_state.register_data
+				data_hazard += 1
 
-
-		# if toWB_opcode==3  and toMem_opcode==35:
-		# load-toWB and store-toMem instructions
-		# state function use these variables.
-		# rs1,rs2,rd -global declare
-
-		# register_data=WB_data;
-		# RA=operand1
-		# RB=operand2
-		# final address in memory=memory_address.
-		# M->M forwarding
-		if (toWB_opcode==3) and (toMem_opcode==35):
-			if toWB.rd > 0 and toWB.rd == toMem.rs2:
-				toMem.register_data = toWB.register_data
-				isHazard = True
-				self.M2M=toWB.register_data
-				forwarding_paths.add("M->M")
-
-
-		# M->E forwarding
-		if toWB.rd > 0:
-			if toWB.rd == toExecute.rs1:
-				toExecute.operand1 = toWB.register_data
-				self.M2E=toWB.register_data
-				isHazard = True
-				forwarding_paths.add("M->E")
-
-			if toWB.rd == toExecute.rs2:
-				toExecute.operand2 = toWB.register_data
-				self.M2E=toWB.register_data
-				isHazard = True
-				forwarding_paths.add("M->E")
-
-		# E->E forwarding
-		if toMem.rd > 0:
-
-			# If the producer is a load instruction
-			# if toMem_opcode == 3 or toMem_opcode == 55:
-			if toMem_opcode == 3:
-
-				# If the consumer is a store instruction
-				if toExecute_opcode == 35:
-
-					# Stall required for address calculation of store instruction
-					if toExecute.rs1 == toMem.rs2:
-						isHazard = True
-						doStall = True
-						stallWhere = min(stallWhere, 1)
-
-				# If the consumer isn't a store instruction, then we need a stall
+			if wb_state.rd == exe_state.rs2:
+				if exe_opcode != 35: # store
+					exe_state.operand2 = wb_state.register_data
 				else:
-					isHazard = True
-					doStall = True
-					stallWhere = min(stallWhere, 1)
+					exe_state.register_data = wb_state.register_data
+				data_hazard += 1
 
-			# If the producer isn't a load instruction then  E->E data forwarding can be performed
+		# E -> E forwarding
+		if (mem_state.rd != -1) and (mem_state.rd != '00000'):
+			if mem_opcode == 3: # load
+				if exe_opcode == 35: # store
+					if exe_state.rs1 == mem_state.rd:
+						data_hazard += 1
+						if_stall = True
+						stall_position = min(stall_position, 1)
+
+				else:
+					if (exe_state.rs1 == mem_state.rd) or (exe_state.rs2 == mem_state.rd):
+						data_hazard += 1
+						if_stall = True
+						stall_position = min(stall_position, 1)
+
 			else:
-				if toExecute.rs1 == toMem.rs2:
-					toExecute.operand1 = toMem.register_data
-					self.E2E=toMem.register_data
-					isHazard = True
-					forwarding_paths.add("E->E")
+				if exe_state.rs1 == mem_state.rd:
+					exe_state.operand1 = mem_state.register_data
+					data_hazard += 1
 
-				if toExecute.rs2 == toMem.rs2:
-					toExecute.operand2 = toMem.register_data
-					self.E2E=toMem.register_data
-					isHazard = True
-					forwarding_paths.add("E->E")
+				if exe_state.rs2 == mem_state.rd:
+					if exe_opcode != 35: # store
+						exe_state.operand2 = wb_state.register_data
+					else:
+						exe_state.register_data = wb_state.register_data
+					data_hazard += 1
 
-		new_states = new_states + [toDecode, toExecute, toMem, toWB]
-		return [isHazard, doStall, new_states, stallWhere, forwarding_paths]
+		if decode_opcode == 99 or decode_opcode == 103: # SB and jalr
+			# M -> D forwarding
+			if (wb_state.rd != -1) and (wb_state.rd != '00000'):
+				if wb_state.rd == decode_state.rs1:
+					decode_state.operand1 = wb_state.register_data
+					decode_state.decode_forwarding_op1 = True
+					data_hazard += 1
+
+				if wb_state.rd == decode_state.rs2:
+					decode_state.operand2 = wb_state.register_data
+					decode_state.decode_forwarding_op2 = True
+					data_hazard += 1
+
+			# E -> D fowarding
+			if (mem_state.rd != -1) and (mem_state.rd != '00000'):
+				if mem_opcode == 3: # load
+					data_hazard += 1
+					if_stall = True
+					stall_position = min(stall_position, 2)
+
+				else:
+					if mem_state.rd == decode_state.rs1:
+						decode_state.operand1 = mem_state.register_data
+						decode_state.decode_forwarding_op1 = True
+						data_hazard += 1
+
+					if mem_state.rd == decode_state.rs2:
+						decode_state.operand2 = mem_state.register_data
+						decode_state.decode_forwarding_op2 = True
+						data_hazard += 1
+
+			# If branch depends upon the preceding instruction
+			if (exe_state.rd != -1) and (exe_state.rd != '00000') and ((exe_state.rd == decode_state.rs1) or (exe_state.rd == decode_state.rs2)):
+				data_hazard += 1
+				if_stall = True
+				stall_position = min(stall_position, 2)
+
+		new_states = [wb_state, mem_state, exe_state, decode_state, pipeline_instructions[-1]]
+		return [data_hazard, if_stall, stall_position, new_states]
 
 	def data_hazard_stalling(self, pipeline_instructions):
-		states_to_check = pipeline_instructions[:-1] #removed the fetch stage instruction
+		states_to_check = pipeline_instructions[:-1] # remove the fetch stage instruction
 		# print(len(states_to_check))
 		exe_state = states_to_check[-2]
 		decode_state = states_to_check[-1]
@@ -681,6 +686,7 @@ class HDU:
 				return [True, 2]
 			if exe_state.rd == decode_state.rs2 and exe_state.rd:
 				return [True, 2]
+
 		mem_state = states_to_check[-3]
 		if mem_state.rd != -1 and decode_state.rs1 != -1:
 			if mem_state.rd == decode_state.rs1 and mem_state.rd != 0:
@@ -689,3 +695,5 @@ class HDU:
 				return [True, 1]
 
 		return [False, -1]
+
+# check for number of data hazards in data_hazard_forwarding
