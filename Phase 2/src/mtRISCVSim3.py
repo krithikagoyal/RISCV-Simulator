@@ -364,6 +364,9 @@ class Processor:
 			self.all_dummy = True
 			return False, 0, state
 
+		state.decode_forwarding_op1 = False
+		state.decode_forwarding_op2 = False
+
 		if self.pipelining_enabled:
 			branch_ins = [23, 24, 25, 26, 29, 19]
 			if state.alu_control_signal not in branch_ins:
