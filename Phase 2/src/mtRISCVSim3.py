@@ -59,7 +59,7 @@ class State:
         self.register_data = '0x00000000'
         self.memory_address = 0
         self.alu_control_signal = -1
-        self.is_mem = [-1, -1] # [-1/0/1(no memory operation/load/store), type of load/store if any]
+        self.is_mem = is_mem = [-1, -1] # [-1/0/1(no memory operation/load/store), type of load/store if any]
         self.write_back_signal = False
         #
         self.is_dummy = False
@@ -319,7 +319,8 @@ class Processor:
             state.rs2 = bin_instruction[7:12]
             state.rs1 = bin_instruction[12:17]
             imm = bin_instruction[0:7] + bin_instruction[20:25]
-            state.operand1 = self.R[int(state.rs1, 2)]
+            if not state.decode_forwarding_op1:
+                state.operand1 = self.R[int(state.rs1, 2)]
             state.operand2 = imm
             state.register_data = self.R[int(state.rs2, 2)]
             state.write_back_signal = False
@@ -373,6 +374,7 @@ class Processor:
                 self.next_PC = state.PC
                 self.IAG(state)
                 orig_pc = self.next_PC
+                print("orig_pc = ", orig_pc, state.next_pc)
                 btb = args[0]
                 if not btb.find(state.PC):
                     state.inc_select = self.inc_select
@@ -554,7 +556,8 @@ class Processor:
 
         state.register_data = state.register_data[:2] + \
             (10 - len(state.register_data)) * '0' + state.register_data[2::]
-        print("EXECUTE ", int(state.register_data, 16), state.rs1, state.rs2, state.alu_control_signal)
+
+        # print("EXECUTE ", int(state.register_data, 16), state.return_address, state.rs1, state.rs2, state.alu_control_signal)
 
     # Performs the memory operations
     def mem(self, state):
@@ -611,6 +614,9 @@ class HDU:
         data_hazard = 0
         if_stall = False
         stall_position = 3 # 1 = at execute, 2 = at decode, 3 = don't stall # Sorted according to priority
+        # print("rds = ", decode_state.rd, exe_state.rd, mem_state.rd, wb_state.rd)
+        # print("rs1s = ", decode_state.rs1, exe_state.rs1, mem_state.rs1, wb_state.rs1)
+        # print("rs2s = ", decode_state.rs2, exe_state.rs2, mem_state.rs2, wb_state.rs2)
 
         decode_opcode = int(decode_state.instruction_word, 16) & int('0x7F', 16)
         exe_opcode = int(exe_state.instruction_word, 16) & int('0x7F', 16)
@@ -623,12 +629,14 @@ class HDU:
             if wb_state.rd != -1 and wb_state.rd != '00000' and wb_state.rd == mem_state.rs2:
                 mem_state.register_data = wb_state.register_data
                 data_hazard += 1
+                # print("M -> M")
 
         # M -> E forwarding
         if (wb_state.rd != -1) and (wb_state.rd != '00000'):
             if wb_state.rd == exe_state.rs1:
                 exe_state.operand1 = wb_state.register_data
                 data_hazard += 1
+                # print("M -> E")
 
             if wb_state.rd == exe_state.rs2:
                 if exe_opcode != 35: # store
@@ -636,34 +644,41 @@ class HDU:
                 else:
                     exe_state.register_data = wb_state.register_data
                 data_hazard += 1
+                # print("M -> E")
 
         # E -> E forwarding
         if (mem_state.rd != -1) and (mem_state.rd != '00000'):
             if mem_opcode == 3: # load
+                # print("I am in.")
                 if exe_opcode == 35: # store
                     if exe_state.rs1 == mem_state.rd:
                         data_hazard += 1
                         if_stall = True
-                        stall_position = min(stall_position, 1)
+                        stall_position = min(stall_position, 0)
+                        # print("E -> E")
 
                 else:
                     if (exe_state.rs1 == mem_state.rd) or (exe_state.rs2 == mem_state.rd):
                         data_hazard += 1
                         if_stall = True
-                        stall_position = min(stall_position, 1)
+                        stall_position = min(stall_position, 0)
+                        # print("E -> E")
 
             else:
                 if exe_state.rs1 == mem_state.rd:
                     exe_state.operand1 = mem_state.register_data
                     data_hazard += 1
+                    # print("E -> E")
 
                 if exe_state.rs2 == mem_state.rd:
                     if exe_opcode != 35: # store
-                        exe_state.operand2 = wb_state.register_data
+                        exe_state.operand2 = mem_state.register_data
                     else:
-                        exe_state.register_data = wb_state.register_data
+                        exe_state.register_data = mem_state.register_data
                     data_hazard += 1
-
+                    # print("E -> E")
+                    print(mem_state.alu_control_signal, exe_state.alu_control_signal, exe_state.rs1, exe_state.rs2, exe_state.operand1, exe_state.operand2, mem_state.register_data)
+                    print(mem_state.rs1, mem_state.rs2)
         if decode_opcode == 99 or decode_opcode == 103: # SB and jalr
             # M -> D forwarding
             if (wb_state.rd != -1) and (wb_state.rd != '00000'):
@@ -671,18 +686,20 @@ class HDU:
                     decode_state.operand1 = wb_state.register_data
                     decode_state.decode_forwarding_op1 = True
                     data_hazard += 1
+                    # print("M -> D")
 
                 if wb_state.rd == decode_state.rs2:
                     decode_state.operand2 = wb_state.register_data
                     decode_state.decode_forwarding_op2 = True
                     data_hazard += 1
+                    # print("M -> D")
 
             # E -> D fowarding
             if (mem_state.rd != -1) and (mem_state.rd != '00000'):
                 if mem_opcode == 3: # load
                     data_hazard += 1
                     if_stall = True
-                    stall_position = min(stall_position, 2)
+                    stall_position = min(stall_position, 1)
 
                 else:
                     if mem_state.rd == decode_state.rs1:
@@ -695,11 +712,14 @@ class HDU:
                         decode_state.decode_forwarding_op2 = True
                         data_hazard += 1
 
+                # print("E->D ", mem_state.alu_control_signal, decode_state.alu_control_signal, decode_state.rs1, decode_state.rs2, decode_state.operand1, decode_state.operand2, mem_state.register_data)
+
             # If branch depends upon the preceding instruction
             if (exe_state.rd != -1) and (exe_state.rd != '00000') and ((exe_state.rd == decode_state.rs1) or (exe_state.rd == decode_state.rs2)):
+                # print("I am in.")
                 data_hazard += 1
                 if_stall = True
-                stall_position = min(stall_position, 2)
+                stall_position = min(stall_position, 1)
 
         new_states = [wb_state, mem_state, exe_state, decode_state, pipeline_instructions[-1]]
         return [data_hazard, if_stall, stall_position, new_states]
