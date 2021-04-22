@@ -35,10 +35,12 @@ stats = [
 	"Number of stalls due to control hazards: "
 ]
 
-s = [""]*12
+s = [0]*12
 
 def evaluate(processor, pipeline_ins):
 	processor.write_back(pipeline_ins[0])
+	if(!pipeline_ins[0].is_dummy):
+		s[1] += 1
 	processor.mem(pipeline_ins[1])
 	processor.execute(pipeline_ins[2])
 	control_hazard, control_pc, state3 = processor.decode(pipeline_ins[3], btb)
@@ -47,7 +49,7 @@ def evaluate(processor, pipeline_ins):
 	return pipeline_ins, control_hazard, control_pc
 
 if __name__ == '__main__':
-
+	
 	# set .mc file
 	# prog_mc_file = take_input()
 
@@ -237,11 +239,12 @@ if __name__ == '__main__':
 			# print(clock_cycles)
 
 	# Print Messages
-
+	s[0] = clock_cycles
+	s[2] = s[0]/s[1]
 	if prog_end:
 		processor.write_data_memory()
 		for i in range(12):
-			stats[i] += s[i]
+			stats[i] += str(s[i])
 		statfile = open("stats.txt", "w")
 		statfile.writelines(stats)
 		statfile.close()
