@@ -146,7 +146,7 @@ if __name__ == '__main__':
 
 			else:
 				data_hazard, if_stall, stall_position, pipeline_instructions = hdu.data_hazard_forwarding(pipeline_instructions)
-
+				# print("data_hazard = ", data_hazard)
 				# for x in pipeline_instructions:
 					# print("x.pcp = ", x.PC, x.is_dummy)
 
@@ -172,13 +172,26 @@ if __name__ == '__main__':
 
 				if if_stall:
 					number_of_stalls_due_to_data_hazards += 1
-					if stall_position == 1:
+					
+					if stall_position == 0:
+						# print("stall")
+						pipeline_instructions = pipeline_instructions[:1] + [State(0)] + old_states[2:]
+						pipeline_instructions[1].is_dummy = True
+						PC -= 4
+					elif stall_position == 1:
 						pipeline_instructions = pipeline_instructions[:2] + [State(0)] + old_states[3:]
 						pipeline_instructions[2].is_dummy = True
-					elif stall_position == 2:
+						PC -= 4
+					elif stall_position == 2 and not control_hazard:
 						pipeline_instructions = pipeline_instructions[:3] + [State(0)] + old_states[4:]
 						pipeline_instructions[3].is_dummy = True
-					PC -= 4
+						PC -= 4
+					else:
+						number_of_control_hazards += 1
+						number_of_stalls_due_to_control_hazards += 1
+						PC = control_pc
+						pipeline_instructions = pipeline_instructions[:3] + [State(0)] + [State(PC)]
+						pipeline_instructions[3].is_dummy = True
 
 				number_of_data_hazards += data_hazard
 
@@ -202,8 +215,8 @@ if __name__ == '__main__':
 						break
 
 			clock_cycles += 1
-			if clock_cycles > 200:
-				break
+			# if clock_cycles > 0:
+			# 	break
 
 
 			# if print_registers_each_cycle:
@@ -218,9 +231,10 @@ if __name__ == '__main__':
 
 			# Print pipeline registers and cycle
 			# if print_pipeline_registers_and_cycle:
-			# 	pass
+			# pass
 
 			# print(clock_cycles)
+			# print("PC = ", PC)
 
 	# Print Messages
 
