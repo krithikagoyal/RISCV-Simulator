@@ -20,6 +20,23 @@ from Gui import display, take_input
 from myRISCVSim_check import State, Processor, BTB, HDU
 import time
 
+stats = [
+	"Total number of cycles: ",
+	"Total instructions executed: ",
+	"CPI: ",
+	"Number of data-transfer(load and store): ",
+	"Number of ALU instructions executed: ",
+	"Number of Control instructions: ",
+	"Number of stalls/bubbles in the pipeline: ",
+	"Stat8: Number of data hazards: ",
+	"Number of control hazards: ",
+	"Number of branch mispredictions: ",
+	"Number of stalls due to data hazards: ",
+	"Number of stalls due to control hazards: "
+]
+
+s = [""]*12
+
 def evaluate(processor, pipeline_ins):
 	processor.write_back(pipeline_ins[0])
 	processor.mem(pipeline_ins[1])
@@ -223,6 +240,11 @@ if __name__ == '__main__':
 
 	if prog_end:
 		processor.write_data_memory()
+		for i in range(12):
+			stats[i] += s[i]
+		statfile = open("stats.txt", "w")
+		statfile.writelines(stats)
+		statfile.close()
 		display()
 
 
