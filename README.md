@@ -2,11 +2,12 @@
 ### *This project is developed as part of Computer Architecture class and is build in 3 phases.*
 
 ## Table of Contents
-1. [Contributors](https://github.com/Harshiitrpr/RISCV-Simulator/tree/Issue#contributors)
-2. [Directory Structure](https://github.com/Harshiitrpr/RISCV-Simulator/tree/Issue#directory-structure)
-3. [Requirements](https://github.com/Harshiitrpr/RISCV-Simulator/tree/Issue#requirements)
-4. [Phase 1 (Single Cycle Execution)](https://github.com/Harshiitrpr/RISCV-Simulator/tree/Issue#phase-1-single-cycle-execution)
-5. [Phase 2 (Pipelined Implementation)](https://github.com/Harshiitrpr/RISCV-Simulator/tree/Issue#phase-2-pipelined-implementation)
+1. [Contributors](https://github.com/Harshiitrpr/RISCV-Simulator#contributors)
+2. [Directory Structure](https://github.com/Harshiitrpr/RISCV-Simulator#directory-structure-of-each-phase)
+3. [Requirements](https://github.com/Harshiitrpr/RISCV-Simulator#requirements)
+4. [Phase 1 (Single Cycle Execution)](https://github.com/Harshiitrpr/RISCV-Simulator#phase-1-single-cycle-execution)
+5. [Phase 2 (Pipelined Implementation)](https://github.com/Harshiitrpr/RISCV-Simulator#phase-2-pipelined-implementationn)
+6. [How to run ?](https://github.com/Harshiitrpr/RISCV-Simulator#how-to-run-)
 
 ## Contributors
 ```
