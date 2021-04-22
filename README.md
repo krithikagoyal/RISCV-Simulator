@@ -3,10 +3,10 @@
 
 ## Table of Contents
 1. [Contributors](https://github.com/Harshiitrpr/RISCV-Simulator#contributors)
-2. [Directory Structure](https://github.com/Harshiitrpr/RISCV-Simulator#directory-structure-of-each-phase)
+2. [Directory Structure of each phase](https://github.com/Harshiitrpr/RISCV-Simulator#directory-structure-of-each-phase)
 3. [Requirements](https://github.com/Harshiitrpr/RISCV-Simulator#requirements)
 4. [Phase 1 (Single Cycle Execution)](https://github.com/Harshiitrpr/RISCV-Simulator#phase-1-single-cycle-execution)
-5. [Phase 2 (Pipelined Implementation)](https://github.com/Harshiitrpr/RISCV-Simulator#phase-2-pipelined-implementationn)
+5. [Phase 2 (Pipelined Implementation)](https://github.com/Harshiitrpr/RISCV-Simulator#phase-2-pipelined-implementation)
 6. [How to run ?](https://github.com/Harshiitrpr/RISCV-Simulator#how-to-run-)
 
 ## Contributors
