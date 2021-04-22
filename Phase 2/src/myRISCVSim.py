@@ -14,44 +14,15 @@ Project Name: Functional Simulator for subset of RISC-V Processor
 """
 
 # myRISCVSim.py
-# Purpose of this file: Implementation file for myRISCVSim
+# Purpose of this file: This file contains all the classes and functions used for the simulator.
 
 from collections import defaultdict
 from sys import exit
+import os
 import csv
 
-# Register file
-R = [0]*32
 
-# Clock
-clock = 0
-
-# Program Counter
-PC = 0
-
-# Memory
-MEM = defaultdict(lambda: '00')
-
-# Intermediate datapath and control path signals
-instruction_word = 0
-operand1 = 0
-operand2 = 0
-operation = ''
-rd = 0
-offset = 0
-register_data = '0x00000000'
-memory_address = 0
-alu_control_signal = -1
-is_mem = [-1, -1] # [-1/0/1(no memory operation/load/store), type of load/store if any]
-write_back_signal = False
-terminate = False
-inc_select = 0
-pc_select = 0
-return_address = -1
-pc_offset = 0
-
-
-# Utility functions
+# Utility Functions
 def nhex(num):
     if num < 0:
         num += 2**32
@@ -71,442 +42,705 @@ def sign_extend(data):
     return data
 
 
-# run_RISCVsim function
-def run_RISCVsim():
-    global clock
-    while(1):
-        fetch()
-        decode()
-        if terminate:
+# Instruction/State Class
+class State:
+    def __init__(self, pc = 0):
+        self.reset_interRegisters()
+        self.PC = pc
+
+    def reset_interRegisters(self):
+        self.instruction_word = '0x0'
+        self.rs1 = -1
+        self.rs2 = -1
+        self.operand1 = 0
+        self.operand2 = 0
+        self.rd = -1
+        self.offset = 0
+        self.register_data = '0x00000000'
+        self.memory_address = 0
+        self.alu_control_signal = -1
+        self.is_mem = is_mem = [-1, -1] # [-1/0/1(no memory operation/load/store), type of load/store if any]
+        self.write_back_signal = False
+        #
+        self.is_dummy = False
+        self.stage = 0
+        self.pc_update = -1
+        self.branch_taken = False
+        #
+        self.inc_select = 0
+        self.pc_select = 0
+        self.pc_offset = 0
+        self.return_address = -1
+        self.next_pc = -1
+        #
+        self.decode_forwarding_op1 = False
+        self.decode_forwarding_op2 = False
+
+
+# Brach table buffer
+class BTB:
+    table = {}
+
+    def find(self, pc):
+        if pc in self.table.keys():
+            return True
+        return False
+
+    def enter(self, type, pc, to_take_address):
+        if type:
+            self.table[pc] = [True, to_take_address]
+        elif to_take_address > pc:
+            self.table[pc] = [False, to_take_address]
+        else:
+            self.table[pc] = [True, to_take_address]
+
+    def predict(self, pc):
+        return self.table[pc][0]
+
+    def getTarget(self, pc):
+        return self.table[pc][1]
+
+
+# Processor
+class Processor:
+    def reset(self, *args):
+        if len(args) > 0:
+            state = args[0]
+            state.inc_select = 0
+            state.pc_select = 0
+            state.pc_offset = 0
+            state.return_address = 0
+
+        else:
+            self.inc_select = 0
+            self.pc_select = 0
+            self.pc_offset = 0
+            self.return_address = 0
+
+
+
+    def __init__(self, file_name):
+        self.MEM = defaultdict(lambda: '00')
+        self.R = ['0x00000000' for i in range(32)]
+        self.R[2] = '0x7FFFFFF0'
+        self.R[3] = '0x10000000'
+        self.load_program_memory(file_name)
+        self.pipelining_enabled = False
+        self.terminate = False
+        self.next_PC = 0
+        self.inc_select = 0
+        self.pc_select = 0
+        self.return_address = -1
+        self.pc_offset = 0
+        # Various Counts
+        self.count_total_inst = 0
+        self.count_alu_inst = 0
+        self.count_mem_inst = 0
+        self.count_control_inst = 0
+        self.all_dummy = False
+
+    # load_program_memory reads the input memory, and populates the instruction memory
+    def load_program_memory(self, file_name):
+        try:
+            fp = open(file_name, 'r')
+            for line in fp:
+                tmp = line.split()
+                if len(tmp) == 2:
+                    address, instruction = tmp[0], tmp[1]
+                    self.write_word(address, instruction)
+            fp.close()
+        except:
+            print("ERROR: Error opening input .mc file\n")
+            exit(1)
+
+    # Memory write
+    def write_word(self, address, instruction):
+        idx = int(address[2:], 16)
+        self.MEM[idx] =  instruction[8:10]
+        self.MEM[idx + 1] = instruction[6:8]
+        self.MEM[idx + 2] = instruction[4:6]
+        self.MEM[idx + 3] = instruction[2:4]
+
+    # Creates a "data_out.mc" file and writes the data memory in it. It also creates
+    # a reg_out.mc file and writes the contents of registers in it.
+    def write_data_memory(self):
+        try:
+            fp = open("data_out.mc", "w")
+            out_tmp = []
+            for i in range(268435456, 268468221, 4):
+                out_tmp.append(
+                    hex(i) + ' 0x' + self.MEM[i + 3] + self.MEM[i + 2] + self.MEM[i + 1] + self.MEM[i] + '\n')
+            fp.writelines(out_tmp)
+            fp.close()
+        except:
+            print("ERROR: Error opening data_out.mc file for writing\n")
+
+        try:
+            fp = open("reg_out.mc", "w")
+            out_tmp = []
+            for i in range(32):
+                out_tmp.append('x' + str(i) + ' ' + self.R[i] + '\n')
+            fp.writelines(out_tmp)
+            fp.close()
+        except:
+            print("ERROR: Error opening reg_out.mc file for writing\n")
+
+    # Instruction address generator
+    def IAG(self, state):
+        if state.pc_select:
+            self.next_PC = state.return_address
+        elif state.inc_select:
+            # print("Enter inc select")
+            self.next_PC += state.pc_offset
+        else:
+            self.next_PC += 4
+
+        state.pc_select = 0
+        state.inc_select = 0
+
+    # Reads from the instruction memory and updates the instruction register
+    def fetch(self, state, *args):
+        state.stage += 1
+
+        if state.is_dummy:
+            return state
+
+        if self.all_dummy:
+            state.is_dummy = True
+            return state
+
+        state.instruction_word = '0x' + self.MEM[state.PC + 3] + self.MEM[state.PC + 2] + self.MEM[state.PC + 1] + self.MEM[state.PC]
+        print("FETCH: Fetch instruction", state.instruction_word, "from address", nhex(state.PC))
+        if not self.pipelining_enabled:
             return
-        execute()
-        if terminate:
+
+        bin_instruction = bin(int(state.instruction_word[2:], 16))[2:]
+        bin_instruction = (32 - len(bin_instruction)) * '0' + bin_instruction
+
+        opcode = int(bin_instruction[25:32], 2)
+        if opcode == 23 or opcode == 55 or opcode == 111:
+            pass
+
+        # I format
+        elif opcode == 3 or opcode == 19 or opcode == 103:
+            state.rs1 = bin_instruction[12:17]
+            state.rs2 = -1
+
+        # R S SB format
+        else:
+            state.rs1 = bin_instruction[12:17]
+            state.rs2 = bin_instruction[7:12]
+
+        btb = args[0]
+
+        if btb.find(state.PC):
+            state.branch_taken = btb.predict(state.PC)
+            if state.branch_taken:
+                state.next_pc = btb.getTarget(state.PC)
+            else:
+                state.next_pc = state.PC + 4
+
+        return state
+
+    # Decodes the instruction and decides the operation to be performed in the execute stage; reads the operands from the register file.
+    def decode(self, state, *args):
+        state.stage += 1
+        if state.is_dummy:
+            return False, 0, state
+
+        if state.instruction_word == '0x401080BB':
+            self.terminate = True
+            self.all_dummy = True
+            print("END PROGRAM\n")
+            return False, 0, state
+
+        bin_instruction = bin(int(state.instruction_word[2:], 16))[2:]
+        bin_instruction = (32 - len(bin_instruction)) * '0' + bin_instruction
+
+        opcode = int(bin_instruction[25:32], 2)
+        func3 = int(bin_instruction[17:20], 2)
+        func7 = int(bin_instruction[0:7], 2)
+
+        path = os.path.dirname(__file__)
+        f = open(os.path.join(path,'Instruction_Set_List.csv'))
+        instruction_set_list = list(csv.reader(f))
+        f.close()
+
+        match_found = False
+        track = 0
+
+        for ins in instruction_set_list:
+            if track == 0:
+                match_found = False
+            elif ins[4] != 'NA' and [int(ins[2], 2), int(ins[3], 2), int(ins[4], 2)] == [opcode, func3, func7]:
+                match_found = True
+            elif ins[4] == 'NA' and ins[3] != 'NA' and [int(ins[2], 2), int(ins[3], 2)] == [opcode, func3]:
+                match_found = True
+            elif ins[4] == 'NA' and ins[3] == 'NA' and int(ins[2], 2) == opcode:
+                match_found = True
+            if match_found:
+                break
+            track += 1
+
+        if not match_found:
+            print("ERROR: Unidentifiable machine code!\n")
+            self.all_dummy = True
+            self.terminate = True
+            return False, 0, state
+
+        op_type = instruction_set_list[track][0]
+        operation = instruction_set_list[track][1]
+        state.alu_control_signal = track
+
+        state.is_mem = [-1, -1]
+
+        if op_type == 'R':
+            state.rs2 = bin_instruction[7:12]
+            state.rs1 = bin_instruction[12:17]
+            state.rd = bin_instruction[20:25]
+            state.operand1 = self.R[int(state.rs1, 2)]
+            state.operand2 = self.R[int(state.rs2, 2)]
+            state.write_back_signal = True
+            print("DECODE: Operation is ", operation.upper(), ", first operand is R", str(int(state.rs1, 2)), ", second operand is R", str(int(state.rs2, 2)), ", destination register is R", str(int(state.rd, 2)), sep="")
+            print("DECODE: Read registers: R", str(int(state.rs1, 2)), " = ", nint(state.operand1, 16), ", R", str(int(state.rs2, 2)), " = ", nint(state.operand2, 16), sep="")
+
+        elif op_type == 'I':
+            state.rs1 = bin_instruction[12:17]
+            state.rd = bin_instruction[20:25]
+            imm = bin_instruction[0:12]
+            if not state.decode_forwarding_op1:
+                state.operand1 = self.R[int(state.rs1, 2)]
+            state.operand2 = imm
+            state.write_back_signal = True
+            print("DECODE: Operation is ", operation.upper(), ", first operand is R", str(int(state.rs1, 2)), ", immediate is ", nint(state.operand2, 2, len(state.operand2)), ", destination register is R", str(int(state.rd, 2)), sep="")
+            print("DECODE: Read registers: R", str(int(state.rs1, 2)), " = ", nint(state.operand1, 16), sep="")
+
+        elif op_type == 'S':
+            state.rs2 = bin_instruction[7:12]
+            state.rs1 = bin_instruction[12:17]
+            imm = bin_instruction[0:7] + bin_instruction[20:25]
+            if not state.decode_forwarding_op1:
+                state.operand1 = self.R[int(state.rs1, 2)]
+            state.operand2 = imm
+            state.register_data = self.R[int(state.rs2, 2)]
+            state.write_back_signal = False
+            print("DECODE: Operation is ", operation.upper(), ", first operand is R", str(int(state.rs1, 2)), ", immediate is ", nint(state.operand2, 2, len(state.operand2)), ", data to be stored is in R", str(int(state.rs2, 2)), sep="")
+            print("DECODE: Read registers: R", str(int(state.rs1, 2)), " = ", nint(state.operand1, 16), ", R", str(int(state.rs2, 2)), " = ", nint(state.register_data, 16), sep="")
+
+        elif op_type == 'SB':
+            state.rs2 = bin_instruction[7:12]
+            state.rs1 = bin_instruction[12:17]
+            if not state.decode_forwarding_op1:
+                state.operand1 = self.R[int(state.rs1, 2)]
+            if not state.decode_forwarding_op2:
+                state.operand2 = self.R[int(state.rs2, 2)]
+            imm = bin_instruction[0] + bin_instruction[24] + \
+                bin_instruction[1:7] + bin_instruction[20:24] + '0'
+            state.offset = imm
+            state.write_back_signal = False
+            print("DECODE: Operation is ", operation.upper(), ", first operand is R", str(int(state.rs1, 2)), ", second operand is R", str(int(state.rs2, 2)), ", immediate is ", nint(state.offset, 2, len(state.offset)), sep="")
+            print("DECODE: Read registers: R", str(int(state.rs1, 2)), " = ", nint(state.operand1, 16), ", R", str(int(state.rs2, 2)), " = ", nint(state.operand2, 16), sep="")
+
+        elif op_type == 'U':
+            state.rd = bin_instruction[20:25]
+            imm = bin_instruction[0:20]
+            state.write_back_signal = True
+            print("DECODE: Operation is ", operation.upper(), ", immediate is ", nint(imm, 2, len(imm)), ", destination register is R", str(int(state.rd, 2)), sep="")
+            print("DECODE: No register read")
+            imm += '0'*12
+            state.operand2 = imm
+
+        elif op_type == 'UJ':
+            state.rd = bin_instruction[20:25]
+            imm = bin_instruction[0] + bin_instruction[12:20] + \
+                bin_instruction[11] + bin_instruction[1:11] + '0'
+            state.write_back_signal = True
+            state.offset = imm
+            print("DECODE: Operation is ", operation.upper(), ", immediate is ", nint(imm, 2, len(imm)), ", destination register is R", str(int(state.rd, 2)), sep="")
+            print("DECODE: No register read")
+
+        else:
+            print("ERROR: Unidentifiable machine code!\n")
+            self.terminate = True
+            self.all_dummy = True
+            return False, 0, state
+
+        if self.pipelining_enabled:
+            branch_ins = [23, 24, 25, 26, 29, 19]
+            if state.alu_control_signal not in branch_ins:
+                return False, 0, state
+            else:
+                self.execute(state)
+                self.next_PC = state.PC
+                self.IAG(state)
+                orig_pc = self.next_PC
+                print("orig_pc = ", orig_pc, state.next_pc)
+                btb = args[0]
+                if not btb.find(state.PC):
+                    state.inc_select = self.inc_select
+                    state.pc_select = self.pc_select
+                    state.pc_offset = self.pc_offset
+                    state.return_address = self.return_address
+                    self.next_PC = state.PC
+                    self.IAG(state)
+                    state.pc_update = self.next_PC
+                    if state.alu_control_signal == 19 or state.alu_control_signal == 29:
+                        btb.enter(True, state.PC, state.pc_update)
+                    else:
+                        btb.enter(False, state.PC, state.pc_update)
+                    self.reset()
+                    self.reset(state)
+                if orig_pc != state.next_pc:
+                    # print("orig_pc = ", orig_pc)
+                    return True, orig_pc, state
+                else:
+                    return False, 0, state
+
+    # Executes the ALU operation based on ALUop
+    def execute(self, state):
+        state.stage += 1
+        if state.is_dummy:
+            return True
+
+        if state.alu_control_signal == 2:
+            state.register_data = nhex(int(nint(state.operand1, 16) + nint(state.operand2, 16)))
+
+        elif state.alu_control_signal == 8:
+            state.register_data = nhex(int(nint(state.operand1, 16) - nint(state.operand2, 16)))
+
+        elif state.alu_control_signal == 1:
+            state.register_data = nhex(int(int(state.operand1, 16) & int(state.operand2, 16)))
+
+        elif state.alu_control_signal == 3:
+            state.register_data = nhex(int(int(state.operand1, 16) | int(state.operand2, 16)))
+
+        elif state.alu_control_signal == 4:
+            if(nint(state.operand2, 16) < 0):
+                print("ERROR: Shift by negative!\n")
+                self.terminate = True
+                self.all_dummy = True
+                return
+            else:
+                state.register_data = nhex(int(int(state.operand1, 16) << int(state.operand2, 16)))
+
+        elif state.alu_control_signal == 5:
+            if (nint(state.operand1, 16) < nint(state.operand2, 16)):
+                state.register_data = hex(1)
+            else:
+                state.register_data = hex(0)
+
+        elif state.alu_control_signal == 6:
+            if(nint(state.operand2, 16) < 0):
+                print("ERROR: Shift by negative!\n")
+                self.terminate = True
+                self.all_dummy = True
+                return
+            else:
+                state.register_data = bin(int(int(state.operand1, 16) >> int(state.operand2, 16)))
+                if state.operand1[2] == '8' or state.operand1[2] == '9' or state.operand1[2] == 'a' or state.operand1[2] == 'b' or state.operand1[2] == 'c' or state.operand1[2] == 'd' or state.operand1[2] == 'e' or state.operand1[2] == 'f':
+                    state.register_data = '0b' + (34 - len(state.register_data)) * '1' + state.register_data[2:]
+                state.register_data = hex(int(state.register_data, 2))
+
+        elif state.alu_control_signal == 7:
+            if(nint(state.operand2, 16) < 0):
+                print("ERROR: Shift by negative!\n")
+                self.terminate = True
+                self.all_dummy = True
+                return
+            else:
+                state.register_data = nhex(int(state.operand1, 16) >> int(state.operand2, 16))
+
+        elif state.alu_control_signal == 9:
+            state.register_data = nhex(int(int(state.operand1, 16) ^ int(state.operand2, 16)))
+
+        elif state.alu_control_signal == 10:
+            state.register_data = nhex(int(nint(state.operand1, 16) * nint(state.operand2, 16)))
+
+        elif state.alu_control_signal == 11:
+            if nint(state.operand2, 16) == 0:
+                print("ERROR: Division by zero!\n")
+                self.terminate = True
+                self.all_dummy = True
+                return
+            else:
+                state.register_data = nhex(int(nint(state.operand1, 16) / nint(state.operand2, 16)))
+
+        elif state.alu_control_signal == 12:
+            state.register_data = nhex(int(nint(state.operand1, 16) % nint(state.operand2, 16)))
+
+        elif state.alu_control_signal == 14:
+            state.register_data = nhex(
+                int(nint(state.operand1, 16) + nint(state.operand2, 2, len(state.operand2))))
+
+        elif state.alu_control_signal == 13:
+            state.register_data = nhex(int(int(state.operand1, 16) & int(state.operand2, 2)))
+
+        elif state.alu_control_signal == 15:
+            state.register_data = nhex(int(int(state.operand1, 16) | int(state.operand2, 2)))
+
+        elif state.alu_control_signal == 16:
+            state.memory_address = int(int(state.operand1, 16) + nint(state.operand2, 2, len(state.operand2)))
+            state.is_mem = [0, 0]
+
+        elif state.alu_control_signal == 17:
+            state.memory_address = int(int(state.operand1, 16) + nint(state.operand2, 2, len(state.operand2)))
+            state.is_mem = [0, 1]
+
+        elif state.alu_control_signal == 18:
+            state.memory_address = int(int(state.operand1, 16) + nint(state.operand2, 2, len(state.operand2)))
+            state.is_mem = [0, 3]
+
+        elif state.alu_control_signal == 19: # Jalr
+            state.register_data = nhex(state.PC + 4)
+            self.return_address = nint(state.operand2, 2, len(state.operand2)) + nint(state.operand1, 16)
+            self.pc_select = 1
+            state.pc_select = 1
+            state.return_address = nint(state.operand2, 2, len(state.operand2)) + nint(state.operand1, 16)
+
+        elif state.alu_control_signal == 20:
+            state.memory_address = int(int(state.operand1, 16) + nint(state.operand2, 2, len(state.operand2)))
+            state.is_mem = [1, 0]
+
+        elif state.alu_control_signal == 22:
+            state.memory_address = int(int(state.operand1, 16) + nint(state.operand2, 2, len(state.operand2)))
+            state.is_mem = [1, 1]
+
+        elif state.alu_control_signal == 21:
+            state.memory_address = int(int(state.operand1, 16) + nint(state.operand2, 2, len(state.operand2)))
+            state.is_mem = [1, 3]
+
+        elif state.alu_control_signal == 23:
+            if nint(state.operand1, 16) == nint(state.operand2, 16):
+                state.pc_offset = nint(state.offset, 2, len(state.offset))
+                state.inc_select = 1
+            self.pc_offset = nint(state.offset, 2, len(state.offset))
+            self.inc_select = 1
+
+        elif state.alu_control_signal == 24:
+            if nint(state.operand1, 16) != nint(state.operand2, 16):
+                state.pc_offset = nint(state.offset, 2, len(state.offset))
+                state.inc_select = 1
+            self.pc_offset = nint(state.offset, 2, len(state.offset))
+            self.inc_select = 1
+
+        elif state.alu_control_signal == 25:
+            if nint(state.operand1, 16) >= nint(state.operand2, 16):
+                state.pc_offset = nint(state.offset, 2,  len(state.offset))
+                state.inc_select = 1
+            # print("pc select and inc select = ", state.pc_select, state.inc_select)
+            self.pc_offset = nint(state.offset, 2,  len(state.offset))
+            self.inc_select = 1
+
+        elif state.alu_control_signal == 26:
+            if nint(state.operand1, 16) < nint(state.operand2, 16):
+                state.pc_offset =  nint(state.offset, 2, len(state.offset))
+                state.inc_select = 1
+            self.pc_offset =  nint(state.offset, 2, len(state.offset))
+            self.inc_select = 1
+
+        elif state.alu_control_signal == 27:
+            state.register_data = nhex(int(state.PC + 4 + int(state.operand2, 2)))
+
+        elif state.alu_control_signal == 28:
+            state.register_data = nhex(int(state.operand2, 2))
+
+        elif state.alu_control_signal == 29: # Jal
+            state.register_data = nhex(state.PC + 4)
+            self.pc_offset = nint(state.offset, 2, len(state.offset))
+            self.inc_select = 1
+            state.pc_offset = nint(state.offset, 2, len(state.offset))
+            state.inc_select = 1
+
+        if len(state.register_data) > 10:
+            state.register_data = state.register_data[:2] + state.register_data[-8:]
+
+        state.register_data = state.register_data[:2] + \
+            (10 - len(state.register_data)) * '0' + state.register_data[2::]
+
+        # print("EXECUTE ", int(state.register_data, 16), state.return_address, state.rs1, state.rs2, state.alu_control_signal)
+
+    # Performs the memory operations
+    def mem(self, state):
+        state.stage += 1
+
+        if not self.pipelining_enabled:
+            self.IAG(state)
+
+        if state.is_dummy:
             return
-        mem()
-        write_back()
-        clock += 1
-        print("CLOCK CYCLE:", clock, '\n')
 
-
-# It is used to set the reset values
-def reset_proc():
-    for i in range(32):
-        R[i] = '0x00000000'
-    R[2] = '0x7FFFFFF0'
-    R[3] = '0x10000000'
-
-
-# load_program_memory reads the input memory, and populates the instruction memory
-def load_program_memory(file_name):
-    try:
-        fp = open(file_name, 'r')
-        for line in fp:
-            tmp = line.split()
-            if len(tmp) == 2:
-                address, instruction = tmp[0], tmp[1]
-                write_word(address, instruction)
-        fp.close()
-    except:
-        print("ERROR: Error opening input .mc file\n")
-        exit(1)
-
-
-# Creates a "data_out.mc" file and writes the data memory in it. It also creates
-# a reg_out.mc file and writes the contents of registers in it.
-def write_data_memory():
-    try:
-        fp = open("data_out.mc", "w")
-        out_tmp = []
-        for i in range(268435456, 268468221, 4):
-            out_tmp.append(
-                hex(i) + ' 0x' + MEM[i + 3] + MEM[i + 2] + MEM[i + 1] + MEM[i] + '\n')
-        fp.writelines(out_tmp)
-        fp.close()
-    except:
-        print("ERROR: Error opening data_out.mc file for writing\n")
-
-    try:
-        fp = open("reg_out.mc", "w")
-        out_tmp = []
-        for i in range(32):
-            out_tmp.append('x' + str(i) + ' ' + R[i] + '\n')
-        fp.writelines(out_tmp)
-        fp.close()
-    except:
-        print("ERROR: Error opening reg_out.mc file for writing\n")
-
-
-# It is called to end the program and write the updated data memory in "data_out.mc" file
-# and the register contents in the "reg_out.mc" file.
-def swi_exit():
-    global terminate
-    write_data_memory()
-    terminate = True
-
-
-# Reads from the instruction memory and updates the instruction register
-def fetch():
-    global PC, instruction_word, inc_select, pc_select
-
-    instruction_word = '0x' + MEM[PC + 3] + MEM[PC + 2] + MEM[PC + 1] + MEM[PC]
-    print("FETCH: Fetch instruction", instruction_word, "from address", nhex(PC))
-    inc_select = 0
-    pc_select = 0
-
-
-# Decodes the instruction and decides the operation to be performed in the execute stage; reads the operands from the register file.
-def decode():
-    global alu_control_signal, operation, operand1, operand2, instruction_word, rd, offset, register_data, memory_address, write_back_signal, PC, is_mem, MEM, R
-
-    if instruction_word == '0x401080BB':
-        print("END PROGRAM\n")
-        swi_exit()
-        return
-
-    bin_instruction = bin(int(instruction_word[2:], 16))[2:]
-    bin_instruction = (32 - len(bin_instruction)) * '0' + bin_instruction
-
-    opcode = int(bin_instruction[25:32], 2)
-    func3 = int(bin_instruction[17:20], 2)
-    func7 = int(bin_instruction[0:7], 2)
-
-    f = open('Instruction_Set_List.csv')
-    instruction_set_list = list(csv.reader(f))
-    f.close()
-
-    match_found = False
-    track = 0
-
-    for ins in instruction_set_list:
-        if track == 0:
-            match_found = False
-        elif ins[4] != 'NA' and [int(ins[2], 2), int(ins[3], 2), int(ins[4], 2)] == [opcode, func3, func7]:
-            match_found = True
-        elif ins[4] == 'NA' and ins[3] != 'NA' and [int(ins[2], 2), int(ins[3], 2)] == [opcode, func3]:
-            match_found = True
-        elif ins[4] == 'NA' and ins[3] == 'NA' and int(ins[2], 2) == opcode:
-            match_found = True
-        if match_found:
-            break
-        track += 1
-
-    if not match_found:
-        print("ERROR: Unidentifiable machine code!\n")
-        swi_exit()
-        return
-
-    op_type = instruction_set_list[track][0]
-    operation = instruction_set_list[track][1]
-    alu_control_signal = track
-
-    is_mem = [-1, -1]
-
-    if op_type == 'R':
-        rs2 = bin_instruction[7:12]
-        rs1 = bin_instruction[12:17]
-        rd = bin_instruction[20:25]
-        operand1 = R[int(rs1, 2)]
-        operand2 = R[int(rs2, 2)]
-        write_back_signal = True
-        print("DECODE: Operation is ", operation.upper(), ", first operand is R", str(int(rs1, 2)), ", second operand is R", str(int(rs2, 2)), ", destination register is R", str(int(rd, 2)), sep="")
-        print("DECODE: Read registers: R", str(int(rs1, 2)), " = ", nint(operand1, 16), ", R", str(int(rs2, 2)), " = ", nint(operand2, 16), sep="")
-
-    elif op_type == 'I':
-        rs1 = bin_instruction[12:17]
-        rd = bin_instruction[20:25]
-        imm = bin_instruction[0:12]
-        operand1 = R[int(rs1, 2)]
-        operand2 = imm
-        write_back_signal = True
-        print("DECODE: Operation is ", operation.upper(), ", first operand is R", str(int(rs1, 2)), ", immediate is ", nint(operand2, 2, len(operand2)), ", destination register is R", str(int(rd, 2)), sep="")
-        print("DECODE: Read registers: R", str(int(rs1, 2)), " = ", nint(operand1, 16), sep="")
-
-    elif op_type == 'S':
-        rs2 = bin_instruction[7:12]
-        rs1 = bin_instruction[12:17]
-        imm = bin_instruction[0:7] + bin_instruction[20:25]
-        operand1 = R[int(rs1, 2)]
-        operand2 = imm
-        register_data = R[int(rs2, 2)]
-        write_back_signal = False
-        print("DECODE: Operation is ", operation.upper(), ", first operand is R", str(int(rs1, 2)), ", immediate is ", nint(operand2, 2, len(operand2)), ", data to be stored is in R", str(int(rs2, 2)), sep="")
-        print("DECODE: Read registers: R", str(int(rs1, 2)), " = ", nint(operand1, 16), ", R", str(int(rs2, 2)), " = ", nint(register_data, 16), sep="")
-
-    elif op_type == 'SB':
-        rs2 = bin_instruction[7:12]
-        rs1 = bin_instruction[12:17]
-        operand1 = R[int(rs1, 2)]
-        operand2 = R[int(rs2, 2)]
-        imm = bin_instruction[0] + bin_instruction[24] + \
-            bin_instruction[1:7] + bin_instruction[20:24] + '0'
-        offset = imm
-        write_back_signal = False
-        print("DECODE: Operation is ", operation.upper(), ", first operand is R", str(int(rs1, 2)), ", second operand is R", str(int(rs2, 2)), ", immediate is ", nint(offset, 2, len(offset)), sep="")
-        print("DECODE: Read registers: R", str(int(rs1, 2)), " = ", nint(operand1, 16), ", R", str(int(rs2, 2)), " = ", nint(operand2, 16), sep="")
-
-    elif op_type == 'U':
-        rd = bin_instruction[20:25]
-        imm = bin_instruction[0:20]
-        write_back_signal = True
-        print("DECODE: Operation is ", operation.upper(), ", immediate is ", nint(imm, 2, len(imm)), ", destination register is R", str(int(rd, 2)), sep="")
-        print("DECODE: No register read")
-        imm += '0'*12
-        operand2 = imm
-
-    elif op_type == 'UJ':
-        rd = bin_instruction[20:25]
-        imm = bin_instruction[0] + bin_instruction[12:20] + \
-            bin_instruction[11] + bin_instruction[1:11]
-        write_back_signal = True
-        print("DECODE: Operation is ", operation.upper(), ", immediate is ", nint(imm, 2, len(imm)), ", destination register is R", str(int(rd, 2)), sep="")
-        print("DECODE: No register read")
-        imm += '0'
-        offset = imm
-
-    else:
-        print("ERROR: Unidentifiable machine code!\n")
-        swi_exit()
-        return
-
-
-# Executes the ALU operation based on ALUop
-def execute():
-    global alu_control_signal, operation, operand1, operand2, instruction_word, rd, offset, register_data, memory_address, write_back_signal, PC, is_mem, MEM, R, pc_offset, pc_select, inc_select, return_address
-
-    if alu_control_signal == 2:
-        register_data = nhex(int(nint(operand1, 16) + nint(operand2, 16)))
-        print("EXECUTE:", operation.upper(), nint(operand1, 16), "and", nint(operand2, 16))
-
-    elif alu_control_signal == 8:
-        register_data = nhex(int(nint(operand1, 16) - nint(operand2, 16)))
-        print("EXECUTE:", operation.upper(), nint(operand1, 16), "and", nint(operand2, 16))
-
-    elif alu_control_signal == 1:
-        register_data = nhex(int(int(operand1, 16) & int(operand2, 16)))
-        print("EXECUTE:", operation.upper(), nint(operand1, 16), "and", nint(operand2, 16))
-
-    elif alu_control_signal == 3:
-        register_data = nhex(int(int(operand1, 16) | int(operand2, 16)))
-        print("EXECUTE:", operation.upper(), nint(operand1, 16), "and", nint(operand2, 16))
-
-    elif alu_control_signal == 4:
-        if(nint(operand2, 16) < 0):
-            print("ERROR: Shift by negative!\n")
-            swi_exit()
+        if state.is_mem[0] == -1:
             return
+
+        elif state.is_mem[0] == 0:
+            state.register_data = '0x'
+            if state.is_mem[1] == 0:
+                state.register_data += self.MEM[state.memory_address]
+            elif state.is_mem[1] == 1:
+                state.register_data += (self.MEM[state.memory_address + 1] + self.MEM[state.memory_address])
+            else:
+                state.register_data += (self.MEM[state.memory_address + 3] + self.MEM[state.memory_address + 2] + self.MEM[state.memory_address + 1] + self.MEM[state.memory_address])
+
+            state.register_data = sign_extend(state.register_data)
+
         else:
-            register_data = nhex(int(int(operand1, 16) << int(operand2, 16)))
-            print("EXECUTE:", operation.upper(), nint(operand1, 16), "and", nint(operand2, 16))
-
-    elif alu_control_signal == 5:
-        if (nint(operand1, 16) < nint(operand2, 16)):
-            register_data = hex(1)
-        else:
-            register_data = hex(0)
-        print("EXECUTE:", operation.upper(), nint(operand1, 16), "and", nint(operand2, 16))
-
-    elif alu_control_signal == 6:
-        if(nint(operand2, 16) < 0):
-            print("ERROR: Shift by negative!\n")
-            swi_exit()
-            return
-        else:
-            register_data = bin(int(int(operand1, 16) >> int(operand2, 16)))
-            if operand1[2] == '8' or operand1[2] == '9' or operand1[2] == 'a' or operand1[2] == 'b' or operand1[2] == 'c' or operand1[2] == 'd' or operand1[2] == 'e' or operand1[2] == 'f':
-                register_data = '0b' + (34 - len(register_data)) * '1' + register_data[2:]
-            register_data = hex(int(register_data, 2))
-            print("EXECUTE:", operation.upper(), nint(operand1, 16), "and", nint(operand2, 16))
-
-    elif alu_control_signal == 7:
-        if(nint(operand2, 16) < 0):
-            print("ERROR: Shift by negative!\n")
-            swi_exit()
-            return
-        else:
-            register_data = nhex(int(operand1, 16) >> int(operand2, 16))
-            print("EXECUTE:", operation.upper(), nint(operand1, 16), "and", nint(operand2, 16))
-
-    elif alu_control_signal == 9:
-        register_data = nhex(int(int(operand1, 16) ^ int(operand2, 16)))
-        print("EXECUTE:", operation.upper(), nint(operand1, 16), "and", nint(operand2, 16))
-
-    elif alu_control_signal == 10:
-        register_data = nhex(int(nint(operand1, 16) * nint(operand2, 16)))
-        print("EXECUTE:", operation.upper(), nint(operand1, 16), "and", nint(operand2, 16))
-
-    elif alu_control_signal == 11:
-        if nint(operand2, 16) == 0:
-            print("ERROR: Division by zero!\n")
-            swi_exit()
-            return
-        else:
-            register_data = nhex(int(nint(operand1, 16) / nint(operand2, 16)))
-            print("EXECUTE:", operation.upper(), nint(operand1, 16), "and", nint(operand2, 16))
-
-    elif alu_control_signal == 12:
-        register_data = nhex(int(nint(operand1, 16) % nint(operand2, 16)))
-        print("EXECUTE:", operation.upper(), nint(operand1, 16), "and", nint(operand2, 16))
-
-    elif alu_control_signal == 14:
-        register_data = nhex(
-            int(nint(operand1, 16) + nint(operand2, 2, len(operand2))))
-        print("EXECUTE: ADD", int(operand1, 16), "and", nint(operand2, 2, len(operand2)))
-
-    elif alu_control_signal == 13:
-        register_data = nhex(int(int(operand1, 16) & int(operand2, 2)))
-        print("EXECUTE: AND", int(operand1, 16), "and", nint(operand2, 2, len(operand2)))
-
-    elif alu_control_signal == 15:
-        register_data = nhex(int(int(operand1, 16) | int(operand2, 2)))
-        print("EXECUTE: OR", int(operand1, 16), "and", nint(operand2, 2, len(operand2)))
-
-    elif alu_control_signal == 16:
-        memory_address = int(int(operand1, 16) + nint(operand2, 2, len(operand2)))
-        is_mem = [0, 0]
-        print("EXECUTE: ADD", int(operand1, 16), "and", nint(operand2, 2, len(operand2)))
-
-    elif alu_control_signal == 17:
-        memory_address = int(int(operand1, 16) + nint(operand2, 2, len(operand2)))
-        is_mem = [0, 1]
-        print("EXECUTE: ADD", int(operand1, 16), "and", nint(operand2, 2, len(operand2)))
-
-    elif alu_control_signal == 18:
-        memory_address = int(int(operand1, 16) + nint(operand2, 2, len(operand2)))
-        is_mem = [0, 3]
-        print("EXECUTE: ADD", int(operand1, 16), "and", nint(operand2, 2, len(operand2)))
-
-    elif alu_control_signal == 19:
-        register_data = nhex(PC + 4)
-        return_address = nint(operand2, 2, len(operand2)) + nint(operand1, 16)
-        pc_select = 1
-        print("EXECUTE: No execute operation")
-
-    elif alu_control_signal == 20:
-        memory_address = int(int(operand1, 16) + nint(operand2, 2, len(operand2)))
-        is_mem = [1, 0]
-        print("EXECUTE: ADD", int(operand1, 16), "and", nint(operand2, 2, len(operand2)))
-
-    elif alu_control_signal == 22:
-        memory_address = int(int(operand1, 16) + nint(operand2, 2, len(operand2)))
-        is_mem = [1, 1]
-        print("EXECUTE: ADD", int(operand1, 16), "and", nint(operand2, 2, len(operand2)))
-
-    elif alu_control_signal == 21:
-        memory_address = int(int(operand1, 16) + nint(operand2, 2, len(operand2)))
-        is_mem = [1, 3]
-        print("EXECUTE: ADD", int(operand1, 16), "and", nint(operand2, 2, len(operand2)))
-
-    elif alu_control_signal == 23:
-        if nint(operand1, 16) == nint(operand2, 16):
-            pc_offset = nint(offset, 2, len(offset))
-            inc_select = 1
-        print("EXECUTE:", operation.upper(), nint(operand1, 16), "and", nint(operand2, 16))
-
-    elif alu_control_signal == 24:
-        if nint(operand1, 16) != nint(operand2, 16):
-            pc_offset = nint(offset, 2, len(offset))
-            inc_select = 1
-        print("EXECUTE:", operation.upper(), nint(operand1, 16), "and", nint(operand2, 16))
-
-    elif alu_control_signal == 25:
-        if nint(operand1, 16) >= nint(operand2, 16):
-            pc_offset = nint(offset, 2,  len(offset))
-            inc_select = 1
-        print("EXECUTE:",  operation.upper(), nint(operand1, 16), "and", nint(operand2, 16))
-
-    elif alu_control_signal == 26:
-        if nint(operand1, 16) < nint(operand2, 16):
-            pc_offset =  nint(offset, 2, len(offset))
-            inc_select = 1
-        print("EXECUTE:", operation.upper(), nint(operand1, 16), "and", nint(operand2, 16))
-
-    elif alu_control_signal == 27:
-        register_data = nhex(int(PC + 4 + int(operand2, 2)))
-        print("EXECUTE: Shift left", int(operand2[0:20], 2), "by 12 bits and ADD", PC + 4)
-
-    elif alu_control_signal == 28:
-        register_data = nhex(int(operand2, 2))
-        print("EXECUTE: Shift left", int(operand2[0:20], 2), "by 12 bits")
-
-    elif alu_control_signal == 29:
-        register_data = nhex(PC + 4)
-        pc_offset = nint(offset, 2, len(offset))
-        inc_select = 1
-        print("EXECUTE: No execute operation")
-
-    if len(register_data) > 10:
-        register_data = register_data[:2] + register_data[-8:]
-
-    register_data = register_data[:2] + \
-        (10 - len(register_data)) * '0' + register_data[2::]
+            if state.is_mem[1] >= 3:
+                self.MEM[state.memory_address + 3] = state.register_data[2:4]
+                self.MEM[state.memory_address + 2] = state.register_data[4:6]
+            if state.is_mem[1] >= 1:
+                self.MEM[state.memory_address + 1] = state.register_data[6:8]
+            if state.is_mem[1] >= 0:
+                self.MEM[state.memory_address] = state.register_data[8:10]
 
 
-# Performs the memory operations and also performs the operations of IAG.
-def mem():
-    global operation, operand1, operand2, instruction_word, rd, offset, register_data, memory_address, write_back_signal, PC, is_mem, MEM, R, pc_offset, pc_select, return_address, inc_select
+    # Writes the results back to the register file
+    def write_back(self, state):
+        state.stage += 1
 
-    if is_mem[0] == -1:
-        print("MEMORY: No memory operation")
-
-    elif is_mem[0] == 0:
-        register_data = '0x'
-        if is_mem[1] == 0:
-            register_data += MEM[memory_address]
-        elif is_mem[1] == 1:
-            register_data += (MEM[memory_address + 1] + MEM[memory_address])
-        else:
-            register_data += (MEM[memory_address + 3] + MEM[memory_address + 2] + MEM[memory_address + 1] + MEM[memory_address])
-
-        register_data = sign_extend(register_data)
-
-        if is_mem[1] == 0:
-            print("MEMORY: Load(byte)", nint(register_data, 16), "from", hex(memory_address))
-        elif is_mem[1] == 1:
-            print("MEMORY: Load(half-word)", nint(register_data, 16), "from", hex(memory_address))
-        else:
-            print("MEMORY: Load(word)", nint(register_data, 16), "from", hex(memory_address))
-
-    else:
-        if is_mem[1] >= 3:
-            MEM[memory_address + 3] = register_data[2:4]
-            MEM[memory_address + 2] = register_data[4:6]
-        if is_mem[1] >= 1:
-            MEM[memory_address + 1] = register_data[6:8]
-        if is_mem[1] >= 0:
-            MEM[memory_address] = register_data[8:10]
-
-        if is_mem[1] == 0:
-            print("MEMORY: Store(byte)", nint(register_data[8:10], 16), "to", hex(memory_address))
-        elif is_mem[1] == 1:
-            print("MEMORY: Store(half-word)", nint(register_data[6:10], 16), "to", hex(memory_address))
-        else:
-            print("MEMORY: Store(word)",  nint(register_data[2:10], 16), "to", hex(memory_address))
-
-    if pc_select:
-        PC = return_address
-    elif inc_select:
-        PC += pc_offset
-    else:
-        PC += 4
+        if not state.is_dummy:
+            if state.write_back_signal:
+                if int(state.rd, 2) != 0:
+                    self.R[int(state.rd, 2)] = state.register_data
+                    print("WRITEBACK: Write", nint(state.register_data, 16), "to", "R" + str(int(state.rd, 2)))
+        # print("x20 = ", self.R[20])
 
 
-# Writes the results back to the register file
-def write_back():
-    if write_back_signal:
-        if int(rd, 2) != 0:
-            R[int(rd, 2)] = register_data
-            print("WRITEBACK: Write", nint(register_data, 16), "to", "R" + str(int(rd, 2)))
-        else:
-            print("WRITEBACK: Value of R0 can not change")
+class HDU:
+    def data_hazard_forwarding(self, pipeline_instructions):
+        decode_state = pipeline_instructions[-2]
+        exe_state = pipeline_instructions[-3]
+        mem_state = pipeline_instructions[-4]
+        wb_state = pipeline_instructions[-5]
+        data_hazard = 0
+        if_stall = False
+        stall_position = 3 # 1 = at execute, 2 = at decode, 3 = don't stall # Sorted according to priority
+        # print("rds = ", decode_state.rd, exe_state.rd, mem_state.rd, wb_state.rd)
+        # print("rs1s = ", decode_state.rs1, exe_state.rs1, mem_state.rs1, wb_state.rs1)
+        # print("rs2s = ", decode_state.rs2, exe_state.rs2, mem_state.rs2, wb_state.rs2)
 
-    else:
-        print("WRITEBACK: No write-back operation")
+        decode_opcode = int(decode_state.instruction_word, 16) & int('0x7F', 16)
+        exe_opcode = int(exe_state.instruction_word, 16) & int('0x7F', 16)
+        mem_opcode = int(mem_state.instruction_word, 16) & int('0x7F', 16)
+        wb_opcode = int(wb_state.instruction_word, 16) & int('0x7F', 16)
+        print(decode_opcode, exe_opcode, mem_opcode, wb_opcode)
 
+        # M -> M forwarding
+        if (wb_opcode == 3) and (mem_opcode == 35): # 3 == load and 35 == store
+            if wb_state.rd != -1 and wb_state.rd != '00000' and wb_state.rd == mem_state.rs2:
+                mem_state.register_data = wb_state.register_data
+                data_hazard += 1
+                # print("M -> M")
 
-# Memory write
-def write_word(address, instruction):
-    idx = int(address[2:], 16)
-    MEM[idx] =  instruction[8:10]
-    MEM[idx + 1] = instruction[6:8]
-    MEM[idx + 2] = instruction[4:6]
-    MEM[idx + 3] = instruction[2:4]
+        # M -> E forwarding
+        if (wb_state.rd != -1) and (wb_state.rd != '00000'):
+            if wb_state.rd == exe_state.rs1:
+                exe_state.operand1 = wb_state.register_data
+                data_hazard += 1
+                # print("M -> E")
+
+            if wb_state.rd == exe_state.rs2:
+                if exe_opcode != 35: # store
+                    exe_state.operand2 = wb_state.register_data
+                else:
+                    exe_state.register_data = wb_state.register_data
+                data_hazard += 1
+                # print("M -> E")
+
+        # E -> E forwarding
+        if (mem_state.rd != -1) and (mem_state.rd != '00000'):
+            if mem_opcode == 3: # load
+                # print("I am in.")
+                if exe_opcode == 35: # store
+                    if exe_state.rs1 == mem_state.rd:
+                        data_hazard += 1
+                        if_stall = True
+                        stall_position = min(stall_position, 0)
+                        # print("E -> E")
+
+                else:
+                    if (exe_state.rs1 == mem_state.rd) or (exe_state.rs2 == mem_state.rd):
+                        data_hazard += 1
+                        if_stall = True
+                        stall_position = min(stall_position, 0)
+                        # print("E -> E")
+
+            else:
+                if exe_state.rs1 == mem_state.rd:
+                    exe_state.operand1 = mem_state.register_data
+                    data_hazard += 1
+                    # print("E -> E")
+
+                if exe_state.rs2 == mem_state.rd:
+                    if exe_opcode != 35: # store
+                        exe_state.operand2 = mem_state.register_data
+                    else:
+                        exe_state.register_data = mem_state.register_data
+                    data_hazard += 1
+                    # print("E -> E")
+                    print(mem_state.alu_control_signal, exe_state.alu_control_signal, exe_state.rs1, exe_state.rs2, exe_state.operand1, exe_state.operand2, mem_state.register_data)
+                    print(mem_state.rs1, mem_state.rs2)
+        if decode_opcode == 99 or decode_opcode == 103: # SB and jalr
+            # M -> D forwarding
+            if (wb_state.rd != -1) and (wb_state.rd != '00000'):
+                if wb_state.rd == decode_state.rs1:
+                    decode_state.operand1 = wb_state.register_data
+                    decode_state.decode_forwarding_op1 = True
+                    data_hazard += 1
+                    # print("M -> D")
+
+                if wb_state.rd == decode_state.rs2:
+                    decode_state.operand2 = wb_state.register_data
+                    decode_state.decode_forwarding_op2 = True
+                    data_hazard += 1
+                    # print("M -> D")
+
+            # E -> D fowarding
+            if (mem_state.rd != -1) and (mem_state.rd != '00000'):
+                if mem_opcode == 3: # load
+                    data_hazard += 1
+                    if_stall = True
+                    stall_position = min(stall_position, 1)
+
+                else:
+                    if mem_state.rd == decode_state.rs1:
+                        decode_state.operand1 = mem_state.register_data
+                        decode_state.decode_forwarding_op1 = True
+                        data_hazard += 1
+
+                    if mem_state.rd == decode_state.rs2:
+                        decode_state.operand2 = mem_state.register_data
+                        decode_state.decode_forwarding_op2 = True
+                        data_hazard += 1
+
+                # print("E->D ", mem_state.alu_control_signal, decode_state.alu_control_signal, decode_state.rs1, decode_state.rs2, decode_state.operand1, decode_state.operand2, mem_state.register_data)
+
+            # If branch depends upon the preceding instruction
+            if (exe_state.rd != -1) and (exe_state.rd != '00000') and ((exe_state.rd == decode_state.rs1) or (exe_state.rd == decode_state.rs2)):
+                # print("I am in.")
+                data_hazard += 1
+                if_stall = True
+                stall_position = min(stall_position, 1)
+
+        new_states = [wb_state, mem_state, exe_state, decode_state, pipeline_instructions[-1]]
+        return [data_hazard, if_stall, stall_position, new_states]
+
+    def data_hazard_stalling(self, pipeline_instructions):
+        states_to_check = pipeline_instructions[:-1]
+        exe_state = states_to_check[-2]
+        decode_state = states_to_check[-1]
+        if exe_state.rd != -1 and decode_state.rs1 != -1:
+            if exe_state.rd == decode_state.rs1 and exe_state.rd:
+                return [True, 2]
+            if exe_state.rd == decode_state.rs2 and exe_state.rd:
+                return [True, 2]
+
+        mem_state = states_to_check[-3]
+        if mem_state.rd != -1 and decode_state.rs1 != -1:
+            if mem_state.rd == decode_state.rs1 and mem_state.rd != 0:
+                return [True, 1]
+            if mem_state.rd == decode_state.rs2 and mem_state.rd != 0:
+                return [True, 1]
+
+        return [False, -1]
+
+# check for number of data hazards in data_hazard_forwarding
