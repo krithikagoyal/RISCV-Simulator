@@ -16,7 +16,7 @@ Project Name: Functional Simulator for subset of RISC-V Processor
 # main.py
 # Purpose of this file: This file controls the overall functioning of the Simulator.
 
-# from Gui import display, take_input
+from Gui import display, take_input
 from myRISCVSim_check import State, Processor, BTB, HDU
 import time
 
@@ -32,9 +32,9 @@ def evaluate(processor, pipeline_ins):
 if __name__ == '__main__':
 
 	# set .mc file
-	# prog_mc_file = take_input()
+	prog_mc_file = take_input()
 
-	prog_mc_file = 'C:/Users/Himanshu/Downloads/RISCV-Simulator/Phase 2/test/factorial.mc'
+	# prog_mc_file = 'C:/Users/Himanshu/Downloads/RISCV-Simulator/Phase 2/test/factorial.mc'
 	print(prog_mc_file)
 
 	# invoke classes
@@ -43,8 +43,8 @@ if __name__ == '__main__':
 	btb = BTB()
 
 	# Knobs
-	pipelining_enabled = True                      # Knob1
-	forwarding_enabled = True                      # Knob2
+	pipelining_enabled = True                     # Knob1
+	forwarding_enabled = False                     # Knob2
 	print_registers_each_cycle = True              # Knob3
 	print_pipeline_registers_and_cycle = False     # Knob4
 	print_specific_pipeline_register = [False, -1] # Knob5
@@ -223,7 +223,7 @@ if __name__ == '__main__':
 
 	if prog_end:
 		processor.write_data_memory()
-		# display()
+		display()
 
 
 # Redundant stages and all dummy maybe
