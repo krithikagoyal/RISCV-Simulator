@@ -41,6 +41,8 @@ def evaluate(processor, pipeline_ins):
 	processor.write_back(pipeline_ins[0])
 	if(!pipeline_ins[0].is_dummy):
 		s[1] += 1
+	else:
+		s[6] += 1
 	processor.mem(pipeline_ins[1])
 	processor.execute(pipeline_ins[2])
 	control_hazard, control_pc, state3 = processor.decode(pipeline_ins[3], btb)
@@ -240,7 +242,9 @@ if __name__ == '__main__':
 
 	# Print Messages
 	s[0] = clock_cycles
+	s[1] = s[1]
 	s[2] = s[0]/s[1]
+	s[6] = s[6]
 	if prog_end:
 		processor.write_data_memory()
 		for i in range(12):
