@@ -20,144 +20,254 @@ from Gui import display, take_input
 from myRISCVSim import State, Processor, BTB, HDU
 import time
 
-def evaluate(processor, pipeline_instructions):
-    for idx, x in pipeline_instructions:
-        if idx == 0:
-            processor.write_back(x)
-        elif idx == 1:
-            state1 = processor.mem(x)
-        elif idx == 2:
-            state2 = processor.execute(x)
-        elif idx == 3:
-            control_hazard, control_pc, state3 = processor.decode(x)
-        elif idx == 4:
-            branch_taken, branch_pc, state4 = processor.fetch(x)
+stats = [
+	"Total number of cycles: ",
+	"Total instructions executed: ",
+	"CPI: ",
+	"Number of data-transfer(load and store): ",
+	"Number of ALU instructions executed: ",
+	"Number of Control instructions: ",
+	"Number of stalls/bubbles in the pipeline: ",
+	"Stat8: Number of data hazards: ",
+	"Number of control hazards: ",
+	"Number of branch mispredictions: ",
+	"Number of stalls due to data hazards: ",
+	"Number of stalls due to control hazards: "
+]
 
-    pipeline_instructions = [state1, state2, stage3, stage4]
-    return pipeline_instructions, branch_taken, branch_pc, control_hazard, control_pc
+s = [0]*12
+
+def evaluate(processor, pipeline_ins):
+	processor.write_back(pipeline_ins[0])
+	if(not pipeline_ins[0].is_dummy):
+		s[1] += 1
+	else:
+		s[6] += 1
+	processor.mem(pipeline_ins[1])
+	processor.execute(pipeline_ins[2])
+	control_hazard, control_pc, state3 = processor.decode(pipeline_ins[3], btb)
+	processor.fetch(pipeline_ins[4], btb)
+	pipeline_ins = [pipeline_ins[1], pipeline_ins[2], pipeline_ins[3], pipeline_ins[4]]
+	return pipeline_ins, control_hazard, control_pc
 
 if __name__ == '__main__':
 
-    # set .mc file
-    prog_mc_file = take_input()
+	# set .mc file
+	prog_mc_file = take_input()
 
-    # invoke classes
-    processor = Processor(prog_mc_file)
-    btb = BTB()
-    hdu = HDU()
+	# invoke classes
+	processor = Processor(prog_mc_file)
+	hdu = HDU()
+	btb = BTB()
 
-    # Knobs
-    pipelining_enabled = False                     # Knob1
-    forwarding_enabled = False                     # Knob2
-    print_registers_each_cycle = False             # Knob3
-    print_pipeline_registers_and_cycle = False     # Knob4
-    print_specific_pipeline_register = [False, -1] # Knob5
+	# Knobs
+	pipelining_enabled = True                      # Knob1
+	forwarding_enabled = True                      # Knob2
+	print_registers_each_cycle = True              # Knob3
+	print_pipeline_registers_and_cycle = False     # Knob4
+	print_specific_pipeline_register = [False, -1] # Knob5
 
-    # Other signals
-    PC = 0
-    clock_cycles = 0
+	# Signals
+	PC = 0
+	clock_cycles = 0
+	prog_end = False
 
-    # Various Counts
-    number_of_control_hazards = 0
-    number_of_stalls_due_to_control_hazards = 0
-    number_of_data_hazards = 0
-    number_of_stalls_due_to_data_hazards = 0
-    total_number_of_stalls = 0
-    number_of_branch_mispredictions = 0
+	# Various Counts
+	number_of_control_hazards = 0
+	number_of_stalls_due_to_control_hazards = 0
+	number_of_data_hazards = 0
+	number_of_stalls_due_to_data_hazards = 0
+	total_number_of_stalls = 0
+	number_of_branch_mispredictions = 0
 
-    if not pipelining_enabled:
-        processor.pipelining_enabled = False
-        while True:
-            instruction = State(PC)
-            processor.fetch(instruction)
-            processor.decode(instruction)
-            if processor.terminate:
-                break
-            processor.execute(instruction)
-            if processor.terminate:
-                break
-            processor.mem(instruction)
-            processor.write_back(instruction)
-            PC = processor.next_PC
-            clock_cycles += 1
+	if not pipelining_enabled:
+		processor.pipelining_enabled = False
 
-            if print_registers_each_cycle:
-                for i in range(32):
-                    print(processor.R[i], end=" ")
-            print("\n")
+		while True:
+			instruction = State(PC)
+			processor.fetch(instruction)
+			processor.decode(instruction)
+			if processor.terminate:
+				prog_end = True
+				break
+			processor.execute(instruction)
+			if processor.terminate:
+				prog_end = True
+				break
+			processor.mem(instruction)
+			processor.write_back(instruction)
 
-        processor.write_data_memory()
+			PC = processor.next_PC
+			clock_cycles += 5
 
-    else:
-        pipeline_instructions = []   # instructions currently in the pipeline
+			if print_registers_each_cycle:
+				for i in range(32):
+					print(processor.R[i], end=" ")
+				print("\n")
 
-        while True:
-            if not forwarding_enabled:
-                pipeline_instructions = [x.evaluate() for x in pipeline_instructions]
+			print(clock_cycles)
 
-                for _ in pipeline_instructions:
-                    if _.stage == 3 and _.pc_update and _.branch_taken != btb.getTarget(PC):
-                        pipeline_instructions.pop() # Flush
-                        # Add a dummy instruction
-                        number_of_branch_mispredictions += 1
-                        number_of_stalls_due_to_control_hazards += 1
-                        PC = _.pc_val
+	else:
+		processor.pipelining_enabled = True
 
-                if len(pipeline_instructions) == 5:
-                        pipeline_instructions = pipeline_instructions[1:]
+		pipeline_instructions = [State(0) for _ in range(5)]
+		for i in range(4):
+			pipeline_instructions[i].is_dummy = True
 
-                data_hazard = hdu.check_data_hazard(pipeline_instructions) # check if data hazard is there or not
+		while not prog_end:
+			if not forwarding_enabled:
+				data_hazard = hdu.data_hazard_stalling(pipeline_instructions)
 
-                if not data_hazard:
-                    new_instruction = State(PC)
-                    pipeline_instructions.append(State(PC))
-                    PC += 4
-                else:
-                    last_inst = pipeline_instructions[-1]
-                    pipeline_instructions.pop()
-                    # Add a dummy instruction
-                    pipeline_instructions.append(last_inst)
-                    number_of_data_hazards += 1
-                    number_of_stalls_due_to_data_hazards += 1
+				# for x in pipeline_instructions:
+					# print("x.pcp = ", x.PC, x.is_dummy)
 
-            else:
-                pipeline_instructions = [x.evaluate() for x in pipeline_instructions]
-                if len(pipeline_instructions) == 5:
-                    pipeline_instructions = pipeline_instructions[1:]
+				old_states = pipeline_instructions
+				pipeline_instructions, control_hazard, control_pc = evaluate(processor, pipeline_instructions)
 
-                control_hazard = False
-                for _ in pipeline_instructions:
-                    if _.control_hazard and _.pc_update != _.pc_next:
-                        control_hazard = True
-                        number_of_control_hazards += 1
-                        pipeline_instructions.pop()
-                        pipeline_instructions.append(State(_.pc_update))
-                        PC = _.pc_update + 4
-                        break
+				branch_taken = pipeline_instructions[3].branch_taken
+				branch_pc = pipeline_instructions[3].next_pc
 
-                if not control_hazard:
-                    new_instruction = State(PC)
-                    pipeline_instructions.append(new_instruction) # if data_hazard is there, then execute will itself pick the data required form the buffer.
+				PC += 4
 
-            clock_cycles += 1
+				if branch_taken and not data_hazard[0]:
+					PC = branch_pc
+					# print("branch_pc", branch_pc)
 
-            if print_registers_each_cycle:
-                # Print registers
-                print("\n")
+				if control_hazard and not data_hazard[0]:
+					number_of_control_hazards += 1
+					number_of_stalls_due_to_control_hazards += 1
+					PC = control_pc
+					# print("control_pc = ", control_pc)
+					pipeline_instructions.append(State(PC))
+					pipeline_instructions[-2].is_dummy = True
 
-            # Shift this above among instructions or elsewhere
-            if print_specific_pipeline_register[0]:
-                # Print specific pipeline register
-                print("\n")
+				if data_hazard[0]:
+					number_of_data_hazards += 1
+					number_of_stalls_due_to_data_hazards += 1
+					pipeline_instructions = pipeline_instructions[:2] + [State(0)] + old_states[3:]
+					pipeline_instructions[2].is_dummy = True
+					PC -= 4
 
-            if print_pipeline_registers_and_cycle:
-                # Print pipeline registers and cycle
-                print("\n")
+				# print("lll ", control_hazard, data_hazard, PC)
+				if not control_hazard and not data_hazard[0]:
+					pipeline_instructions.append(State(PC))
 
-            # How terminate? One possible solution is to add a dummy instruction in fetch after program instructions.
-            # The program then can be terminated if all the instructions are dummy instructions
+				pipeline_instructions[-2].next_pc = PC
+				# print("len ", len(pipeline_instructions))
+				prog_end = True
+				for i in range(4):
+					x = pipeline_instructions[i]
+					# print("X.pc ", x.PC)
+					if not x.is_dummy:
+						prog_end = False
+						break
 
-# Print Messages
+			else:
+				data_hazard, if_stall, stall_position, pipeline_instructions = hdu.data_hazard_forwarding(pipeline_instructions)
+				# print("data_hazard = ", data_hazard)
+				# for x in pipeline_instructions:
+					# print("x.pcp = ", x.PC, x.is_dummy)
 
-# display the data
-display()
+				old_states = pipeline_instructions
+				pipeline_instructions, control_hazard, control_pc = evaluate(processor, pipeline_instructions)
+
+				branch_taken = pipeline_instructions[3].branch_taken
+				branch_pc = pipeline_instructions[3].next_pc
+
+				PC += 4
+
+				if branch_taken and not if_stall:
+					PC = branch_pc
+					# print("branch_pc", branch_pc)
+
+				if control_hazard and not if_stall:
+					number_of_control_hazards += 1
+					number_of_stalls_due_to_control_hazards += 1
+					PC = control_pc
+					# print("control_pc = ", control_pc)
+					pipeline_instructions.append(State(PC))
+					pipeline_instructions[-2].is_dummy = True
+
+				if if_stall:
+					number_of_stalls_due_to_data_hazards += 1
+
+					if stall_position == 0:
+						# print("stall")
+						pipeline_instructions = pipeline_instructions[:1] + [State(0)] + old_states[2:]
+						pipeline_instructions[1].is_dummy = True
+						PC -= 4
+					elif stall_position == 1:
+						pipeline_instructions = pipeline_instructions[:2] + [State(0)] + old_states[3:]
+						pipeline_instructions[2].is_dummy = True
+						PC -= 4
+					elif stall_position == 2 and not control_hazard:
+						pipeline_instructions = pipeline_instructions[:3] + [State(0)] + old_states[4:]
+						pipeline_instructions[3].is_dummy = True
+						PC -= 4
+					else:
+						number_of_control_hazards += 1
+						number_of_stalls_due_to_control_hazards += 1
+						PC = control_pc
+						pipeline_instructions = pipeline_instructions[:3] + [State(0)] + [State(PC)]
+						pipeline_instructions[3].is_dummy = True
+
+				number_of_data_hazards += data_hazard
+
+				# print("lll ", control_hazard, data_hazard, PC)
+				if not control_hazard and not if_stall:
+					pipeline_instructions.append(State(PC))
+
+				pipeline_instructions[-2].next_pc = PC
+
+				for inst in pipeline_instructions:
+					inst.decode_forwarding_op1 = False
+					inst.decode_forwarding_op2 = False
+
+				# print("len ", len(pipeline_instructions))
+				prog_end = True
+				for i in range(4):
+					x = pipeline_instructions[i]
+					# print("X.pc ", x.PC)
+					if not x.is_dummy:
+						prog_end = False
+						break
+
+			clock_cycles += 1
+			# if clock_cycles > 0:
+			# 	break
+
+
+			# if print_registers_each_cycle:
+			# 	for i in range(32):
+			# 		print(processor.R[i], end=" ")
+			# print("\n")
+
+			# Print specific pipeline register
+			# Shift this above among instructions or elsewhere
+			# if print_specific_pipeline_register[0]:
+			# 	pass
+
+			# Print pipeline registers and cycle
+			# if print_pipeline_registers_and_cycle:
+			# pass
+
+			# print(clock_cycles)
+			# print("PC = ", PC)
+
+	# Print Messages
+	s[0] = clock_cycles
+	s[1] = s[1]
+	# s[2] = s[0]/s[1]
+	s[6] = s[6]
+	if prog_end:
+		processor.write_data_memory()
+		for i in range(12):
+			stats[i] += str(s[i])
+		statfile = open("stats.txt", "w")
+		statfile.writelines(stats)
+		statfile.close()
+		display()
+
+
+# Redundant stages and all dummy maybe
+# use of second argument of data_hazard_stalling?
