@@ -139,6 +139,24 @@ class Processor:
         self.count_control_inst = 0
         self.all_dummy = False
 
+        #stats
+        stats = [
+            "Total number of cycles: ",
+            "Total instructions executed: ",
+            "CPI: ",
+            "Number of data-transfer(load and store): ",
+            "Number of ALU instructions executed: ",
+            "Number of Control instructions: ",
+            "Number of stalls/bubbles in the pipeline: ",
+            "Stat8: Number of data hazards: ",
+            "Number of control hazards: ",
+            "Number of branch mispredictions: ",
+            "Number of stalls due to data hazards: ",
+            "Number of stalls due to control hazards: "
+        ]
+
+        s = [0]*12
+
     # load_program_memory reads the input memory, and populates the instruction memory
     def load_program_memory(self, file_name):
         try:

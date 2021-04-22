@@ -20,29 +20,12 @@ from Gui import display, take_input
 from myRISCVSim_check import State, Processor, BTB, HDU
 import time
 
-stats = [
-	"Total number of cycles: ",
-	"Total instructions executed: ",
-	"CPI: ",
-	"Number of data-transfer(load and store): ",
-	"Number of ALU instructions executed: ",
-	"Number of Control instructions: ",
-	"Number of stalls/bubbles in the pipeline: ",
-	"Stat8: Number of data hazards: ",
-	"Number of control hazards: ",
-	"Number of branch mispredictions: ",
-	"Number of stalls due to data hazards: ",
-	"Number of stalls due to control hazards: "
-]
-
-s = [0]*12
-
 def evaluate(processor, pipeline_ins):
 	processor.write_back(pipeline_ins[0])
 	if(!pipeline_ins[0].is_dummy):
-		s[1] += 1
+		processor.s[1] += 1
 	else:
-		s[6] += 1
+		processor.s[6] += 1
 	processor.mem(pipeline_ins[1])
 	processor.execute(pipeline_ins[2])
 	control_hazard, control_pc, state3 = processor.decode(pipeline_ins[3], btb)
@@ -241,10 +224,10 @@ if __name__ == '__main__':
 			# print(clock_cycles)
 
 	# Print Messages
-	s[0] = clock_cycles
-	s[1] = s[1]
-	s[2] = s[0]/s[1]
-	s[6] = s[6]
+	processor.s[0] = clock_cycles
+	processor.s[1] = processor.s[1]
+	processor.s[2] = processor.s[0]/processor.s[1]
+	processor.s[6] = processor.s[6]
 	if prog_end:
 		processor.write_data_memory()
 		for i in range(12):
