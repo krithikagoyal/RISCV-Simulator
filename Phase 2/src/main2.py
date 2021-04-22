@@ -202,8 +202,6 @@ if __name__ == '__main__':
 						break
 
 			clock_cycles += 1
-			# if clock_cycles > 1000:
-			# 	break
 
 			# if print_registers_each_cycle:
 			# 	for i in range(32):
@@ -225,7 +223,7 @@ if __name__ == '__main__':
 
 	if prog_end:
 		processor.write_data_memory()
-		# display()
+		display()
 
 
 # Redundant stages and all dummy maybe
