@@ -669,17 +669,17 @@ class HDU:
 
         exe_state = states_to_check[-2]
         decode_state = states_to_check[-1]
-        if exe_state.rd != -1 and decode_state.rs1 != -1:
-            if exe_state.rd == decode_state.rs1 and exe_state.rd:
-                return [True, 2]
-            if exe_state.rd == decode_state.rs2 and exe_state.rd:
-                return [True, 2]
+        if exe_state.rd != -1 and exe_state.rd != '00000':
+            if exe_state.rd == decode_state.rs1:
+                return True
+            if exe_state.rd == decode_state.rs2:
+                return True
 
         mem_state = states_to_check[-3]
-        if mem_state.rd != -1 and decode_state.rs1 != -1:
-            if mem_state.rd == decode_state.rs1 and mem_state.rd != 0:
-                return [True, 1]
-            if mem_state.rd == decode_state.rs2 and mem_state.rd != 0:
-                return [True, 1]
+        if mem_state.rd != -1 and mem_state.rd != '00000':
+            if mem_state.rd == decode_state.rs1:
+                return True
+            if mem_state.rd == decode_state.rs2:
+                return True
 
-        return [False, -1]
+        return False

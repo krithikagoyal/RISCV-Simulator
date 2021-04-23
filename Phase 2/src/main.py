@@ -127,24 +127,24 @@ if __name__ == '__main__':
 
 				PC += 4
 
-				if branch_taken and not data_hazard[0]:
+				if branch_taken and not data_hazard:
 					PC = branch_pc
 
-				if control_hazard and not data_hazard[0]:
+				if control_hazard and not data_hazard:
 					number_of_control_hazards += 1
 					number_of_stalls_due_to_control_hazards += 1
 					PC = control_pc
 					pipeline_instructions.append(State(PC))
 					pipeline_instructions[-2].is_dummy = True
 
-				if data_hazard[0]:
+				if data_hazard:
 					number_of_data_hazards += 1
 					number_of_stalls_due_to_data_hazards += 1
 					pipeline_instructions = pipeline_instructions[:2] + [State(0)] + old_states[3:]
 					pipeline_instructions[2].is_dummy = True
 					PC -= 4
 
-				if not control_hazard and not data_hazard[0]:
+				if not control_hazard and not data_hazard:
 					pipeline_instructions.append(State(PC))
 
 				pipeline_instructions[-2].next_pc = PC
