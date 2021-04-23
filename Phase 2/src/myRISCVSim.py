@@ -45,10 +45,10 @@ def sign_extend(data):
 # Instruction/State Class
 class State:
     def __init__(self, pc = 0):
-        self.reset_interRegisters()
+        self.reset_state()
         self.PC = pc
 
-    def reset_interRegisters(self):
+    def reset_state(self):
         self.instruction_word = '0x0'
         self.rs1 = -1
         self.rs2 = -1
@@ -63,7 +63,6 @@ class State:
         self.write_back_signal = False
         #
         self.is_dummy = False
-        self.stage = 0
         self.pc_update = -1
         self.branch_taken = False
         #
@@ -103,22 +102,6 @@ class BTB:
 
 # Processor
 class Processor:
-    def reset(self, *args):
-        if len(args) > 0:
-            state = args[0]
-            state.inc_select = 0
-            state.pc_select = 0
-            state.pc_offset = 0
-            state.return_address = 0
-
-        else:
-            self.inc_select = 0
-            self.pc_select = 0
-            self.pc_offset = 0
-            self.return_address = 0
-
-
-
     def __init__(self, file_name):
         self.MEM = defaultdict(lambda: '00')
         self.R = ['0x00000000' for i in range(32)]
@@ -138,6 +121,20 @@ class Processor:
         self.count_mem_inst = 0
         self.count_control_inst = 0
         self.all_dummy = False
+
+    def reset(self, *args):
+        if len(args) > 0:
+            state = args[0]
+            state.inc_select = 0
+            state.pc_select = 0
+            state.pc_offset = 0
+            state.return_address = 0
+
+        else:
+            self.inc_select = 0
+            self.pc_select = 0
+            self.pc_offset = 0
+            self.return_address = 0
 
     # load_program_memory reads the input memory, and populates the instruction memory
     def load_program_memory(self, file_name):
@@ -190,7 +187,6 @@ class Processor:
         if state.pc_select:
             self.next_PC = state.return_address
         elif state.inc_select:
-            # print("Enter inc select")
             self.next_PC += state.pc_offset
         else:
             self.next_PC += 4
@@ -200,8 +196,6 @@ class Processor:
 
     # Reads from the instruction memory and updates the instruction register
     def fetch(self, state, *args):
-        state.stage += 1
-
         if state.is_dummy:
             return state
 
@@ -210,7 +204,9 @@ class Processor:
             return state
 
         state.instruction_word = '0x' + self.MEM[state.PC + 3] + self.MEM[state.PC + 2] + self.MEM[state.PC + 1] + self.MEM[state.PC]
+
         print("FETCH: Fetch instruction", state.instruction_word, "from address", nhex(state.PC))
+
         if not self.pipelining_enabled:
             return
 
@@ -244,7 +240,6 @@ class Processor:
 
     # Decodes the instruction and decides the operation to be performed in the execute stage; reads the operands from the register file.
     def decode(self, state, *args):
-        state.stage += 1
         if state.is_dummy:
             return False, 0, state
 
@@ -374,7 +369,6 @@ class Processor:
                 self.next_PC = state.PC
                 self.IAG(state)
                 orig_pc = self.next_PC
-                print("orig_pc = ", orig_pc, state.next_pc)
                 btb = args[0]
                 if not btb.find(state.PC):
                     state.inc_select = self.inc_select
@@ -391,14 +385,12 @@ class Processor:
                     self.reset()
                     self.reset(state)
                 if orig_pc != state.next_pc:
-                    # print("orig_pc = ", orig_pc)
                     return True, orig_pc, state
                 else:
                     return False, 0, state
 
     # Executes the ALU operation based on ALUop
     def execute(self, state):
-        state.stage += 1
         if state.is_dummy:
             return True
 
@@ -527,7 +519,6 @@ class Processor:
             if nint(state.operand1, 16) >= nint(state.operand2, 16):
                 state.pc_offset = nint(state.offset, 2,  len(state.offset))
                 state.inc_select = 1
-            # print("pc select and inc select = ", state.pc_select, state.inc_select)
             self.pc_offset = nint(state.offset, 2,  len(state.offset))
             self.inc_select = 1
 
@@ -557,12 +548,8 @@ class Processor:
         state.register_data = state.register_data[:2] + \
             (10 - len(state.register_data)) * '0' + state.register_data[2::]
 
-        # print("EXECUTE ", int(state.register_data, 16), state.return_address, state.rs1, state.rs2, state.alu_control_signal)
-
     # Performs the memory operations
     def mem(self, state):
-        state.stage += 1
-
         if not self.pipelining_enabled:
             self.IAG(state)
 
@@ -595,17 +582,16 @@ class Processor:
 
     # Writes the results back to the register file
     def write_back(self, state):
-        state.stage += 1
-
         if not state.is_dummy:
             if state.write_back_signal:
                 if int(state.rd, 2) != 0:
                     self.R[int(state.rd, 2)] = state.register_data
                     print("WRITEBACK: Write", nint(state.register_data, 16), "to", "R" + str(int(state.rd, 2)))
-        # print("x20 = ", self.R[20])
 
 
+# Hazard Detection Unit, Performs operations related to data hazard, stalling and forwarding
 class HDU:
+    # If forwarding is enabled
     def data_hazard_forwarding(self, pipeline_instructions):
         decode_state = pipeline_instructions[-2]
         exe_state = pipeline_instructions[-3]
@@ -613,30 +599,24 @@ class HDU:
         wb_state = pipeline_instructions[-5]
         data_hazard = 0
         if_stall = False
-        stall_position = 3 # 1 = at execute, 2 = at decode, 3 = don't stall # Sorted according to priority
-        # print("rds = ", decode_state.rd, exe_state.rd, mem_state.rd, wb_state.rd)
-        # print("rs1s = ", decode_state.rs1, exe_state.rs1, mem_state.rs1, wb_state.rs1)
-        # print("rs2s = ", decode_state.rs2, exe_state.rs2, mem_state.rs2, wb_state.rs2)
+        stall_position = 3
 
         decode_opcode = int(decode_state.instruction_word, 16) & int('0x7F', 16)
         exe_opcode = int(exe_state.instruction_word, 16) & int('0x7F', 16)
         mem_opcode = int(mem_state.instruction_word, 16) & int('0x7F', 16)
         wb_opcode = int(wb_state.instruction_word, 16) & int('0x7F', 16)
-        print(decode_opcode, exe_opcode, mem_opcode, wb_opcode)
 
         # M -> M forwarding
         if (wb_opcode == 3) and (mem_opcode == 35): # 3 == load and 35 == store
             if wb_state.rd != -1 and wb_state.rd != '00000' and wb_state.rd == mem_state.rs2:
                 mem_state.register_data = wb_state.register_data
                 data_hazard += 1
-                # print("M -> M")
 
         # M -> E forwarding
         if (wb_state.rd != -1) and (wb_state.rd != '00000'):
             if wb_state.rd == exe_state.rs1:
                 exe_state.operand1 = wb_state.register_data
                 data_hazard += 1
-                # print("M -> E")
 
             if wb_state.rd == exe_state.rs2:
                 if exe_opcode != 35: # store
@@ -644,31 +624,26 @@ class HDU:
                 else:
                     exe_state.register_data = wb_state.register_data
                 data_hazard += 1
-                # print("M -> E")
 
         # E -> E forwarding
         if (mem_state.rd != -1) and (mem_state.rd != '00000'):
             if mem_opcode == 3: # load
-                # print("I am in.")
                 if exe_opcode == 35: # store
                     if exe_state.rs1 == mem_state.rd:
                         data_hazard += 1
                         if_stall = True
                         stall_position = min(stall_position, 0)
-                        # print("E -> E")
 
                 else:
                     if (exe_state.rs1 == mem_state.rd) or (exe_state.rs2 == mem_state.rd):
                         data_hazard += 1
                         if_stall = True
                         stall_position = min(stall_position, 0)
-                        # print("E -> E")
 
             else:
                 if exe_state.rs1 == mem_state.rd:
                     exe_state.operand1 = mem_state.register_data
                     data_hazard += 1
-                    # print("E -> E")
 
                 if exe_state.rs2 == mem_state.rd:
                     if exe_opcode != 35: # store
@@ -676,9 +651,7 @@ class HDU:
                     else:
                         exe_state.register_data = mem_state.register_data
                     data_hazard += 1
-                    # print("E -> E")
-                    print(mem_state.alu_control_signal, exe_state.alu_control_signal, exe_state.rs1, exe_state.rs2, exe_state.operand1, exe_state.operand2, mem_state.register_data)
-                    print(mem_state.rs1, mem_state.rs2)
+
         if decode_opcode == 99 or decode_opcode == 103: # SB and jalr
             # M -> D forwarding
             if (wb_state.rd != -1) and (wb_state.rd != '00000'):
@@ -686,13 +659,11 @@ class HDU:
                     decode_state.operand1 = wb_state.register_data
                     decode_state.decode_forwarding_op1 = True
                     data_hazard += 1
-                    # print("M -> D")
 
                 if wb_state.rd == decode_state.rs2:
                     decode_state.operand2 = wb_state.register_data
                     decode_state.decode_forwarding_op2 = True
                     data_hazard += 1
-                    # print("M -> D")
 
             # E -> D fowarding
             if (mem_state.rd != -1) and (mem_state.rd != '00000'):
@@ -712,11 +683,8 @@ class HDU:
                         decode_state.decode_forwarding_op2 = True
                         data_hazard += 1
 
-                # print("E->D ", mem_state.alu_control_signal, decode_state.alu_control_signal, decode_state.rs1, decode_state.rs2, decode_state.operand1, decode_state.operand2, mem_state.register_data)
-
-            # If branch depends upon the preceding instruction
+            # If control instruction depends on the previous instruction
             if (exe_state.rd != -1) and (exe_state.rd != '00000') and ((exe_state.rd == decode_state.rs1) or (exe_state.rd == decode_state.rs2)):
-                # print("I am in.")
                 data_hazard += 1
                 if_stall = True
                 stall_position = min(stall_position, 1)
@@ -724,8 +692,10 @@ class HDU:
         new_states = [wb_state, mem_state, exe_state, decode_state, pipeline_instructions[-1]]
         return [data_hazard, if_stall, stall_position, new_states]
 
+    # If forwarding is not enabled
     def data_hazard_stalling(self, pipeline_instructions):
         states_to_check = pipeline_instructions[:-1]
+
         exe_state = states_to_check[-2]
         decode_state = states_to_check[-1]
         if exe_state.rd != -1 and decode_state.rs1 != -1:
@@ -742,5 +712,3 @@ class HDU:
                 return [True, 1]
 
         return [False, -1]
-
-# check for number of data hazards in data_hazard_forwarding
