@@ -46,7 +46,7 @@ def evaluate(processor, pipeline_ins):
 		s[6] += 1
 	processor.mem(pipeline_ins[1])
 	processor.execute(pipeline_ins[2])
-	control_hazard, control_pc, state3 = processor.decode(pipeline_ins[3], btb)
+	control_hazard, control_pc = processor.decode(pipeline_ins[3], btb)
 	processor.fetch(pipeline_ins[4], btb)
 	pipeline_ins = [pipeline_ins[1], pipeline_ins[2], pipeline_ins[3], pipeline_ins[4]]
 	return pipeline_ins, control_hazard, control_pc

@@ -45,10 +45,7 @@ def sign_extend(data):
 # Instruction/State Class
 class State:
     def __init__(self, pc = 0):
-        self.reset_state()
         self.PC = pc
-
-    def reset_state(self):
         self.instruction_word = '0x0'
         self.rs1 = -1
         self.rs2 = -1
@@ -78,7 +75,8 @@ class State:
 
 # Brach table buffer
 class BTB:
-    table = {}
+    def __init__(self):
+        self.table = {}
 
     def find(self, pc):
         if pc in self.table.keys():
@@ -171,6 +169,7 @@ class Processor:
             fp.close()
         except:
             print("ERROR: Error opening data_out.mc file for writing\n")
+            exit(1)
 
         try:
             fp = open("reg_out.mc", "w")
@@ -181,6 +180,7 @@ class Processor:
             fp.close()
         except:
             print("ERROR: Error opening reg_out.mc file for writing\n")
+            exit(1)
 
     # Instruction address generator
     def IAG(self, state):
@@ -197,15 +197,13 @@ class Processor:
     # Reads from the instruction memory and updates the instruction register
     def fetch(self, state, *args):
         if state.is_dummy:
-            return state
+            return
 
         if self.all_dummy:
             state.is_dummy = True
-            return state
+            return
 
         state.instruction_word = '0x' + self.MEM[state.PC + 3] + self.MEM[state.PC + 2] + self.MEM[state.PC + 1] + self.MEM[state.PC]
-
-        print("FETCH: Fetch instruction", state.instruction_word, "from address", nhex(state.PC))
 
         if not self.pipelining_enabled:
             return
@@ -236,18 +234,17 @@ class Processor:
             else:
                 state.next_pc = state.PC + 4
 
-        return state
+        return
 
     # Decodes the instruction and decides the operation to be performed in the execute stage; reads the operands from the register file.
     def decode(self, state, *args):
         if state.is_dummy:
-            return False, 0, state
+            return False, 0
 
         if state.instruction_word == '0x401080BB':
             self.terminate = True
             self.all_dummy = True
-            print("END PROGRAM\n")
-            return False, 0, state
+            return False, 0
 
         bin_instruction = bin(int(state.instruction_word[2:], 16))[2:]
         bin_instruction = (32 - len(bin_instruction)) * '0' + bin_instruction
@@ -279,9 +276,7 @@ class Processor:
 
         if not match_found:
             print("ERROR: Unidentifiable machine code!\n")
-            self.all_dummy = True
-            self.terminate = True
-            return False, 0, state
+            exit(1)
 
         op_type = instruction_set_list[track][0]
         operation = instruction_set_list[track][1]
@@ -296,8 +291,6 @@ class Processor:
             state.operand1 = self.R[int(state.rs1, 2)]
             state.operand2 = self.R[int(state.rs2, 2)]
             state.write_back_signal = True
-            print("DECODE: Operation is ", operation.upper(), ", first operand is R", str(int(state.rs1, 2)), ", second operand is R", str(int(state.rs2, 2)), ", destination register is R", str(int(state.rd, 2)), sep="")
-            print("DECODE: Read registers: R", str(int(state.rs1, 2)), " = ", nint(state.operand1, 16), ", R", str(int(state.rs2, 2)), " = ", nint(state.operand2, 16), sep="")
 
         elif op_type == 'I':
             state.rs1 = bin_instruction[12:17]
@@ -307,8 +300,6 @@ class Processor:
                 state.operand1 = self.R[int(state.rs1, 2)]
             state.operand2 = imm
             state.write_back_signal = True
-            print("DECODE: Operation is ", operation.upper(), ", first operand is R", str(int(state.rs1, 2)), ", immediate is ", nint(state.operand2, 2, len(state.operand2)), ", destination register is R", str(int(state.rd, 2)), sep="")
-            print("DECODE: Read registers: R", str(int(state.rs1, 2)), " = ", nint(state.operand1, 16), sep="")
 
         elif op_type == 'S':
             state.rs2 = bin_instruction[7:12]
@@ -319,8 +310,6 @@ class Processor:
             state.operand2 = imm
             state.register_data = self.R[int(state.rs2, 2)]
             state.write_back_signal = False
-            print("DECODE: Operation is ", operation.upper(), ", first operand is R", str(int(state.rs1, 2)), ", immediate is ", nint(state.operand2, 2, len(state.operand2)), ", data to be stored is in R", str(int(state.rs2, 2)), sep="")
-            print("DECODE: Read registers: R", str(int(state.rs1, 2)), " = ", nint(state.operand1, 16), ", R", str(int(state.rs2, 2)), " = ", nint(state.register_data, 16), sep="")
 
         elif op_type == 'SB':
             state.rs2 = bin_instruction[7:12]
@@ -333,16 +322,11 @@ class Processor:
                 bin_instruction[1:7] + bin_instruction[20:24] + '0'
             state.offset = imm
             state.write_back_signal = False
-            print("DECODE: Operation is ", operation.upper(), ", first operand is R", str(int(state.rs1, 2)), ", second operand is R", str(int(state.rs2, 2)), ", immediate is ", nint(state.offset, 2, len(state.offset)), sep="")
-            print("DECODE: Read registers: R", str(int(state.rs1, 2)), " = ", nint(state.operand1, 16), ", R", str(int(state.rs2, 2)), " = ", nint(state.operand2, 16), sep="")
 
         elif op_type == 'U':
             state.rd = bin_instruction[20:25]
-            imm = bin_instruction[0:20]
+            imm = bin_instruction[0:20] + '0'*12
             state.write_back_signal = True
-            print("DECODE: Operation is ", operation.upper(), ", immediate is ", nint(imm, 2, len(imm)), ", destination register is R", str(int(state.rd, 2)), sep="")
-            print("DECODE: No register read")
-            imm += '0'*12
             state.operand2 = imm
 
         elif op_type == 'UJ':
@@ -351,19 +335,15 @@ class Processor:
                 bin_instruction[11] + bin_instruction[1:11] + '0'
             state.write_back_signal = True
             state.offset = imm
-            print("DECODE: Operation is ", operation.upper(), ", immediate is ", nint(imm, 2, len(imm)), ", destination register is R", str(int(state.rd, 2)), sep="")
-            print("DECODE: No register read")
 
         else:
             print("ERROR: Unidentifiable machine code!\n")
-            self.terminate = True
-            self.all_dummy = True
-            return False, 0, state
+            exit(1)
 
         if self.pipelining_enabled:
             branch_ins = [23, 24, 25, 26, 29, 19]
             if state.alu_control_signal not in branch_ins:
-                return False, 0, state
+                return False, 0
             else:
                 self.execute(state)
                 self.next_PC = state.PC
@@ -385,14 +365,14 @@ class Processor:
                     self.reset()
                     self.reset(state)
                 if orig_pc != state.next_pc:
-                    return True, orig_pc, state
+                    return True, orig_pc
                 else:
-                    return False, 0, state
+                    return False, 0
 
     # Executes the ALU operation based on ALUop
     def execute(self, state):
         if state.is_dummy:
-            return True
+            return
 
         if state.alu_control_signal == 2:
             state.register_data = nhex(int(nint(state.operand1, 16) + nint(state.operand2, 16)))
@@ -409,9 +389,7 @@ class Processor:
         elif state.alu_control_signal == 4:
             if(nint(state.operand2, 16) < 0):
                 print("ERROR: Shift by negative!\n")
-                self.terminate = True
-                self.all_dummy = True
-                return
+                exit(1)
             else:
                 state.register_data = nhex(int(int(state.operand1, 16) << int(state.operand2, 16)))
 
@@ -424,9 +402,7 @@ class Processor:
         elif state.alu_control_signal == 6:
             if(nint(state.operand2, 16) < 0):
                 print("ERROR: Shift by negative!\n")
-                self.terminate = True
-                self.all_dummy = True
-                return
+                exit(1)
             else:
                 state.register_data = bin(int(int(state.operand1, 16) >> int(state.operand2, 16)))
                 if state.operand1[2] == '8' or state.operand1[2] == '9' or state.operand1[2] == 'a' or state.operand1[2] == 'b' or state.operand1[2] == 'c' or state.operand1[2] == 'd' or state.operand1[2] == 'e' or state.operand1[2] == 'f':
@@ -436,9 +412,7 @@ class Processor:
         elif state.alu_control_signal == 7:
             if(nint(state.operand2, 16) < 0):
                 print("ERROR: Shift by negative!\n")
-                self.terminate = True
-                self.all_dummy = True
-                return
+                exit(1)
             else:
                 state.register_data = nhex(int(state.operand1, 16) >> int(state.operand2, 16))
 
@@ -451,9 +425,7 @@ class Processor:
         elif state.alu_control_signal == 11:
             if nint(state.operand2, 16) == 0:
                 print("ERROR: Division by zero!\n")
-                self.terminate = True
-                self.all_dummy = True
-                return
+                exit(1)
             else:
                 state.register_data = nhex(int(nint(state.operand1, 16) / nint(state.operand2, 16)))
 
@@ -586,7 +558,6 @@ class Processor:
             if state.write_back_signal:
                 if int(state.rd, 2) != 0:
                     self.R[int(state.rd, 2)] = state.register_data
-                    print("WRITEBACK: Write", nint(state.register_data, 16), "to", "R" + str(int(state.rd, 2)))
 
 
 # Hazard Detection Unit, Performs operations related to data hazard, stalling and forwarding
