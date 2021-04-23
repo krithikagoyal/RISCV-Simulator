@@ -28,7 +28,7 @@ stats = [
 	"Number of ALU instructions executed: ",
 	"Number of Control instructions: ",
 	"Number of stalls/bubbles in the pipeline: ",
-	"Stat8: Number of data hazards: ",
+	"Number of data hazards: ",
 	"Number of control hazards: ",
 	"Number of branch mispredictions: ",
 	"Number of stalls due to data hazards: ",
@@ -40,10 +40,6 @@ s = [0]*12
 # Function for pipelined execution
 def evaluate(processor, pipeline_ins):
 	processor.write_back(pipeline_ins[0])
-	if(not pipeline_ins[0].is_dummy):
-		s[1] += 1
-	else:
-		s[6] += 1
 	processor.mem(pipeline_ins[1])
 	processor.execute(pipeline_ins[2])
 	control_hazard, control_pc = processor.decode(pipeline_ins[3], btb)
@@ -63,9 +59,9 @@ if __name__ == '__main__':
 	btb = BTB()
 
 	# Knobs
-	pipelining_enabled = True                      # Knob1
-	forwarding_enabled = False                     # Knob2
-	print_registers_each_cycle = True              # Knob3
+	pipelining_enabled = True                    # Knob1
+	forwarding_enabled = False                      # Knob2
+	print_registers_each_cycle = False              # Knob3
 	print_pipeline_registers_and_cycle = False     # Knob4
 	print_specific_pipeline_register = [False, -1] # Knob5
 
@@ -84,29 +80,61 @@ if __name__ == '__main__':
 
 
 	if not pipelining_enabled:
+		# Multi-cycle
 		processor.pipelining_enabled = False
 
 		while True:
 			instruction = State(PC)
+
 			processor.fetch(instruction)
+			clock_cycles += 1
+			if print_registers_each_cycle:
+				print("CLOCK CYCLE:", clock_cycles)
+				print("Register Data:")
+				for i in range(32):
+					print("R" + str(i) + ":", processor.R[i], end=" ")
+				print("\n")
+
 			processor.decode(instruction)
+			clock_cycles += 1
 			if processor.terminate:
 				prog_end = True
 				break
+			if print_registers_each_cycle:
+				print("CLOCK CYCLE:", clock_cycles)
+				print("Register Data:")
+				for i in range(32):
+					print("R" + str(i) + ":", processor.R[i], end=" ")
+				print("\n")
+
 			processor.execute(instruction)
-			if processor.terminate:
-				prog_end = True
-				break
+			clock_cycles += 1
+			if print_registers_each_cycle:
+				print("CLOCK CYCLE:", clock_cycles)
+				print("Register Data:")
+				for i in range(32):
+					print("R" + str(i) + ":", processor.R[i], end=" ")
+				print("\n")
+
 			processor.mem(instruction)
+			clock_cycles += 1
+			if print_registers_each_cycle:
+				print("CLOCK CYCLE:", clock_cycles)
+				print("Register Data:")
+				for i in range(32):
+					print("R" + str(i) + ":", processor.R[i], end=" ")
+				print("\n")
+
 			processor.write_back(instruction)
+			clock_cycles += 1
+			if print_registers_each_cycle:
+				print("CLOCK CYCLE:", clock_cycles)
+				print("Register Data:")
+				for i in range(32):
+					print("R" + str(i) + ":", processor.R[i], end=" ")
+				print("\n")
 
 			PC = processor.next_PC
-			clock_cycles += 5
-
-			if print_registers_each_cycle:
-				for i in range(32):
-					print(processor.R[i], end=" ")
-				print("\n")
 
 	else:
 		processor.pipelining_enabled = True
@@ -221,31 +249,35 @@ if __name__ == '__main__':
 						break
 
 			clock_cycles += 1
-
 			if print_registers_each_cycle:
+				print("CLOCK CYCLE:", clock_cycles)
+				print("Register Data:")
 				for i in range(32):
-					print(processor.R[i], end=" ")
-			print("\n")
+					print("R" + str(i) + ":", processor.R[i], end=" ")
+				print("\n")
 
 			# Print specific pipeline register
-			# Shift this above among instructions or elsewhere
 			if print_specific_pipeline_register[0]:
-				pass
+				if not print_registers_each_cycle:
+					print("CLOCK CYCLE:", clock_cycles)
 
 			# Print pipeline registers and cycle
-			if print_pipeline_registers_and_cycle:
-				pass
+			elif print_pipeline_registers_and_cycle:
+				if not print_registers_each_cycle:
+					print("CLOCK CYCLE:", clock_cycles)
 
 
 	# Print Statistics
 	s[0] = clock_cycles
-	s[1] = s[1]
-	# s[2] = s[0]/s[1]
-	s[6] = s[6]
+	s[1] = processor.count_total_inst
+	s[2] = s[0]/s[1]
+	s[3] = processor.count_mem_inst
+	s[4] = processor.count_alu_inst
+	s[5] = processor.count_control_inst
 	if prog_end:
 		processor.write_data_memory()
 		for i in range(12):
-			stats[i] += str(s[i])
+			stats[i] += str(s[i]) + '\n'
 		statfile = open("stats.txt", "w")
 		statfile.writelines(stats)
 		statfile.close()
