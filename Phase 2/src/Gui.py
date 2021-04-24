@@ -13,6 +13,28 @@ class Ui_takeInput(object):
         self.pushButton = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton.setGeometry(QtCore.QRect(295, 270, 161, 61))
         self.pushButton.setObjectName("pushButton")
+
+        global pipelining_enabled = False, forwarding_enabled = False, print_registers_each_cycle = False, print_specific_pipeline_registers = False, print_pipeline_registers = False
+        self.pipelining_enabled = QtWidgets.QCheckBox(self.centralwidget)
+        self.pipelining_enabled.setGeometry(QtCore.QRect(170, 120, 81, 20))
+        self.pipelining_enabled.stateChanged.connect(lambda: pipelining_enabled = not pipelining_enabled)
+          
+        self.forwarding_enabled = QtWidgets.QCheckBox(self.centralwidget)
+        self.forwarding_enabled.setGeometry(QtCore.QRect(170, 140, 81, 20))
+        self.forwarding_enabled.stateChanged.connect(lambda: forwarding_enabled = not forwarding_enabled)
+          
+        self.print_registers_each_cycle = QtWidgets.QCheckBox(self.centralwidget)
+        self.print_registers_each_cycle.setGeometry(QtCore.QRect(170, 160, 81, 20))
+        self.print_registers_each_cycle.stateChanged.connect(lambda: print_registers_each_cycle = not print_registers_each_cycle)
+          
+        self.print_pipeline_registers = QtWidgets.QCheckBox(self.centralwidget)
+        self.print_pipeline_registers.setGeometry(QtCore.QRect(170, 180, 81, 20))
+        self.print_pipeline_registers.stateChanged.connect(lambda: print_pipeline_registers = not print_pipeline_registers)
+
+        self.print_specific_pipeline_registers = QtWidgets.QCheckBox(self.centralwidget)
+        self.print_specific_pipeline_registers.setGeometry(QtCore.QRect(170, 180, 81, 20))
+        self.print_specific_pipeline_registers.stateChanged.connect(lambda: print_specific_pipeline_registers = not print_specific_pipeline_registers)
+
         self.label = QtWidgets.QLabel(self.centralwidget)
         self.label.setGeometry(QtCore.QRect(250, 180, 301, 41))
         font = QtGui.QFont()
@@ -38,8 +60,6 @@ class Ui_takeInput(object):
         self.label.setText(_translate("MainWindow", "Choose the input file "))
         self.pushButton.clicked.connect(lambda: self.pushButton_handler(MainWindow))
 
-    def pushButton_handler(self, MainWindow):
-        self.openDialogBox(MainWindow)
 
     def openDialogBox(self, MainWindow):
         global filename
@@ -378,5 +398,5 @@ def take_input():
     ui.setupUi(MainWindow)
     MainWindow.show()
     app.exec_()
-    return filename[0]
+    return filename[0], pipelining_enabled, forwarding_enabled, print_registers_each_cycle, print_specific_pipeline_registers, print_pipeline_registers
 
