@@ -206,8 +206,8 @@ if __name__ == '__main__':
 					if(old_states[i].is_dummy):
 						tmp.append("bubble")
 					else:
-						tmp.append(old_states[i].asm_code)
-				l.append(tmp)
+						tmp.append(old_states[i].PC)
+				pc_tmp.append(tmp)
 
 				branch_taken = pipeline_instructions[3].branch_taken
 				branch_pc = pipeline_instructions[3].next_pc
