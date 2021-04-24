@@ -24,81 +24,78 @@ import csv
 
 # Utility Functions
 def nhex(num):
-    if num < 0:
-        num += 2**32
-    return hex(num)
+	if num < 0:
+		num += 2**32
+	return hex(num)
 
 def nint(s, base, bits=32):
-    num = int(s, base)
-    if num >= 2**(bits-1):
-        num -= 2**bits
-    return num
+	num = int(s, base)
+	if num >= 2**(bits-1):
+		num -= 2**bits
+	return num
 
 def sign_extend(data):
-    if data[2] == '8' or data[2] == '9' or data[2] == 'a' or data[2] == 'b' or data[2] == 'c' or data[2] == 'd' or data[2] == 'e' or data[2] == 'f':
-        data = data[:2] + (10 - len(data)) * 'f' + data[2:]
-    else:
-        data = data[:2] + (10 - len(data)) * '0' + data[2:]
-    return data
+	if data[2] == '8' or data[2] == '9' or data[2] == 'a' or data[2] == 'b' or data[2] == 'c' or data[2] == 'd' or data[2] == 'e' or data[2] == 'f':
+		data = data[:2] + (10 - len(data)) * 'f' + data[2:]
+	else:
+		data = data[:2] + (10 - len(data)) * '0' + data[2:]
+	return data
 
 
 # Instruction/State Class
 class State:
-    def __init__(self, pc = 0):
-        self.reset_interRegisters()
-        self.PC = pc
-
-    def reset_interRegisters(self):
-        self.instruction_word = '0x0'
-        self.rs1 = -1
-        self.rs2 = -1
-        self.operand1 = 0
-        self.operand2 = 0
-        self.rd = -1
-        self.offset = 0
-        self.register_data = '0x00000000'
-        self.memory_address = 0
-        self.alu_control_signal = -1
-        self.is_mem = is_mem = [-1, -1] # [-1/0/1(no memory operation/load/store), type of load/store if any]
-        self.write_back_signal = False
-        #
-        self.is_dummy = False
-        self.stage = 0
-        self.pc_update = -1
-        self.branch_taken = False
-        #
-        self.inc_select = 0
-        self.pc_select = 0
-        self.pc_offset = 0
-        self.return_address = -1
-        self.next_pc = -1
-        #
-        self.decode_forwarding_op1 = False
-        self.decode_forwarding_op2 = False
+	def __init__(self, pc = 0):
+		self.PC = pc
+		self.instruction_word = '0x0'
+		self.rs1 = -1
+		self.rs2 = -1
+		self.operand1 = 0
+		self.operand2 = 0
+		self.rd = -1
+		self.offset = 0
+		self.register_data = '0x00000000'
+		self.memory_address = 0
+		self.alu_control_signal = -1
+		self.is_mem = is_mem = [-1, -1] # [-1/0/1(no memory operation/load/store), type of load/store if any]
+		self.write_back_signal = False
+		#
+		self.is_dummy = False
+		self.pc_update = -1
+		self.branch_taken = False
+		#
+		self.inc_select = 0
+		self.pc_select = 0
+		self.pc_offset = 0
+		self.return_address = -1
+		self.next_pc = -1
+		#
+		self.decode_forwarding_op1 = False
+		self.decode_forwarding_op2 = False
 
 
 # Brach table buffer
 class BTB:
-    table = {}
+	def __init__(self):
+		self.table = {}
 
-    def find(self, pc):
-        if pc in self.table.keys():
-            return True
-        return False
+	def find(self, pc):
+		if pc in self.table.keys():
+			return True
+		return False
 
-    def enter(self, type, pc, to_take_address):
-        if type:
-            self.table[pc] = [True, to_take_address]
-        elif to_take_address > pc:
-            self.table[pc] = [False, to_take_address]
-        else:
-            self.table[pc] = [True, to_take_address]
+	def enter(self, type, pc, to_take_address):
+		if type:
+			self.table[pc] = [True, to_take_address]
+		elif to_take_address > pc:
+			self.table[pc] = [False, to_take_address]
+		else:
+			self.table[pc] = [True, to_take_address]
 
-    def predict(self, pc):
-        return self.table[pc][0]
+	def predict(self, pc):
+		return self.table[pc][0]
 
-    def getTarget(self, pc):
-        return self.table[pc][1]
+	def getTarget(self, pc):
+		return self.table[pc][1]
 
 
 # Processor
@@ -624,141 +621,124 @@ class Processor:
 
 
 class HDU:
-    def data_hazard_forwarding(self, pipeline_instructions):
-        decode_state = pipeline_instructions[-2]
-        exe_state = pipeline_instructions[-3]
-        mem_state = pipeline_instructions[-4]
-        wb_state = pipeline_instructions[-5]
-        data_hazard = 0
-        if_stall = False
-        stall_position = 3 # 1 = at execute, 2 = at decode, 3 = don't stall # Sorted according to priority
-        # print("rds = ", decode_state.rd, exe_state.rd, mem_state.rd, wb_state.rd)
-        # print("rs1s = ", decode_state.rs1, exe_state.rs1, mem_state.rs1, wb_state.rs1)
-        # print("rs2s = ", decode_state.rs2, exe_state.rs2, mem_state.rs2, wb_state.rs2)
+	# If forwarding is enabled
+	def data_hazard_forwarding(self, pipeline_instructions):
+		decode_state = pipeline_instructions[-2]
+		exe_state = pipeline_instructions[-3]
+		mem_state = pipeline_instructions[-4]
+		wb_state = pipeline_instructions[-5]
+		data_hazard = 0
+		if_stall = False
+		stall_position = 3
 
-        decode_opcode = int(decode_state.instruction_word, 16) & int('0x7F', 16)
-        exe_opcode = int(exe_state.instruction_word, 16) & int('0x7F', 16)
-        mem_opcode = int(mem_state.instruction_word, 16) & int('0x7F', 16)
-        wb_opcode = int(wb_state.instruction_word, 16) & int('0x7F', 16)
-        print(decode_opcode, exe_opcode, mem_opcode, wb_opcode)
+		decode_opcode = int(decode_state.instruction_word, 16) & int('0x7F', 16)
+		exe_opcode = int(exe_state.instruction_word, 16) & int('0x7F', 16)
+		mem_opcode = int(mem_state.instruction_word, 16) & int('0x7F', 16)
+		wb_opcode = int(wb_state.instruction_word, 16) & int('0x7F', 16)
 
-        # M -> M forwarding
-        if (wb_opcode == 3) and (mem_opcode == 35): # 3 == load and 35 == store
-            if wb_state.rd != -1 and wb_state.rd != '00000' and wb_state.rd == mem_state.rs2:
-                mem_state.register_data = wb_state.register_data
-                data_hazard += 1
-                # print("M -> M")
+		# M -> M forwarding
+		if (wb_opcode == 3) and (mem_opcode == 35): # 3 == load and 35 == store
+			if wb_state.rd != -1 and wb_state.rd != '00000' and wb_state.rd == mem_state.rs2:
+				mem_state.register_data = wb_state.register_data
+				data_hazard += 1
 
-        # M -> E forwarding
-        if (wb_state.rd != -1) and (wb_state.rd != '00000'):
-            if wb_state.rd == exe_state.rs1:
-                exe_state.operand1 = wb_state.register_data
-                data_hazard += 1
-                # print("M -> E")
+		# M -> E forwarding
+		if (wb_state.rd != -1) and (wb_state.rd != '00000'):
+			if wb_state.rd == exe_state.rs1:
+				exe_state.operand1 = wb_state.register_data
+				data_hazard += 1
 
-            if wb_state.rd == exe_state.rs2:
-                if exe_opcode != 35: # store
-                    exe_state.operand2 = wb_state.register_data
-                else:
-                    exe_state.register_data = wb_state.register_data
-                data_hazard += 1
-                # print("M -> E")
+			if wb_state.rd == exe_state.rs2:
+				if exe_opcode != 35: # store
+					exe_state.operand2 = wb_state.register_data
+				else:
+					exe_state.register_data = wb_state.register_data
+				data_hazard += 1
 
-        # E -> E forwarding
-        if (mem_state.rd != -1) and (mem_state.rd != '00000'):
-            if mem_opcode == 3: # load
-                # print("I am in.")
-                if exe_opcode == 35: # store
-                    if exe_state.rs1 == mem_state.rd:
-                        data_hazard += 1
-                        if_stall = True
-                        stall_position = min(stall_position, 0)
-                        # print("E -> E")
+		# E -> E forwarding
+		if (mem_state.rd != -1) and (mem_state.rd != '00000'):
+			if mem_opcode == 3: # load
+				if exe_opcode == 35: # store
+					if exe_state.rs1 == mem_state.rd:
+						data_hazard += 1
+						if_stall = True
+						stall_position = min(stall_position, 0)
 
-                else:
-                    if (exe_state.rs1 == mem_state.rd) or (exe_state.rs2 == mem_state.rd):
-                        data_hazard += 1
-                        if_stall = True
-                        stall_position = min(stall_position, 0)
-                        # print("E -> E")
+				else:
+					if (exe_state.rs1 == mem_state.rd) or (exe_state.rs2 == mem_state.rd):
+						data_hazard += 1
+						if_stall = True
+						stall_position = min(stall_position, 0)
 
-            else:
-                if exe_state.rs1 == mem_state.rd:
-                    exe_state.operand1 = mem_state.register_data
-                    data_hazard += 1
-                    # print("E -> E")
+			else:
+				if exe_state.rs1 == mem_state.rd:
+					exe_state.operand1 = mem_state.register_data
+					data_hazard += 1
 
-                if exe_state.rs2 == mem_state.rd:
-                    if exe_opcode != 35: # store
-                        exe_state.operand2 = mem_state.register_data
-                    else:
-                        exe_state.register_data = mem_state.register_data
-                    data_hazard += 1
-                    # print("E -> E")
-                    print(mem_state.alu_control_signal, exe_state.alu_control_signal, exe_state.rs1, exe_state.rs2, exe_state.operand1, exe_state.operand2, mem_state.register_data)
-                    print(mem_state.rs1, mem_state.rs2)
-        if decode_opcode == 99 or decode_opcode == 103: # SB and jalr
-            # M -> D forwarding
-            if (wb_state.rd != -1) and (wb_state.rd != '00000'):
-                if wb_state.rd == decode_state.rs1:
-                    decode_state.operand1 = wb_state.register_data
-                    decode_state.decode_forwarding_op1 = True
-                    data_hazard += 1
-                    # print("M -> D")
+				if exe_state.rs2 == mem_state.rd:
+					if exe_opcode != 35: # store
+						exe_state.operand2 = mem_state.register_data
+					else:
+						exe_state.register_data = mem_state.register_data
+					data_hazard += 1
 
-                if wb_state.rd == decode_state.rs2:
-                    decode_state.operand2 = wb_state.register_data
-                    decode_state.decode_forwarding_op2 = True
-                    data_hazard += 1
-                    # print("M -> D")
+		if decode_opcode == 99 or decode_opcode == 103: # SB and jalr
+			# M -> D forwarding
+			if (wb_state.rd != -1) and (wb_state.rd != '00000'):
+				if wb_state.rd == decode_state.rs1:
+					decode_state.operand1 = wb_state.register_data
+					decode_state.decode_forwarding_op1 = True
+					data_hazard += 1
 
-            # E -> D fowarding
-            if (mem_state.rd != -1) and (mem_state.rd != '00000'):
-                if mem_opcode == 3: # load
-                    data_hazard += 1
-                    if_stall = True
-                    stall_position = min(stall_position, 1)
+				if wb_state.rd == decode_state.rs2:
+					decode_state.operand2 = wb_state.register_data
+					decode_state.decode_forwarding_op2 = True
+					data_hazard += 1
 
-                else:
-                    if mem_state.rd == decode_state.rs1:
-                        decode_state.operand1 = mem_state.register_data
-                        decode_state.decode_forwarding_op1 = True
-                        data_hazard += 1
+			# E -> D fowarding
+			if (mem_state.rd != -1) and (mem_state.rd != '00000'):
+				if mem_opcode == 3: # load
+					data_hazard += 1
+					if_stall = True
+					stall_position = min(stall_position, 1)
 
-                    if mem_state.rd == decode_state.rs2:
-                        decode_state.operand2 = mem_state.register_data
-                        decode_state.decode_forwarding_op2 = True
-                        data_hazard += 1
+				else:
+					if mem_state.rd == decode_state.rs1:
+						decode_state.operand1 = mem_state.register_data
+						decode_state.decode_forwarding_op1 = True
+						data_hazard += 1
 
-                # print("E->D ", mem_state.alu_control_signal, decode_state.alu_control_signal, decode_state.rs1, decode_state.rs2, decode_state.operand1, decode_state.operand2, mem_state.register_data)
+					if mem_state.rd == decode_state.rs2:
+						decode_state.operand2 = mem_state.register_data
+						decode_state.decode_forwarding_op2 = True
+						data_hazard += 1
 
-            # If branch depends upon the preceding instruction
-            if (exe_state.rd != -1) and (exe_state.rd != '00000') and ((exe_state.rd == decode_state.rs1) or (exe_state.rd == decode_state.rs2)):
-                # print("I am in.")
-                data_hazard += 1
-                if_stall = True
-                stall_position = min(stall_position, 1)
+			# If control instruction depends on the previous instruction
+			if (exe_state.rd != -1) and (exe_state.rd != '00000') and ((exe_state.rd == decode_state.rs1) or (exe_state.rd == decode_state.rs2)):
+				data_hazard += 1
+				if_stall = True
+				stall_position = min(stall_position, 1)
 
-        new_states = [wb_state, mem_state, exe_state, decode_state, pipeline_instructions[-1]]
-        return [data_hazard, if_stall, stall_position, new_states]
+		new_states = [wb_state, mem_state, exe_state, decode_state, pipeline_instructions[-1]]
+		return [data_hazard, if_stall, stall_position, new_states]
 
-    def data_hazard_stalling(self, pipeline_instructions):
-        states_to_check = pipeline_instructions[:-1]
-        exe_state = states_to_check[-2]
-        decode_state = states_to_check[-1]
-        if exe_state.rd != -1 and decode_state.rs1 != -1:
-            if exe_state.rd == decode_state.rs1 and exe_state.rd:
-                return [True, 2]
-            if exe_state.rd == decode_state.rs2 and exe_state.rd:
-                return [True, 2]
+	# If forwarding is not enabled
+	def data_hazard_stalling(self, pipeline_instructions):
+		states_to_check = pipeline_instructions[:-1]
 
-        mem_state = states_to_check[-3]
-        if mem_state.rd != -1 and decode_state.rs1 != -1:
-            if mem_state.rd == decode_state.rs1 and mem_state.rd != 0:
-                return [True, 1]
-            if mem_state.rd == decode_state.rs2 and mem_state.rd != 0:
-                return [True, 1]
+		exe_state = states_to_check[-2]
+		decode_state = states_to_check[-1]
+		if exe_state.rd != -1 and exe_state.rd != '00000':
+			if exe_state.rd == decode_state.rs1:
+				return True
+			if exe_state.rd == decode_state.rs2:
+				return True
 
-        return [False, -1]
+		mem_state = states_to_check[-3]
+		if mem_state.rd != -1 and mem_state.rd != '00000':
+			if mem_state.rd == decode_state.rs1:
+				return True
+			if mem_state.rd == decode_state.rs2:
+				return True
 
-# check for number of data hazards in data_hazard_forwarding
+		return False
