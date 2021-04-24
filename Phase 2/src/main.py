@@ -281,4 +281,6 @@ if __name__ == '__main__':
 		statfile = open("stats.txt", "w")
 		statfile.writelines(stats)
 		statfile.close()
-		display()
+		###################
+		l = [['decode, execute, mem, fetch, wb'], ['decode, execute, mem, fetch, wb'], ['decode, execute, mem, fetch, wb'], ['decode, execute, mem, fetch, wb']]
+		display(l)
