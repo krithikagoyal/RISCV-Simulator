@@ -56,7 +56,6 @@ if __name__ == '__main__':
 
 	# set .mc file
 	prog_mc_file, pipelining_enabled, forwarding_enabled, print_registers_each_cycle, print_pipeline_registers, print_specific_pipeline_registers = take_input()
-	print_specific_pipeline_registers = [print_specific_pipeline_registers, 10]
 	# invoke classes
 	processor = Processor(prog_mc_file)
 	hdu = HDU()
@@ -66,7 +65,7 @@ if __name__ == '__main__':
 	# pipelining_enabled = True                       # Knob1
 	# forwarding_enabled = False                      # Knob2
 	# print_registers_each_cycle = False              # Knob3
-	# print_pipeline_registers = False    			# Knob4
+	# print_pipeline_registers = False    			  # Knob4
 	# print_specific_pipeline_registers = [False, 10] # Knob5
 
 	# Signals

@@ -9,6 +9,7 @@ forwarding_enabled = False
 print_registers_each_cycle = False
 print_specific_pipeline_registers = False
 print_pipeline_registers = False
+number = -1
 
 class Ui_takeInput(object):
     def setupUi(self, MainWindow):
@@ -83,7 +84,7 @@ class Ui_takeInput(object):
         self.forwarding_enabled.stateChanged.connect(self.checked_forwarding_enabled)
         self.print_registers_each_cycle.stateChanged.connect(self.checked_print_registers_each_cycle)
         self.print_pipeline_registers.stateChanged.connect(self.checked_print_pipeline_registers)
-        self.print_specific_pipeline_registers.stateChanged.connect(self.checked_print_specific_pipeline_registers)
+        self.print_specific_pipeline_registers.stateChanged.connect(lambda: self.checked_print_specific_pipeline_registers(MainWindow))
 
     def checked_pipelining_enabled(self):
         global pipelining_enabled
@@ -101,9 +102,13 @@ class Ui_takeInput(object):
         global print_pipeline_registers
         print_pipeline_registers = not print_pipeline_registers
 
-    def checked_print_specific_pipeline_registers(self):
-        global print_specific_pipeline_registers
+    def checked_print_specific_pipeline_registers(self, MainWindow):
+        global print_specific_pipeline_registers, number
         print_specific_pipeline_registers = not print_specific_pipeline_registers
+        if print_specific_pipeline_registers:
+            number, done2 = QtWidgets.QInputDialog.getInt(MainWindow, 'Input Number', 'Enter the instruction number:')
+        else:
+            number = -1
     
     def pushButton_handler(self, MainWindow):
         self.openDialogBox(MainWindow)
@@ -314,7 +319,6 @@ class display_register(object):
             item.setTextAlignment(QtCore.Qt.AlignCenter)
             item.setText(_translate("MainWindow", str(int(f[i][1], 16))))
 
-
 class display_pipeline(object):
     def setupUi(self, MainWindow, l):
         MainWindow.width = 1900
@@ -446,5 +450,4 @@ def take_input():
     ui.setupUi(MainWindow)
     MainWindow.show()
     app.exec_()
-    return filename[0], pipelining_enabled, forwarding_enabled, print_registers_each_cycle, print_pipeline_registers, print_specific_pipeline_registers
-
+    return filename[0], pipelining_enabled, forwarding_enabled, print_registers_each_cycle, print_pipeline_registers, [print_specific_pipeline_registers, number]
