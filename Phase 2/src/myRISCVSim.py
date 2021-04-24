@@ -483,17 +483,17 @@ class Processor:
 		elif state.alu_control_signal == 20:
 			state.memory_address = int(int(state.operand1, 16) + nint(state.operand2, 2, len(state.operand2)))
 			state.is_mem = [1, 0]
-			state.asm_code = "sb x" + str(int(state.rd, 2)) + ' ' + str(nint(state.operand2, 2, len(state.operand2))) + " (x" + str(int(state.rs1, 2)) + ")"
+			state.asm_code = "sb x" + str(int(state.rs2, 2)) + ' ' + str(nint(state.operand2, 2, len(state.operand2))) + " (x" + str(int(state.rs1, 2)) + ")"
 
 		elif state.alu_control_signal == 22:
 			state.memory_address = int(int(state.operand1, 16) + nint(state.operand2, 2, len(state.operand2)))
 			state.is_mem = [1, 1]
-			state.asm_code = "sh x" + str(int(state.rd, 2)) + ' ' + str(nint(state.operand2, 2, len(state.operand2))) + " (x" + str(int(state.rs1, 2)) + ")"
+			state.asm_code = "sh x" + str(int(state.rs2, 2)) + ' ' + str(nint(state.operand2, 2, len(state.operand2))) + " (x" + str(int(state.rs1, 2)) + ")"
 
 		elif state.alu_control_signal == 21:
 			state.memory_address = int(int(state.operand1, 16) + nint(state.operand2, 2, len(state.operand2)))
 			state.is_mem = [1, 3]
-			state.asm_code = "sw x" + str(int(state.rd, 2)) + ' ' + str(nint(state.operand2, 2, len(state.operand2))) + " (x" + str(int(state.rs1, 2)) + ")"
+			state.asm_code = "sw x" + str(int(state.rs2, 2)) + ' ' + str(nint(state.operand2, 2, len(state.operand2))) + " (x" + str(int(state.rs1, 2)) + ")"
 
 		elif state.alu_control_signal == 23:
 			if nint(state.operand1, 16) == nint(state.operand2, 16):
