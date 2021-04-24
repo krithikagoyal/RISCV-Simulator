@@ -98,8 +98,10 @@ if __name__ == '__main__':
 				for i in range(32):
 					print("R" + str(i) + ":", processor.R[i], end=" ")
 				print("\n")
+			pc_tmp.append([-1, -1, -1, -1, instruction.PC])
 
 			processor.decode(instruction)
+			pc_tmp.append([-1, -1, -1, instruction.PC, -1])
 			clock_cycles += 1
 			if print_registers_each_cycle:
 				print("CLOCK CYCLE:", clock_cycles)
@@ -112,6 +114,7 @@ if __name__ == '__main__':
 				break
 
 			processor.execute(instruction)
+			pc_tmp.append([-1, -1, instruction.PC, -1, -1])
 			clock_cycles += 1
 			if print_registers_each_cycle:
 				print("CLOCK CYCLE:", clock_cycles)
@@ -121,6 +124,7 @@ if __name__ == '__main__':
 				print("\n")
 
 			processor.mem(instruction)
+			pc_tmp.append([-1, instruction.PC, -1, -1, -1])
 			clock_cycles += 1
 			if print_registers_each_cycle:
 				print("CLOCK CYCLE:", clock_cycles)
@@ -130,6 +134,7 @@ if __name__ == '__main__':
 				print("\n")
 
 			processor.write_back(instruction)
+			pc_tmp.append([instruction.PC, -1, -1, -1, -1])
 			clock_cycles += 1
 			if print_registers_each_cycle:
 				print("CLOCK CYCLE:", clock_cycles)
