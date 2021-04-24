@@ -376,7 +376,7 @@ class Processor:
 
 		if state.alu_control_signal == 2:
 			state.register_data = nhex(int(nint(state.operand1, 16) + nint(state.operand2, 16)))
-			state.asm_code = "add x" + str(int(state.rd, 2)) + " x" + str((state.rs1, 2)) + " x" + str(int(state.rs2, 2))
+			state.asm_code = "add x" + str(int(state.rd, 2)) + " x" + str(int(state.rs1, 2)) + " x" + str(int(state.rs2, 2))
 
 		elif state.alu_control_signal == 8:
 			state.register_data = nhex(int(nint(state.operand1, 16) - nint(state.operand2, 16)))
