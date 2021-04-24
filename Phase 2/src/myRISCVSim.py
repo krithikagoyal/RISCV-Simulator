@@ -384,11 +384,11 @@ class Processor:
 
 		elif state.alu_control_signal == 1:
 			state.register_data = nhex(int(int(state.operand1, 16) & int(state.operand2, 16)))
-			state.asm_code = "and x" + str(int(state.rd, 2)) + " x" + str(int(state.rs1, 2)) + " x" + str(int(state.rs2,2))
+			state.asm_code = "and x" + str(int(state.rd, 2)) + " x" + str(int(state.rs1, 2)) + " x" + str(int(state.rs2, 2))
 
 		elif state.alu_control_signal == 3:
 			state.register_data = nhex(int(int(state.operand1, 16) | int(state.operand2, 16)))
-			state.asm_code = "or x" + str(int(state.rd, 2)) + " x" + str(int(state.rs1, 2)) + " x" + str(int(state.rs2,2))
+			state.asm_code = "or x" + str(int(state.rd, 2)) + " x" + str(int(state.rs1, 2)) + " x" + str(int(state.rs2, 2))
 
 		elif state.alu_control_signal == 4:
 			if(nint(state.operand2, 16) < 0):
@@ -396,14 +396,14 @@ class Processor:
 				exit(1)
 			else:
 				state.register_data = nhex(int(int(state.operand1, 16) << int(state.operand2, 16)))
-			state.asm_code = "sll x" + str(int(state.rd, 2)) + " x" + str(int(state.rs1,2)) + " x" + str(int(state.rs2,2))
+			state.asm_code = "sll x" + str(int(state.rd, 2)) + " x" + str(int(state.rs1, 2)) + " x" + str(int(state.rs2, 2))
 
 		elif state.alu_control_signal == 5:
 			if (nint(state.operand1, 16) < nint(state.operand2, 16)):
 				state.register_data = hex(1)
 			else:
 				state.register_data = hex(0)
-			state.asm_code = "slt x" + str(int(state.rd, 2)) + " x" + str(int(state.rs1,2)) + " x" + str(int(state.rs2,2))
+			state.asm_code = "slt x" + str(int(state.rd, 2)) + " x" + str(int(state.rs1, 2)) + " x" + str(int(state.rs2, 2))
 
 		elif state.alu_control_signal == 6:
 			if(nint(state.operand2, 16) < 0):
@@ -414,7 +414,7 @@ class Processor:
 				if state.operand1[2] == '8' or state.operand1[2] == '9' or state.operand1[2] == 'a' or state.operand1[2] == 'b' or state.operand1[2] == 'c' or state.operand1[2] == 'd' or state.operand1[2] == 'e' or state.operand1[2] == 'f':
 					state.register_data = '0b' + (34 - len(state.register_data)) * '1' + state.register_data[2:]
 				state.register_data = hex(int(state.register_data, 2))
-			state.asm_code = "sra x" + str(int(state.rd, 2)) + " x" + str(int(state.rs1,2)) + " x" + str(int(state.rs2,2))
+			state.asm_code = "sra x" + str(int(state.rd, 2)) + " x" + str(int(state.rs1, 2)) + " x" + str(int(state.rs2, 2))
 
 		elif state.alu_control_signal == 7:
 			if(nint(state.operand2, 16) < 0):
@@ -422,15 +422,15 @@ class Processor:
 				exit(1)
 			else:
 				state.register_data = nhex(int(state.operand1, 16) >> int(state.operand2, 16))
-			state.asm_code = "srl x" + str(int(state.rd, 2)) + " x" + str(int(state.rs1,2)) + " x" + str(int(state.rs2,2))
+			state.asm_code = "srl x" + str(int(state.rd, 2)) + " x" + str(int(state.rs1, 2)) + " x" + str(int(state.rs2, 2))
 
 		elif state.alu_control_signal == 9:
 			state.register_data = nhex(int(int(state.operand1, 16) ^ int(state.operand2, 16)))
-			state.asm_code = "xor x" + str(int(state.rd, 2)) + " x" + str(int(state.rs1,2)) + " x" + str(int(state.rs2,2))
+			state.asm_code = "xor x" + str(int(state.rd, 2)) + " x" + str(int(state.rs1, 2)) + " x" + str(int(state.rs2, 2))
 
 		elif state.alu_control_signal == 10:
 			state.register_data = nhex(int(nint(state.operand1, 16) * nint(state.operand2, 16)))
-			state.asm_code = "mul x" + str(int(state.rd, 2)) + " x" + str(int(state.rs1,2)) + " x" + str(int(state.rs2,2))
+			state.asm_code = "mul x" + str(int(state.rd, 2)) + " x" + str(int(state.rs1, 2)) + " x" + str(int(state.rs2, 2))
 
 		elif state.alu_control_signal == 11:
 			if nint(state.operand2, 16) == 0:
@@ -438,11 +438,11 @@ class Processor:
 				exit(1)
 			else:
 				state.register_data = nhex(int(nint(state.operand1, 16) / nint(state.operand2, 16)))
-			state.asm_code = "div x" + str(int(state.rd, 2)) + " x" + str(int(state.rs1,2)) + " x" + str(int(state.rs2,2))
+			state.asm_code = "div x" + str(int(state.rd, 2)) + " x" + str(int(state.rs1, 2)) + " x" + str(int(state.rs2, 2))
 
 		elif state.alu_control_signal == 12:
 			state.register_data = nhex(int(nint(state.operand1, 16) % nint(state.operand2, 16)))
-			state.asm_code = "rem x" + str(int(state.rd, 2)) + " x" + str(int(state.rs1,2)) + " x" + str(int(state.rs2,2))
+			state.asm_code = "rem x" + str(int(state.rd, 2)) + " x" + str(int(state.rs1, 2)) + " x" + str(int(state.rs2, 2))
 
 		elif state.alu_control_signal == 14:
 			state.register_data = nhex(
@@ -451,11 +451,11 @@ class Processor:
 
 		elif state.alu_control_signal == 13:
 			state.register_data = nhex(int(int(state.operand1, 16) & int(state.operand2, 2)))
-			state.asm_code = "andi x" + str(int(state.rd, 2)) + " x" + str(int(state.rs1,2)) + " " + str(int(state.operand2, 2))
+			state.asm_code = "andi x" + str(int(state.rd, 2)) + " x" + str(int(state.rs1, 2)) + " " + str(int(state.operand2, 2))
 
 		elif state.alu_control_signal == 15:
 			state.register_data = nhex(int(int(state.operand1, 16) | int(state.operand2, 2)))
-			state.asm_code = "ori x" + str(int(state.rd, 2)) + " x" + str(int(state.rs1,2)) + " " + str(int(state.operand2, 2))
+			state.asm_code = "ori x" + str(int(state.rd, 2)) + " x" + str(int(state.rs1, 2)) + " " + str(int(state.operand2, 2))
 
 		elif state.alu_control_signal == 16:
 			state.memory_address = int(int(state.operand1, 16) + nint(state.operand2, 2, len(state.operand2)))
@@ -478,7 +478,7 @@ class Processor:
 			self.pc_select = 1
 			state.pc_select = 1
 			state.return_address = nint(state.operand2, 2, len(state.operand2)) + nint(state.operand1, 16)
-			state.asm_code = "jalr x" + str(int(state.rd, 2)) + " x" + str(int(state.rs1,2)) + " " + str(nint(state.operand2, 2, len(state.operand2)))
+			state.asm_code = "jalr x" + str(int(state.rd, 2)) + " x" + str(int(state.rs1, 2)) + " " + str(nint(state.operand2, 2, len(state.operand2)))
 
 		elif state.alu_control_signal == 20:
 			state.memory_address = int(int(state.operand1, 16) + nint(state.operand2, 2, len(state.operand2)))
