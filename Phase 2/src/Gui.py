@@ -256,7 +256,7 @@ class display_pipeline(object):
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.label = QtWidgets.QLabel(self.centralwidget)
-        self.label.setGeometry(QtCore.QRect(850, 50, 200, 35))
+        self.label.setGeometry(QtCore.QRect(850, 50, 300, 35))
         self.memory_button = QtWidgets.QPushButton(self.centralwidget)
         self.memory_button.setGeometry(QtCore.QRect(820, 3, 125, 40))
         self.memory_button.setObjectName("memory")
@@ -275,8 +275,8 @@ class display_pipeline(object):
         self.tableWidget = QtWidgets.QTableWidget(self.centralwidget)
         self.tableWidget.setGeometry(QtCore.QRect(0, 95, MainWindow.width, MainWindow.height - 100))
         self.tableWidget.setObjectName("tableWidget")
-        self.tableWidget.setColumnCount(4)
-        self.tableWidget.setRowCount(32) # changed
+        self.tableWidget.setColumnCount(5)
+        self.tableWidget.setRowCount(len(l)) # changed
         font = QtGui.QFont()
         font.setPointSize(12)
         self.tableWidget.setFont(font)
@@ -348,7 +348,7 @@ class display_pipeline(object):
             item.setText(_translate("MainWindow", f[i][3]))
             item = QtWidgets.QTableWidgetItem()
             item.setTextAlignment(QtCore.Qt.AlignCenter)
-            self.tableWidget.setItem(i, 3, item)
+            self.tableWidget.setItem(i, 4, item)
             item.setTextAlignment(QtCore.Qt.AlignCenter)
             item.setText(_translate("MainWindow", f[i][4]))
 

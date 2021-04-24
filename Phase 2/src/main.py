@@ -262,9 +262,8 @@ if __name__ == '__main__':
 					print("CLOCK CYCLE:", clock_cycles)
 
 			# Print pipeline registers and cycle
-			elif print_pipeline_registers_and_cycle:
-				if not print_registers_each_cycle:
-					print("CLOCK CYCLE:", clock_cycles)
+			elif print_pipeline_registers_and_cycle and not print_registers_each_cycle:
+				print("CLOCK CYCLE:", clock_cycles)
 
 
 	# Print Statistics
@@ -281,6 +280,6 @@ if __name__ == '__main__':
 		statfile = open("stats.txt", "w")
 		statfile.writelines(stats)
 		statfile.close()
-		###################
-		l = [['decode, execute, mem, fetch, wb'], ['decode, execute, mem, fetch, wb'], ['decode, execute, mem, fetch, wb'], ['decode, execute, mem, fetch, wb']]
+		# this list is just for testing, original will be created by Harsh
+		l = [['decode', 'execute', 'mem', 'fetch', 'wb'], ['decode', 'execute', 'mem', 'fetch', 'wb'], ['decode', 'execute', 'mem', 'fetch', 'wb'], ['decode', 'execute', 'mem', 'fetch', 'wb']]
 		display(l)
