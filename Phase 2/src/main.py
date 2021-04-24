@@ -37,6 +37,9 @@ stats = [
 
 s = [0]*12
 
+l = []
+stage = {1: "fetch", 2: "decode", 3: "execute", 4: "memory", 5: "write_back"}
+
 # Function for pipelined execution
 def evaluate(processor, pipeline_ins):
 	processor.write_back(pipeline_ins[0])
@@ -149,6 +152,14 @@ if __name__ == '__main__':
 
 				old_states = pipeline_instructions
 				pipeline_instructions, control_hazard, control_pc = evaluate(processor, pipeline_instructions)
+
+				tmp = []
+				for i in range(5):
+					if(old_states[i].is_dummy):
+						tmp.append("bubble")
+					else:
+						tmp.append(old_states[i].asm_code + ' ' + stage[5-i])
+				l.append(tmp)
 
 				branch_taken = pipeline_instructions[3].branch_taken
 				branch_pc = pipeline_instructions[3].next_pc
