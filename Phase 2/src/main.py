@@ -323,8 +323,10 @@ if __name__ == '__main__':
 		statfile.writelines(stats)
 		statfile.close()
 		# this list is just for testing, original will be created by Harsh
-		# l = [['decode', 'execute', 'mem', 'fetch', 'wb'], ['decode', 'execute', 'mem', 'fetch', 'wb'], ['decode', 'execute', 'mem', 'fetch', 'wb'], ['decode', 'execute', 'mem', 'fetch', 'wb']]
-		for li in pc_tmp:
-			tmp = [str(processor.get_code[i]) for i in li]
-			l.append(tmp)
+		# l[i][5]['who'], l[i][5]['from_whom'] 0: write_back, 1: mem, 2:execute, 3:decode, 4:fetch
+		# for example see the below list
+		l = [['decode', 'execute', 'mem', 'fetch', 'wb', {'who': 1, 'from_whom': 2}], ['decode', 'execute', 'mem', 'fetch', 'wb', {'who': 1, 'from_whom': 3}], ['decode', 'execute', 'mem', 'fetch', 'wb', {'who': 1, 'from_whom': 4}], ['decode', 'execute', 'mem', 'fetch', 'wb', {'who': 1, 'from_whom': 0}]]
+		# for li in pc_tmp:
+		# 	tmp = [str(processor.get_code[i]) for i in li]
+		# 	l.append(tmp)
 		display(l)
