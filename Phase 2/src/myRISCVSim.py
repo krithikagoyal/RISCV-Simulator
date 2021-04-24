@@ -118,6 +118,7 @@ class Processor:
 		self.count_alu_inst = 0
 		self.count_mem_inst = 0
 		self.count_control_inst = 0
+		self.count_branch_mispredictions = 0
 		self.all_dummy = False
 
 	def reset(self, *args):
@@ -243,6 +244,7 @@ class Processor:
 
 		if state.instruction_word == '0x401080BB':
 			self.terminate = True
+			state.is_dummy = True
 			self.all_dummy = True
 			return False, 0
 
@@ -342,14 +344,20 @@ class Processor:
 
 		if self.pipelining_enabled:
 			branch_ins = [23, 24, 25, 26, 29, 19]
+
 			if state.alu_control_signal not in branch_ins:
 				return False, 0
+
 			else:
 				self.execute(state)
 				self.next_PC = state.PC
 				self.IAG(state)
 				orig_pc = self.next_PC
 				btb = args[0]
+
+				if btb.find(state.PC) and orig_pc != state.next_pc:
+					self.count_branch_mispredictions += 1
+
 				if not btb.find(state.PC):
 					state.inc_select = self.inc_select
 					state.pc_select = self.pc_select
@@ -364,6 +372,7 @@ class Processor:
 						btb.enter(False, state.PC, state.pc_update)
 					self.reset()
 					self.reset(state)
+
 				if orig_pc != state.next_pc:
 					return True, orig_pc
 				else:
@@ -554,8 +563,7 @@ class Processor:
 	# Writes the results back to the register file
 	def write_back(self, state):
 		if not state.is_dummy:
-			if state.alu_control_signal != -1:
-				self.count_total_inst += 1 # total instructions
+			self.count_total_inst += 1 # total instructions
 
 			if state.alu_control_signal in [19, 23, 24, 25, 26, 29]:  # control instruction
 				self.count_control_inst += 1
@@ -563,7 +571,7 @@ class Processor:
 			elif state.alu_control_signal in [16, 17, 18, 20, 21, 22]: # data transfer instruction
 				self.count_mem_inst += 1
 
-			elif state.alu_control_signal != -1:
+			else:
 				self.count_alu_inst += 1 # alu instruction
 
 			if state.write_back_signal:
@@ -676,21 +684,30 @@ class HDU:
 
 	# If forwarding is not enabled
 	def data_hazard_stalling(self, pipeline_instructions):
+		count_data_hazard = 0
+		data_hazard = False
+
 		states_to_check = pipeline_instructions[:-1]
 
 		exe_state = states_to_check[-2]
 		decode_state = states_to_check[-1]
 		if exe_state.rd != -1 and exe_state.rd != '00000':
 			if exe_state.rd == decode_state.rs1:
-				return True
+				data_hazard = True
+				count_data_hazard += 1
+
 			if exe_state.rd == decode_state.rs2:
-				return True
+				data_hazard = True
+				count_data_hazard += 1
 
 		mem_state = states_to_check[-3]
 		if mem_state.rd != -1 and mem_state.rd != '00000':
 			if mem_state.rd == decode_state.rs1:
-				return True
-			if mem_state.rd == decode_state.rs2:
-				return True
+				data_hazard = True
+				count_data_hazard += 1
 
-		return False
+			if mem_state.rd == decode_state.rs2:
+				data_hazard = True
+				count_data_hazard += 1
+
+		return [data_hazard, count_data_hazard]

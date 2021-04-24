@@ -60,7 +60,7 @@ if __name__ == '__main__':
 
 	# Knobs
 	pipelining_enabled = True                       # Knob1
-	forwarding_enabled = False                      # Knob2
+	forwarding_enabled = True                       # Knob2
 	print_registers_each_cycle = False              # Knob3
 	print_pipeline_registers = False    			# Knob4
 	print_specific_pipeline_registers = [False, 10] # Knob5
@@ -71,12 +71,10 @@ if __name__ == '__main__':
 	prog_end = False
 
 	# Various Counts
-	number_of_control_hazards = 0
 	number_of_stalls_due_to_control_hazards = 0
 	number_of_data_hazards = 0
 	number_of_stalls_due_to_data_hazards = 0
 	total_number_of_stalls = 0
-	number_of_branch_mispredictions = 0
 
 
 	if not pipelining_enabled:
@@ -155,24 +153,23 @@ if __name__ == '__main__':
 
 				PC += 4
 
-				if branch_taken and not data_hazard:
+				if branch_taken and not data_hazard[0]:
 					PC = branch_pc
 
-				if control_hazard and not data_hazard:
-					number_of_control_hazards += 1
+				if control_hazard and not data_hazard[0]:
 					number_of_stalls_due_to_control_hazards += 1
 					PC = control_pc
 					pipeline_instructions.append(State(PC))
 					pipeline_instructions[-2].is_dummy = True
 
-				if data_hazard:
-					number_of_data_hazards += 1
+				if data_hazard[0]:
+					number_of_data_hazards += data_hazard[1]
 					number_of_stalls_due_to_data_hazards += 1
 					pipeline_instructions = pipeline_instructions[:2] + [State(0)] + old_states[3:]
 					pipeline_instructions[2].is_dummy = True
 					PC -= 4
 
-				if not control_hazard and not data_hazard:
+				if not control_hazard and not data_hazard[0]:
 					pipeline_instructions.append(State(PC))
 
 				pipeline_instructions[-2].next_pc = PC
@@ -199,7 +196,6 @@ if __name__ == '__main__':
 					PC = branch_pc
 
 				if control_hazard and not if_stall:
-					number_of_control_hazards += 1
 					number_of_stalls_due_to_control_hazards += 1
 					PC = control_pc
 					pipeline_instructions.append(State(PC))
@@ -218,17 +214,18 @@ if __name__ == '__main__':
 						pipeline_instructions[2].is_dummy = True
 						PC -= 4
 
-					elif stall_position == 2 and not control_hazard:
-						pipeline_instructions = pipeline_instructions[:3] + [State(0)] + old_states[4:]
-						pipeline_instructions[3].is_dummy = True
-						PC -= 4
-
-					else:
-						number_of_control_hazards += 1
-						number_of_stalls_due_to_control_hazards += 1
-						PC = control_pc
-						pipeline_instructions = pipeline_instructions[:3] + [State(0)] + [State(PC)]
-						pipeline_instructions[3].is_dummy = True
+					# Check if redundant
+					# elif stall_position == 2 and not control_hazard:
+					# 	pipeline_instructions = pipeline_instructions[:3] + [State(0)] + old_states[4:]
+					# 	pipeline_instructions[3].is_dummy = True
+					# 	PC -= 4
+					#
+					# else:
+					# 	# number_of_control_hazards += 1
+					# 	# number_of_stalls_due_to_control_hazards += 1
+					# 	PC = control_pc
+					# 	pipeline_instructions = pipeline_instructions[:3] + [State(0)] + [State(PC)]
+					# 	pipeline_instructions[3].is_dummy = True
 
 				number_of_data_hazards += data_hazard
 
@@ -288,6 +285,13 @@ if __name__ == '__main__':
 	s[3] = processor.count_mem_inst
 	s[4] = processor.count_alu_inst
 	s[5] = processor.count_control_inst
+	s[7] = number_of_data_hazards
+	s[8] = s[5]
+	s[9] = processor.count_branch_mispredictions
+	s[10] = number_of_stalls_due_to_data_hazards
+	s[11] = number_of_stalls_due_to_control_hazards
+	s[6] = s[10] + s[11]
+
 	if prog_end:
 		processor.write_data_memory()
 		for i in range(12):
