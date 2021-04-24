@@ -37,6 +37,10 @@ stats = [
 
 s = [0]*12
 
+l = []
+pc_tmp = []
+stage = {1: "fetch", 2: "decode", 3: "execute", 4: "memory", 5: "write_back"}
+
 # Function for pipelined execution
 def evaluate(processor, pipeline_ins):
 	processor.write_back(pipeline_ins[0])
@@ -51,20 +55,19 @@ def evaluate(processor, pipeline_ins):
 if __name__ == '__main__':
 
 	# set .mc file
-	prog_mc_file = take_input()
-
+	prog_mc_file, pipelining_enabled, forwarding_enabled, print_registers_each_cycle, print_pipeline_registers, print_specific_pipeline_registers = take_input()
 	# invoke classes
 	processor = Processor(prog_mc_file)
 	hdu = HDU()
 	btb = BTB()
 
 	# Knobs
-	pipelining_enabled = True                       # Knob1
-	forwarding_enabled = True                       # Knob2
-	print_registers_each_cycle = False              # Knob3
-	print_pipeline_registers = False    			# Knob4
-	print_specific_pipeline_registers = [False, 10] # Knob5
-
+	# pipelining_enabled = True                       # Knob1
+	# forwarding_enabled = False                      # Knob2
+	# print_registers_each_cycle = False              # Knob3
+	# print_pipeline_registers = False    			      # Knob4
+	# print_specific_pipeline_registers = [False, 10] # Knob5
+  
 	# Signals
 	PC = 0
 	clock_cycles = 0
@@ -92,8 +95,10 @@ if __name__ == '__main__':
 				for i in range(32):
 					print("R" + str(i) + ":", processor.R[i], end=" ")
 				print("\n")
+			pc_tmp.append([-1, -1, -1, -1, instruction.PC])
 
 			processor.decode(instruction)
+			pc_tmp.append([-1, -1, -1, instruction.PC, -1])
 			clock_cycles += 1
 			if print_registers_each_cycle:
 				print("CLOCK CYCLE:", clock_cycles)
@@ -106,6 +111,7 @@ if __name__ == '__main__':
 				break
 
 			processor.execute(instruction)
+			pc_tmp.append([-1, -1, instruction.PC, -1, -1])
 			clock_cycles += 1
 			if print_registers_each_cycle:
 				print("CLOCK CYCLE:", clock_cycles)
@@ -115,6 +121,7 @@ if __name__ == '__main__':
 				print("\n")
 
 			processor.mem(instruction)
+			pc_tmp.append([-1, instruction.PC, -1, -1, -1])
 			clock_cycles += 1
 			if print_registers_each_cycle:
 				print("CLOCK CYCLE:", clock_cycles)
@@ -124,6 +131,7 @@ if __name__ == '__main__':
 				print("\n")
 
 			processor.write_back(instruction)
+			pc_tmp.append([instruction.PC, -1, -1, -1, -1])
 			clock_cycles += 1
 			if print_registers_each_cycle:
 				print("CLOCK CYCLE:", clock_cycles)
@@ -136,7 +144,6 @@ if __name__ == '__main__':
 
 	else:
 		processor.pipelining_enabled = True
-
 		pipeline_instructions = [State(0) for _ in range(5)]
 		for i in range(4):
 			pipeline_instructions[i].is_dummy = True
@@ -147,6 +154,14 @@ if __name__ == '__main__':
 
 				old_states = pipeline_instructions
 				pipeline_instructions, control_hazard, control_pc = evaluate(processor, pipeline_instructions)
+
+				tmp = []
+				for i in range(5):
+					if(old_states[i].is_dummy):
+						tmp.append("bubble")
+					else:
+						tmp.append(old_states[i].PC)
+				pc_tmp.append(tmp)
 
 				branch_taken = pipeline_instructions[3].branch_taken
 				branch_pc = pipeline_instructions[3].next_pc
@@ -186,6 +201,14 @@ if __name__ == '__main__':
 
 				old_states = pipeline_instructions
 				pipeline_instructions, control_hazard, control_pc = evaluate(processor, pipeline_instructions)
+
+				tmp = []
+				for i in range(5):
+					if(old_states[i].is_dummy):
+						tmp.append("bubble")
+					else:
+						tmp.append(old_states[i].PC)
+				pc_tmp.append(tmp)
 
 				branch_taken = pipeline_instructions[3].branch_taken
 				branch_pc = pipeline_instructions[3].next_pc
@@ -300,5 +323,8 @@ if __name__ == '__main__':
 		statfile.writelines(stats)
 		statfile.close()
 		# this list is just for testing, original will be created by Harsh
-		l = [['decode', 'execute', 'mem', 'fetch', 'wb'], ['decode', 'execute', 'mem', 'fetch', 'wb'], ['decode', 'execute', 'mem', 'fetch', 'wb'], ['decode', 'execute', 'mem', 'fetch', 'wb']]
+		# l = [['decode', 'execute', 'mem', 'fetch', 'wb'], ['decode', 'execute', 'mem', 'fetch', 'wb'], ['decode', 'execute', 'mem', 'fetch', 'wb'], ['decode', 'execute', 'mem', 'fetch', 'wb']]
+		for li in pc_tmp:
+			tmp = [str(processor.get_code[i]) for i in li]
+			l.append(tmp)
 		display(l)

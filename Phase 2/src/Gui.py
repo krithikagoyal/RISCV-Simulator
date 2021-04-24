@@ -4,6 +4,13 @@ from PyQt5.QtWidgets import QInputDialog, QFileDialog
 import time
 import os
 
+pipelining_enabled = False
+forwarding_enabled = False
+print_registers_each_cycle = False
+print_specific_pipeline_registers = False
+print_pipeline_registers = False
+number = -1
+
 class Ui_takeInput(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -11,12 +18,38 @@ class Ui_takeInput(object):
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.pushButton = QtWidgets.QPushButton(self.centralwidget)
-        self.pushButton.setGeometry(QtCore.QRect(295, 270, 161, 61))
+        self.pushButton.setGeometry(QtCore.QRect(295, 140, 161, 61))
         self.pushButton.setObjectName("pushButton")
-        self.label = QtWidgets.QLabel(self.centralwidget)
-        self.label.setGeometry(QtCore.QRect(250, 180, 301, 41))
+        self.run = QtWidgets.QPushButton(self.centralwidget)
+        self.run.setGeometry(QtCore.QRect(295, 470, 161, 61))
+        self.run.setObjectName("pushButton_run")
         font = QtGui.QFont()
         font.setPointSize(16)
+        font2 = QtGui.QFont()
+        font2.setPointSize(12)
+
+        self.pipelining_enabled = QtWidgets.QCheckBox(self.centralwidget)
+        self.pipelining_enabled.setGeometry(QtCore.QRect(170, 245, 500, 30))
+        self.pipelining_enabled.setFont(font2)
+
+        self.forwarding_enabled = QtWidgets.QCheckBox(self.centralwidget)
+        self.forwarding_enabled.setGeometry(QtCore.QRect(170, 275, 500, 30))
+        self.forwarding_enabled.setFont(font2)
+
+        self.print_registers_each_cycle = QtWidgets.QCheckBox(self.centralwidget)
+        self.print_registers_each_cycle.setGeometry(QtCore.QRect(170, 305, 500, 30))
+        self.print_registers_each_cycle.setFont(font2)
+
+        self.print_pipeline_registers = QtWidgets.QCheckBox(self.centralwidget)
+        self.print_pipeline_registers.setGeometry(QtCore.QRect(170, 335, 500, 30))
+        self.print_pipeline_registers.setFont(font2)
+
+        self.print_specific_pipeline_registers = QtWidgets.QCheckBox(self.centralwidget)
+        self.print_specific_pipeline_registers.setGeometry(QtCore.QRect(170, 365, 500, 30))
+        self.print_specific_pipeline_registers.setFont(font2)
+
+        self.label = QtWidgets.QLabel(self.centralwidget)
+        self.label.setGeometry(QtCore.QRect(250, 80, 301, 41))
         self.label.setFont(font)
         self.label.setObjectName("label")
         MainWindow.setCentralWidget(self.centralwidget)
@@ -35,9 +68,48 @@ class Ui_takeInput(object):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "RISC-V Simulator"))
         self.pushButton.setText(_translate("MainWindow", "Choose File"))
+        self.run.setText(_translate("MainWindow", "Run"))
+        
         self.label.setText(_translate("MainWindow", "Choose the input file "))
         self.pushButton.clicked.connect(lambda: self.pushButton_handler(MainWindow))
+        self.run.clicked.connect(lambda: self.run_handler(MainWindow))
 
+        self.pipelining_enabled.setText(_translate("MainWindow", "Enable pipelining"))
+        self.forwarding_enabled.setText(_translate("MainWindow", "Enable forwarding"))
+        self.print_registers_each_cycle.setText(_translate("MainWindow", "Enable printing registers in each cycle"))
+        self.print_pipeline_registers.setText(_translate("MainWindow", "Enable printing pipeling registers"))
+        self.print_specific_pipeline_registers.setText(_translate("MainWindow", "Enable printing specific pipeline registers"))
+
+        self.pipelining_enabled.stateChanged.connect(self.checked_pipelining_enabled)
+        self.forwarding_enabled.stateChanged.connect(self.checked_forwarding_enabled)
+        self.print_registers_each_cycle.stateChanged.connect(self.checked_print_registers_each_cycle)
+        self.print_pipeline_registers.stateChanged.connect(self.checked_print_pipeline_registers)
+        self.print_specific_pipeline_registers.stateChanged.connect(lambda: self.checked_print_specific_pipeline_registers(MainWindow))
+
+    def checked_pipelining_enabled(self):
+        global pipelining_enabled
+        pipelining_enabled = not pipelining_enabled
+
+    def checked_forwarding_enabled(self):
+        global forwarding_enabled
+        forwarding_enabled = not forwarding_enabled
+
+    def checked_print_registers_each_cycle(self):
+        global print_registers_each_cycle
+        print_registers_each_cycle = not print_registers_each_cycle
+
+    def checked_print_pipeline_registers(self):
+        global print_pipeline_registers
+        print_pipeline_registers = not print_pipeline_registers
+
+    def checked_print_specific_pipeline_registers(self, MainWindow):
+        global print_specific_pipeline_registers, number
+        print_specific_pipeline_registers = not print_specific_pipeline_registers
+        if print_specific_pipeline_registers:
+            number, done2 = QtWidgets.QInputDialog.getInt(MainWindow, 'Input Number', 'Enter the instruction number:')
+        else:
+            number = -1
+    
     def pushButton_handler(self, MainWindow):
         self.openDialogBox(MainWindow)
 
@@ -47,8 +119,9 @@ class Ui_takeInput(object):
         path = os.path.dirname(path)
         path = os.path.join(path, 'test')
         filename = QFileDialog.getOpenFileName(MainWindow, 'Open file', path, "*.mc")
-        MainWindow.close()
 
+    def run_handler(self, MainWindow):
+        MainWindow.close()
 
 class display_data(object):
     def setupUi(self, MainWindow, filename):
@@ -246,7 +319,6 @@ class display_register(object):
             item.setTextAlignment(QtCore.Qt.AlignCenter)
             item.setText(_translate("MainWindow", str(int(f[i][1], 16))))
 
-
 class display_pipeline(object):
     def setupUi(self, MainWindow, l):
         MainWindow.width = 1900
@@ -378,5 +450,4 @@ def take_input():
     ui.setupUi(MainWindow)
     MainWindow.show()
     app.exec_()
-    return filename[0]
-
+    return filename[0], pipelining_enabled, forwarding_enabled, print_registers_each_cycle, print_pipeline_registers, [print_specific_pipeline_registers, number]
