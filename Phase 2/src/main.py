@@ -36,7 +36,9 @@ stats = [
 ]
 
 s = [0]*12
+
 l = []
+stage = {1: "fetch", 2: "decode", 3: "execute", 4: "memory", 5: "write_back"}
 
 # Function for pipelined execution
 def evaluate(processor, pipeline_ins):
@@ -139,7 +141,6 @@ if __name__ == '__main__':
 
 	else:
 		processor.pipelining_enabled = True
-
 		pipeline_instructions = [State(0) for _ in range(5)]
 		for i in range(4):
 			pipeline_instructions[i].is_dummy = True
@@ -156,7 +157,7 @@ if __name__ == '__main__':
 					if(old_states[i].is_dummy):
 						tmp.append("bubble")
 					else:
-						tmp.append(old_states[i].asm_code)
+						tmp.append(str(processor.get_code[old_states[i].PC]) + ' ' + stage[5-i])
 				l.append(tmp)
 
 				branch_taken = pipeline_instructions[3].branch_taken
