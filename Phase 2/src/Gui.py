@@ -66,7 +66,11 @@ class display_data(object):
         self.register_button = QtWidgets.QPushButton(self.centralwidget)
         self.register_button.setGeometry(QtCore.QRect(950, 3, 125, 40))
         self.register_button.setObjectName("register")
+        self.pipeline_button = QtWidgets.QPushButton(self.centralwidget)
+        self.pipeline_button.setGeometry(QtCore.QRect(1080, 3, 125, 40))
+        self.pipeline_button.setObjectName("pipeline")
         self.register_button.clicked.connect(self.show_register_data)
+        self.pipeline_button.clicked.connect(self.show_pipeline_data)
         font = QtGui.QFont()
         font.setPointSize(12)
         self.label.setFont(font)
@@ -99,12 +103,16 @@ class display_data(object):
     def show_register_data(self):
         widgets.setCurrentIndex(widgets.currentIndex() + 1)
 
+    def show_pipeline_data(self):
+        widgets.setCurrentIndex(widgets.currentIndex() + 2)
+
     def retranslateUi(self, MainWindow, filename):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "RISC-V Simulator"))
         self.label.setText(_translate("MainWindow", "Memory Data"))
         self.memory_button.setText(_translate("MainWindow", "Data"))
         self.register_button.setText(_translate("MainWindow", "Register"))
+        self.register_button.setText(_translate("MainWindow", "Pipeline"))
         item = self.tableWidget.horizontalHeaderItem(0)
         item.setText(_translate("MainWindow", "ADDRESS"))
         item = self.tableWidget.horizontalHeaderItem(1)
@@ -156,7 +164,11 @@ class display_register(object):
         self.register_button = QtWidgets.QPushButton(self.centralwidget)
         self.register_button.setGeometry(QtCore.QRect(950, 3, 125, 40))
         self.register_button.setObjectName("register")
+        self.pipeline_button = QtWidgets.QPushButton(self.centralwidget)
+        self.pipeline_button.setGeometry(QtCore.QRect(1080, 3, 125, 40))
+        self.pipeline_button.setObjectName("pipeline")
         self.memory_button.clicked.connect(self.show_memory_data)
+        self.pipeline_button.clicked.connect(self.show_pipeline_data)
         font = QtGui.QFont()
         font.setPointSize(12)
         self.label.setFont(font)
@@ -188,6 +200,9 @@ class display_register(object):
 
     def show_memory_data(self):
         widgets.setCurrentIndex(widgets.currentIndex() - 1)
+    
+    def show_pipeline_data(self):
+        widgets.setCurrentIndex(widgets.currentIndex() + 1)
 
     def retranslateUi(self, MainWindow, filename):
         _translate = QtCore.QCoreApplication.translate
@@ -195,6 +210,7 @@ class display_register(object):
         self.label.setText(_translate("MainWindow", "Register Data"))
         self.memory_button.setText(_translate("MainWindow", "Data"))
         self.register_button.setText(_translate("MainWindow", "Register"))
+        self.pipeline_button.setText(_translate("MainWindow", "Pipeline"))
         item = self.tableWidget.horizontalHeaderItem(0)
         item.setText(_translate("MainWindow", "ADDRESS"))
         item = self.tableWidget.horizontalHeaderItem(1)
@@ -248,8 +264,8 @@ class display_pipeline(object):
         self.register_button.setGeometry(QtCore.QRect(950, 3, 125, 40))
         self.register_button.setObjectName("register")
         self.pipeline_button = QtWidgets.QPushButton(self.centralwidget)
-        self.pipeline_button.setGeometry(QtCore.QRect(820, 3, 125, 40))
-        self.pipeline_button.setObjectName("memory")
+        self.pipeline_button.setGeometry(QtCore.QRect(1080, 3, 125, 40))
+        self.pipeline_button.setObjectName("pipeline")
         self.memory_button.clicked.connect(self.show_memory_data)
         self.register_button.clicked.connect(self.show_register_data)
         font = QtGui.QFont()
@@ -274,15 +290,18 @@ class display_pipeline(object):
         self.tableWidget.setHorizontalHeaderItem(2, item)
         item = QtWidgets.QTableWidgetItem()
         self.tableWidget.setHorizontalHeaderItem(3, item)
-        self.tableWidget.setColumnWidth(0, int(MainWindow.width / 4) - 30)
-        self.tableWidget.setColumnWidth(1, int(MainWindow.width / 4) - 30)
-        self.tableWidget.setColumnWidth(2, int(MainWindow.width / 4) - 30)
-        self.tableWidget.setColumnWidth(3, int(MainWindow.width / 4) - 30)
+        item = QtWidgets.QTableWidgetItem()
+        self.tableWidget.setHorizontalHeaderItem(4, item)
+        self.tableWidget.setColumnWidth(0, int(MainWindow.width / 5) - 30)
+        self.tableWidget.setColumnWidth(1, int(MainWindow.width / 5) - 30)
+        self.tableWidget.setColumnWidth(2, int(MainWindow.width / 5) - 30)
+        self.tableWidget.setColumnWidth(3, int(MainWindow.width / 5) - 30)
+        self.tableWidget.setColumnWidth(4, int(MainWindow.width / 5) - 30)
         self.retranslateUi(MainWindow, l)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def show_memory_data(self):
-        widgets.setCurrentIndex(widgets.currentIndex() - 1)
+        widgets.setCurrentIndex(widgets.currentIndex() - 2)
 
     def show_register_data(self):
         widgets.setCurrentIndex(widgets.currentIndex() - 1)
@@ -293,20 +312,20 @@ class display_pipeline(object):
         self.label.setText(_translate("MainWindow", "Pipeline at each Cycle"))
         self.memory_button.setText(_translate("MainWindow", "Data"))
         self.register_button.setText(_translate("MainWindow", "Register"))
+        self.pipeline_button.setText(_translate("MainWindow", "Pipeline"))
         item = self.tableWidget.horizontalHeaderItem(0)
-        item.setText(_translate("MainWindow", "ADDRESS"))
+        item.setText(_translate("MainWindow", "Fetch"))
         item = self.tableWidget.horizontalHeaderItem(1)
-        item.setText(_translate("MainWindow", "HEX"))
+        item.setText(_translate("MainWindow", "Decode"))
         item = self.tableWidget.horizontalHeaderItem(2)
-        item.setText(_translate("MainWindow", "BINARY"))
+        item.setText(_translate("MainWindow", "Execute"))
         item = self.tableWidget.horizontalHeaderItem(3)
-        item.setText(_translate("MainWindow", "DECIMAL"))
+        item.setText(_translate("MainWindow", "Memory"))
+        item = self.tableWidget.horizontalHeaderItem(4)
+        item.setText(_translate("MainWindow", "Write back"))
 
-        f = open(filename, "r")
-        f = f.readlines()
+        f = l
         for i in range(len(f)):
-            f[i] = f[i].split()
-        for i in range(32):
             item = QtWidgets.QTableWidgetItem()
             item.setTextAlignment(QtCore.Qt.AlignCenter)
             self.tableWidget.setItem(i, 0, item)
@@ -316,18 +335,22 @@ class display_pipeline(object):
             item.setTextAlignment(QtCore.Qt.AlignCenter)
             self.tableWidget.setItem(i, 1, item)
             item.setTextAlignment(QtCore.Qt.AlignCenter)
-            item.setText(_translate("MainWindow", hex(int(f[i][1], 16))))
+            item.setText(_translate("MainWindow", f[i][1]))
             item = QtWidgets.QTableWidgetItem()
             item.setTextAlignment(QtCore.Qt.AlignCenter)
             self.tableWidget.setItem(i, 2, item)
             item.setTextAlignment(QtCore.Qt.AlignCenter)
-            item.setText(_translate("MainWindow", bin(int(f[i][1], 16))))
+            item.setText(_translate("MainWindow", f[i][2]))
             item = QtWidgets.QTableWidgetItem()
             item.setTextAlignment(QtCore.Qt.AlignCenter)
             self.tableWidget.setItem(i, 3, item)
             item.setTextAlignment(QtCore.Qt.AlignCenter)
-            item.setText(_translate("MainWindow", str(int(f[i][1], 16))))
-
+            item.setText(_translate("MainWindow", f[i][3]))
+            item = QtWidgets.QTableWidgetItem()
+            item.setTextAlignment(QtCore.Qt.AlignCenter)
+            self.tableWidget.setItem(i, 3, item)
+            item.setTextAlignment(QtCore.Qt.AlignCenter)
+            item.setText(_translate("MainWindow", f[i][4]))
 
 def display(l):
     MainWindow2 = QtWidgets.QWidget()
