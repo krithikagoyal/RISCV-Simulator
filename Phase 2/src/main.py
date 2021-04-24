@@ -39,6 +39,7 @@ s = [0]*12
 
 l = []
 pc_tmp = []
+data_hazard_pairs = []
 stage = {1: "fetch", 2: "decode", 3: "execute", 4: "memory", 5: "write_back"}
 
 # Function for pipelined execution
@@ -96,9 +97,11 @@ if __name__ == '__main__':
 					print("R" + str(i) + ":", processor.R[i], end=" ")
 				print("\n")
 			pc_tmp.append([-1, -1, -1, -1, instruction.PC])
+			data_hazard_pairs.append({'who': -1, 'from_whom': -1})
 
 			processor.decode(instruction)
 			pc_tmp.append([-1, -1, -1, instruction.PC, -1])
+			data_hazard_pairs.append({'who': -1, 'from_whom': -1})
 			clock_cycles += 1
 			if print_registers_each_cycle:
 				print("CLOCK CYCLE:", clock_cycles)
@@ -112,6 +115,7 @@ if __name__ == '__main__':
 
 			processor.execute(instruction)
 			pc_tmp.append([-1, -1, instruction.PC, -1, -1])
+			data_hazard_pairs.append({'who': -1, 'from_whom': -1})
 			clock_cycles += 1
 			if print_registers_each_cycle:
 				print("CLOCK CYCLE:", clock_cycles)
@@ -122,6 +126,7 @@ if __name__ == '__main__':
 
 			processor.mem(instruction)
 			pc_tmp.append([-1, instruction.PC, -1, -1, -1])
+			data_hazard_pairs.append({'who': -1, 'from_whom': -1})
 			clock_cycles += 1
 			if print_registers_each_cycle:
 				print("CLOCK CYCLE:", clock_cycles)
@@ -132,6 +137,7 @@ if __name__ == '__main__':
 
 			processor.write_back(instruction)
 			pc_tmp.append([instruction.PC, -1, -1, -1, -1])
+			data_hazard_pairs.append({'who': -1, 'from_whom': -1})
 			clock_cycles += 1
 			if print_registers_each_cycle:
 				print("CLOCK CYCLE:", clock_cycles)
@@ -162,6 +168,7 @@ if __name__ == '__main__':
 					else:
 						tmp.append(old_states[i].PC)
 				pc_tmp.append(tmp)
+				data_hazard_pairs.append(data_hazard[2])
 
 				branch_taken = pipeline_instructions[3].branch_taken
 				branch_pc = pipeline_instructions[3].next_pc
@@ -197,7 +204,7 @@ if __name__ == '__main__':
 						break
 
 			else:
-				data_hazard, if_stall, stall_position, pipeline_instructions = hdu.data_hazard_forwarding(pipeline_instructions)
+				data_hazard, if_stall, stall_position, pipeline_instructions, gui_pair = hdu.data_hazard_forwarding(pipeline_instructions)
 
 				old_states = pipeline_instructions
 				pipeline_instructions, control_hazard, control_pc = evaluate(processor, pipeline_instructions)
@@ -209,6 +216,7 @@ if __name__ == '__main__':
 					else:
 						tmp.append(old_states[i].PC)
 				pc_tmp.append(tmp)
+				data_hazard_pairs.append(gui_pair)
 
 				branch_taken = pipeline_instructions[3].branch_taken
 				branch_pc = pipeline_instructions[3].next_pc
@@ -325,8 +333,8 @@ if __name__ == '__main__':
 		# this list is just for testing, original will be created by Harsh
 		# l[i][5]['who'], l[i][5]['from_whom'] 0: write_back, 1: mem, 2:execute, 3:decode, 4:fetch
 		# for example see the below list
-		l = [['decode', 'execute', 'mem', 'fetch', 'wb', {'who': 1, 'from_whom': 2}], ['decode', 'execute', 'mem', 'fetch', 'wb', {'who': 1, 'from_whom': 3}], ['decode', 'execute', 'mem', 'fetch', 'wb', {'who': 1, 'from_whom': 4}], ['decode', 'execute', 'mem', 'fetch', 'wb', {'who': 1, 'from_whom': 0}]]
-		# for li in pc_tmp:
-		# 	tmp = [str(processor.get_code[i]) for i in li]
-		# 	l.append(tmp)
+		# l = [['decode', 'execute', 'mem', 'fetch', 'wb', {'who': 1, 'from_whom': 2}], ['decode', 'execute', 'mem', 'fetch', 'wb', {'who': 1, 'from_whom': 3}], ['decode', 'execute', 'mem', 'fetch', 'wb', {'who': 1, 'from_whom': 4}], ['decode', 'execute', 'mem', 'fetch', 'wb', {'who': 1, 'from_whom': 0}]]
+		for i in range(len(pc_tmp)):
+			tmp = [str(processor.get_code[x]) for x in pc_tmp[i]] + [data_hazard_pairs[i]]
+			l.append(tmp)
 		display(l)
