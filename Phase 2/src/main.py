@@ -59,11 +59,11 @@ if __name__ == '__main__':
 	btb = BTB()
 
 	# Knobs
-	pipelining_enabled = True                    # Knob1
+	pipelining_enabled = True                       # Knob1
 	forwarding_enabled = False                      # Knob2
 	print_registers_each_cycle = False              # Knob3
-	print_pipeline_registers_and_cycle = False     # Knob4
-	print_specific_pipeline_register = [False, -1] # Knob5
+	print_pipeline_registers = False    			# Knob4
+	print_specific_pipeline_registers = [False, 10] # Knob5
 
 	# Signals
 	PC = 0
@@ -90,28 +90,28 @@ if __name__ == '__main__':
 			clock_cycles += 1
 			if print_registers_each_cycle:
 				print("CLOCK CYCLE:", clock_cycles)
-				print("Register Data:")
+				print("Register Data:-")
 				for i in range(32):
 					print("R" + str(i) + ":", processor.R[i], end=" ")
 				print("\n")
 
 			processor.decode(instruction)
 			clock_cycles += 1
-			if processor.terminate:
-				prog_end = True
-				break
 			if print_registers_each_cycle:
 				print("CLOCK CYCLE:", clock_cycles)
-				print("Register Data:")
+				print("Register Data:-")
 				for i in range(32):
 					print("R" + str(i) + ":", processor.R[i], end=" ")
 				print("\n")
+			if processor.terminate:
+				prog_end = True
+				break
 
 			processor.execute(instruction)
 			clock_cycles += 1
 			if print_registers_each_cycle:
 				print("CLOCK CYCLE:", clock_cycles)
-				print("Register Data:")
+				print("Register Data:-")
 				for i in range(32):
 					print("R" + str(i) + ":", processor.R[i], end=" ")
 				print("\n")
@@ -120,7 +120,7 @@ if __name__ == '__main__':
 			clock_cycles += 1
 			if print_registers_each_cycle:
 				print("CLOCK CYCLE:", clock_cycles)
-				print("Register Data:")
+				print("Register Data:-")
 				for i in range(32):
 					print("R" + str(i) + ":", processor.R[i], end=" ")
 				print("\n")
@@ -129,7 +129,7 @@ if __name__ == '__main__':
 			clock_cycles += 1
 			if print_registers_each_cycle:
 				print("CLOCK CYCLE:", clock_cycles)
-				print("Register Data:")
+				print("Register Data:-")
 				for i in range(32):
 					print("R" + str(i) + ":", processor.R[i], end=" ")
 				print("\n")
@@ -251,19 +251,34 @@ if __name__ == '__main__':
 			clock_cycles += 1
 			if print_registers_each_cycle:
 				print("CLOCK CYCLE:", clock_cycles)
-				print("Register Data:")
+				print("Register Data:-")
 				for i in range(32):
 					print("R" + str(i) + ":", processor.R[i], end=" ")
 				print("\n")
 
 			# Print specific pipeline register
-			if print_specific_pipeline_register[0]:
+			if print_specific_pipeline_registers[0]:
+				for inst in pipeline_instructions:
+					if inst.PC/4 == print_specific_pipeline_registers[1]:
+						if not print_registers_each_cycle:
+							print("CLOCK CYCLE:", clock_cycles)
+						print("Pipeline Registers:-")
+						print("Fetch # Decode =>", "Instruction:", pipeline_instructions[3].instruction_word)
+						print("Decode # Execute => ", "Operand1: ", pipeline_instructions[2].operand1, ", Operand2: ", pipeline_instructions[2].operand2, sep="")
+						print("Execute # Memory => ", "Data: ", pipeline_instructions[1].register_data, sep="")
+						print("Memory # WriteBack => ", "Data: ", pipeline_instructions[0].register_data, sep="")
+						print("\n")
+
+			# Print pipeline registers
+			elif print_pipeline_registers:
 				if not print_registers_each_cycle:
 					print("CLOCK CYCLE:", clock_cycles)
-
-			# Print pipeline registers and cycle
-			elif print_pipeline_registers_and_cycle and not print_registers_each_cycle:
-				print("CLOCK CYCLE:", clock_cycles)
+				print("Pipeline Registers:-")
+				print("Fetch # Decode =>", "Instruction:", pipeline_instructions[3].instruction_word)
+				print("Decode # Execute => ", "Operand1: ", pipeline_instructions[2].operand1, ", Operand2: ", pipeline_instructions[2].operand2, sep="")
+				print("Execute # Memory => ", "Data: ", pipeline_instructions[1].register_data, sep="")
+				print("Memory # WriteBack => ", "Data: ", pipeline_instructions[0].register_data, sep="")
+				print("\n")
 
 
 	# Print Statistics
