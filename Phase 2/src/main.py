@@ -36,6 +36,7 @@ stats = [
 ]
 
 s = [0]*12
+l = []
 
 # Function for pipelined execution
 def evaluate(processor, pipeline_ins):
@@ -150,6 +151,14 @@ if __name__ == '__main__':
 				old_states = pipeline_instructions
 				pipeline_instructions, control_hazard, control_pc = evaluate(processor, pipeline_instructions)
 
+				tmp = []
+				for i in range(5):
+					if(old_states[i].is_dummy):
+						tmp.append("bubble")
+					else:
+						tmp.append(old_states[i].asm_code)
+				l.append(tmp)
+
 				branch_taken = pipeline_instructions[3].branch_taken
 				branch_pc = pipeline_instructions[3].next_pc
 
@@ -189,6 +198,14 @@ if __name__ == '__main__':
 
 				old_states = pipeline_instructions
 				pipeline_instructions, control_hazard, control_pc = evaluate(processor, pipeline_instructions)
+
+				tmp = []
+				for i in range(5):
+					if(old_states[i].is_dummy):
+						tmp.append("bubble")
+					else:
+						tmp.append(old_states[i].asm_code)
+				l.append(tmp)
 
 				branch_taken = pipeline_instructions[3].branch_taken
 				branch_pc = pipeline_instructions[3].next_pc
@@ -296,5 +313,5 @@ if __name__ == '__main__':
 		statfile.writelines(stats)
 		statfile.close()
 		# this list is just for testing, original will be created by Harsh
-		l = [['decode', 'execute', 'mem', 'fetch', 'wb'], ['decode', 'execute', 'mem', 'fetch', 'wb'], ['decode', 'execute', 'mem', 'fetch', 'wb'], ['decode', 'execute', 'mem', 'fetch', 'wb']]
+		# l = [['decode', 'execute', 'mem', 'fetch', 'wb'], ['decode', 'execute', 'mem', 'fetch', 'wb'], ['decode', 'execute', 'mem', 'fetch', 'wb'], ['decode', 'execute', 'mem', 'fetch', 'wb']]
 		display(l)
