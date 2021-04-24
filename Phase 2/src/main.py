@@ -38,6 +38,7 @@ stats = [
 s = [0]*12
 
 l = []
+pc_tmp = []
 stage = {1: "fetch", 2: "decode", 3: "execute", 4: "memory", 5: "write_back"}
 
 # Function for pipelined execution
@@ -157,8 +158,8 @@ if __name__ == '__main__':
 					if(old_states[i].is_dummy):
 						tmp.append("bubble")
 					else:
-						tmp.append(str(processor.get_code[old_states[i].PC]) + ' ' + stage[5-i])
-				l.append(tmp)
+						tmp.append(old_states[i].PC)
+				pc_tmp.append(tmp)
 
 				branch_taken = pipeline_instructions[3].branch_taken
 				branch_pc = pipeline_instructions[3].next_pc
@@ -315,4 +316,7 @@ if __name__ == '__main__':
 		statfile.close()
 		# this list is just for testing, original will be created by Harsh
 		# l = [['decode', 'execute', 'mem', 'fetch', 'wb'], ['decode', 'execute', 'mem', 'fetch', 'wb'], ['decode', 'execute', 'mem', 'fetch', 'wb'], ['decode', 'execute', 'mem', 'fetch', 'wb']]
+		for li in pc_tmp:
+			tmp = [str(processor.get_code[i]) for i in li]
+			l.append(tmp)
 		display(l)
