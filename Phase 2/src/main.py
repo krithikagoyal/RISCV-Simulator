@@ -38,6 +38,7 @@ stats = [
 s = [0]*12
 
 l = []
+l_dash = []
 pc_tmp = []
 data_hazard_pairs = []
 control_hazard_signals = []
@@ -78,7 +79,7 @@ if __name__ == '__main__':
 	# print_registers_each_cycle = False              # Knob3
 	# print_pipeline_registers = False    			      # Knob4
 	# print_specific_pipeline_registers = [False, 10] # Knob5
-  
+
 	# Signals
 	PC = 0
 	clock_cycles = 0

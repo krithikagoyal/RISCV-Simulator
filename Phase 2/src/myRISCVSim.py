@@ -625,6 +625,7 @@ class HDU:
 		if_stall = False
 		stall_position = 3
 		gui_pair =  {'who': -1, 'from_whom': -1}
+		gui_for = [""]*5 #wb = 0; mem = 1; execute = 2; decode = 3; fetch = 4 
 
 		decode_opcode = int(decode_state.instruction_word, 16) & int('0x7F', 16)
 		exe_opcode = int(exe_state.instruction_word, 16) & int('0x7F', 16)
@@ -637,6 +638,7 @@ class HDU:
 				mem_state.register_data = wb_state.register_data
 				data_hazard += 1
 				gui_pair =  {'who': 1, 'from_whom': 0}
+				gui_for[1] += "forwarded: mem of cycle "
 
 		# M -> E forwarding
 		if (wb_state.rd != -1) and (wb_state.rd != '00000') and not wb_state.is_dummy:
