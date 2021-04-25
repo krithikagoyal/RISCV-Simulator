@@ -148,6 +148,7 @@ if __name__ == '__main__':
 			processor.write_back(instruction)
 			pc_tmp.append([instruction.PC, -1, -1, -1, -1])
 			data_hazard_pairs.append({'who': -1, 'from_whom': -1})
+			control_hazard_signals += [0,0,0,0,0]
 			clock_cycles += 1
 			if print_registers_each_cycle:
 				print("CLOCK CYCLE:", clock_cycles)
@@ -340,12 +341,9 @@ if __name__ == '__main__':
 		statfile = open("stats.txt", "w")
 		statfile.writelines(stats)
 		statfile.close()
-		# this list is just for testing, original will be created by Harsh
-		# l[i][5]['who'], l[i][5]['from_whom'] 0: write_back, 1: mem, 2:execute, 3:decode, 4:fetch
-		# for example see the below list
 		# l = [['decode', 'execute', 'mem', 'fetch', 'wb', {'who': 1, 'from_whom': 2}], ['decode', 'execute', 'mem', 'fetch', 'wb', {'who': 1, 'from_whom': 3}], ['decode', 'execute', 'mem', 'fetch', 'wb', {'who': 1, 'from_whom': 4}], ['decode', 'execute', 'mem', 'fetch', 'wb', {'who': 1, 'from_whom': 0}]]
 		for i in range(len(pc_tmp)):
 			tmp = [str(processor.get_code[x]) for x in pc_tmp[i]] + [data_hazard_pairs[i]]
 			l.append(tmp)
 		# control_hazard_signals is a list on integers 0=> nothing; 1=> red ; 2 => yellow; 3=> green
-		display(l, control_hazard_signals)
+		display(l, control_hazard_signals )
