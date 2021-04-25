@@ -240,13 +240,13 @@ class Processor:
 	# Decodes the instruction and decides the operation to be performed in the execute stage; reads the operands from the register file.
 	def decode(self, state, *args):
 		if state.is_dummy:
-			return False, 0, False
+			return False, 0, False, 0
 
 		if state.instruction_word == '0x401080BB':
 			self.terminate = True
 			state.is_dummy = True
 			self.all_dummy = True
-			return False, 0, False
+			return False, 0, False, 0
 
 		bin_instruction = bin(int(state.instruction_word[2:], 16))[2:]
 		bin_instruction = (32 - len(bin_instruction)) * '0' + bin_instruction
@@ -347,7 +347,7 @@ class Processor:
 			entering = False
 
 			if state.alu_control_signal not in branch_ins:
-				return False, 0, entering
+				return False, 0, entering, 0
 
 			else:
 				self.execute(state)
@@ -377,9 +377,9 @@ class Processor:
 					entering = True
 
 				if orig_pc != state.next_pc:
-					return True, orig_pc, entering
+					return True, orig_pc, entering, 1
 				else:
-					return False, 0, entering
+					return False, 0, entering, 3 # 0: no_pred, 1: wrong, 3: correct
 
 	# Executes the ALU operation based on ALUop
 	def execute(self, state):
