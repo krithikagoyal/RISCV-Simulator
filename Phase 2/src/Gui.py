@@ -459,10 +459,10 @@ class display_data_hazard(object):
                 self.tableWidget.item(i, f[i][5]['from_whom']).setBackground(QtGui.QColor(51, 153, 255))
             
             if forwarding_enabled and pipelining_enabled:
-                 self.tableWidget.setRowHeight(i, 100)
+                 self.tableWidget.setRowHeight(i, 90)
 
 class display_control_hazard(object):
-    def setupUi(self, MainWindow, l):
+    def setupUi(self, MainWindow, l, control_hazard_signals):
         MainWindow.width = 1900
         MainWindow.height = 970
         MainWindow.setObjectName("MainWindow")
@@ -516,7 +516,7 @@ class display_control_hazard(object):
         self.tableWidget.setColumnWidth(2, int(MainWindow.width / 5) - 20)
         self.tableWidget.setColumnWidth(3, int(MainWindow.width / 5) - 20)
         self.tableWidget.setColumnWidth(4, int(MainWindow.width / 5) - 20)
-        self.retranslateUi(MainWindow, l)
+        self.retranslateUi(MainWindow, l, control_hazard_signals)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def show_memory_data(self):
@@ -528,7 +528,7 @@ class display_control_hazard(object):
     def show_data_hazard(self):
         widgets.setCurrentIndex(widgets.currentIndex() - 1)
 
-    def retranslateUi(self, MainWindow, l):
+    def retranslateUi(self, MainWindow, l, control_hazard_signals):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "RISC-V Simulator"))
         self.label.setText(_translate("MainWindow", "Colors representing Control Hazard"))
@@ -569,13 +569,23 @@ class display_control_hazard(object):
             self.tableWidget.setItem(i, 3, item)
             item.setTextAlignment(QtCore.Qt.AlignCenter)
             item.setText(_translate("MainWindow", f[i][3]))
+
+            # adding colors for control_hazard
+            if control_hazard_signals[i] == 1:
+                item.setBackground(QtGui.QColor(255, 94, 94))
+            if control_hazard_signals[i] == 2:
+                item.setBackground(QtGui.QColor(247, 255, 94))
+            if control_hazard_signals[i] == 3:
+                item.setBackground(QtGui.QColor(94, 255, 150))
+
             item = QtWidgets.QTableWidgetItem()
             item.setTextAlignment(QtCore.Qt.AlignCenter)
             self.tableWidget.setItem(i, 4, item)
             item.setTextAlignment(QtCore.Qt.AlignCenter)
             item.setText(_translate("MainWindow", f[i][4]))
+                # self.tableWidget.item(i, f[i][5]['who']).setBackground(QtGui.QColor(0, 153, 51))
 
-def display(l):
+def display(l, control_hazard_signals, l_for):
     MainWindow2 = QtWidgets.QWidget()
     MainWindow3 = QtWidgets.QWidget()
     MainWindow4 = QtWidgets.QWidget()
@@ -585,9 +595,9 @@ def display(l):
     ui2 = display_register()
     ui2.setupUi(MainWindow3, "reg_out.mc")
     ui3 = display_data_hazard()
-    ui3.setupUi(MainWindow4, l)
+    ui3.setupUi(MainWindow4, l_for)
     ui4 = display_control_hazard()
-    ui4.setupUi(MainWindow5, l)
+    ui4.setupUi(MainWindow5, l, control_hazard_signals)
     global widgets
     widgets = QtWidgets.QStackedWidget()
     widgets.setFixedHeight(970)
