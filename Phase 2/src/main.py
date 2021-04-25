@@ -341,4 +341,4 @@ if __name__ == '__main__':
 			tmp = [str(processor.get_code[x]) for x in pc_tmp[i]] + [data_hazard_pairs[i]]
 			l.append(tmp)
 		# control_hazard_signals is a list on integers 0=> nothing; 1=> red ; 2 => yellow; 3=> green
-		display(l, control_hazard_signals )
+		display(l, control_hazard_signals, l)

@@ -571,12 +571,13 @@ class display_control_hazard(object):
             item.setText(_translate("MainWindow", f[i][3]))
 
             # adding colors for control_hazard
-            if control_hazard_signals[i] == 1:
-                item.setBackground(QtGui.QColor(255, 94, 94))
-            if control_hazard_signals[i] == 2:
-                item.setBackground(QtGui.QColor(247, 255, 94))
-            if control_hazard_signals[i] == 3:
-                item.setBackground(QtGui.QColor(94, 255, 150))
+            if forwarding_enabled:
+                if control_hazard_signals[i] == 1:
+                    item.setBackground(QtGui.QColor(255, 94, 94))
+                if control_hazard_signals[i] == 2:
+                    item.setBackground(QtGui.QColor(247, 255, 94))
+                if control_hazard_signals[i] == 3:
+                    item.setBackground(QtGui.QColor(94, 255, 150))
 
             item = QtWidgets.QTableWidgetItem()
             item.setTextAlignment(QtCore.Qt.AlignCenter)
