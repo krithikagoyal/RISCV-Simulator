@@ -240,13 +240,13 @@ class Processor:
 	# Decodes the instruction and decides the operation to be performed in the execute stage; reads the operands from the register file.
 	def decode(self, state, *args):
 		if state.is_dummy:
-			return False, 0
+			return False, 0, False
 
 		if state.instruction_word == '0x401080BB':
 			self.terminate = True
 			state.is_dummy = True
 			self.all_dummy = True
-			return False, 0
+			return False, 0, False
 
 		bin_instruction = bin(int(state.instruction_word[2:], 16))[2:]
 		bin_instruction = (32 - len(bin_instruction)) * '0' + bin_instruction
