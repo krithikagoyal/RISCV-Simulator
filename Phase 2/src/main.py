@@ -48,16 +48,11 @@ def evaluate(processor, pipeline_ins):
 	processor.write_back(pipeline_ins[0])
 	processor.mem(pipeline_ins[1])
 	processor.execute(pipeline_ins[2])
-	control_hazard, control_pc, entering = processor.decode(pipeline_ins[3], btb)
+	control_hazard, control_pc, entering, color = processor.decode(pipeline_ins[3], btb)
 	if entering:
 		control_hazard_signals.append(2)
-	elif control_hazard:
-		if control_pc == pipeline_ins[3].pc:
-			control_hazard_signals.append(3)
-		else:
-			control_hazard_signals.append(1)
 	else:
-		control_hazard_signals.append(0)
+		control_hazard_signals.append(color)
 	processor.fetch(pipeline_ins[4], btb)
 	pipeline_ins = [pipeline_ins[1], pipeline_ins[2], pipeline_ins[3], pipeline_ins[4]]
 	return pipeline_ins, control_hazard, control_pc
