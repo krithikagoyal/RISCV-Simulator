@@ -344,9 +344,10 @@ class Processor:
 
 		if self.pipelining_enabled:
 			branch_ins = [23, 24, 25, 26, 29, 19]
+			entering = False
 
 			if state.alu_control_signal not in branch_ins:
-				return False, 0
+				return False, 0, entering
 
 			else:
 				self.execute(state)
@@ -358,6 +359,7 @@ class Processor:
 				if btb.find(state.PC) and orig_pc != state.next_pc:
 					self.count_branch_mispredictions += 1
 
+				
 				if not btb.find(state.PC):
 					state.inc_select = self.inc_select
 					state.pc_select = self.pc_select
@@ -372,11 +374,12 @@ class Processor:
 						btb.enter(False, state.PC, state.pc_update)
 					self.reset()
 					self.reset(state)
+					entering = True
 
 				if orig_pc != state.next_pc:
-					return True, orig_pc
+					return True, orig_pc, entering
 				else:
-					return False, 0
+					return False, 0, entering
 
 	# Executes the ALU operation based on ALUop
 	def execute(self, state):

@@ -40,6 +40,7 @@ s = [0]*12
 l = []
 pc_tmp = []
 data_hazard_pairs = []
+control_hazard_signals = []
 stage = {1: "fetch", 2: "decode", 3: "execute", 4: "memory", 5: "write_back"}
 
 # Function for pipelined execution
@@ -47,7 +48,16 @@ def evaluate(processor, pipeline_ins):
 	processor.write_back(pipeline_ins[0])
 	processor.mem(pipeline_ins[1])
 	processor.execute(pipeline_ins[2])
-	control_hazard, control_pc = processor.decode(pipeline_ins[3], btb)
+	control_hazard, control_pc, entering = processor.decode(pipeline_ins[3], btb)
+	if entering:
+		control_hazard_signals.append(2)
+	elif control_hazard:
+		if control_pc == pipeline_ins[3].pc:
+			control_hazard_signals.append(3)
+		else:
+			control_hazard_signals.append(1)
+	else:
+		control_hazard_signals.append(0)
 	processor.fetch(pipeline_ins[4], btb)
 	pipeline_ins = [pipeline_ins[1], pipeline_ins[2], pipeline_ins[3], pipeline_ins[4]]
 	return pipeline_ins, control_hazard, control_pc
@@ -337,4 +347,5 @@ if __name__ == '__main__':
 		for i in range(len(pc_tmp)):
 			tmp = [str(processor.get_code[x]) for x in pc_tmp[i]] + [data_hazard_pairs[i]]
 			l.append(tmp)
-		display(l)
+		# control_hazard_signals is a list on integers 0=> nothing; 1=> red ; 2 => yellow; 3=> green
+		display(l, control_hazard_signals)
