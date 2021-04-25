@@ -571,7 +571,7 @@ class display_control_hazard(object):
             item.setText(_translate("MainWindow", f[i][3]))
 
             # adding colors for control_hazard
-            if forwarding_enabled:
+            if pipelining_enabled:
                 if control_hazard_signals[i] == 1:
                     item.setBackground(QtGui.QColor(255, 94, 94))
                 if control_hazard_signals[i] == 2:
