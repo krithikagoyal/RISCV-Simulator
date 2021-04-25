@@ -457,6 +457,9 @@ class display_data_hazard(object):
             if f[i][5]['who'] != -1:
                 self.tableWidget.item(i, f[i][5]['who']).setBackground(QtGui.QColor(0, 153, 51))
                 self.tableWidget.item(i, f[i][5]['from_whom']).setBackground(QtGui.QColor(51, 153, 255))
+            
+            if forwarding_enabled and pipelining_enabled:
+                 self.tableWidget.setRowHeight(i, 100)
 
 class display_control_hazard(object):
     def setupUi(self, MainWindow, l):
