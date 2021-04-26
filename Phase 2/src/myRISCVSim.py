@@ -372,6 +372,7 @@ class Processor:
 						btb.enter(True, state.PC, state.pc_update)
 					else:
 						btb.enter(False, state.PC, state.pc_update)
+						# entering = True if jalr is always green
 					self.reset()
 					self.reset(state)
 					entering = True
@@ -626,7 +627,7 @@ class HDU:
 		stall_position = 3
 		gui_pair =  {'who': -1, 'from_whom': -1}
 		gui_for = [""]*5 #wb = 0; mem = 1; execute = 2; decode = 3; fetch = 4 
-
+		# gui_from_cycle = [0,0,0,0,0]
 		decode_opcode = int(decode_state.instruction_word, 16) & int('0x7F', 16)
 		exe_opcode = int(exe_state.instruction_word, 16) & int('0x7F', 16)
 		mem_opcode = int(mem_state.instruction_word, 16) & int('0x7F', 16)
@@ -637,15 +638,20 @@ class HDU:
 			if wb_state.rd != -1 and wb_state.rd != '00000' and wb_state.rd == mem_state.rs2:
 				mem_state.register_data = wb_state.register_data
 				data_hazard += 1
-				gui_pair =  {'who': 1, 'from_whom': 0}
-				gui_for[1] += "forwarded: mem of cycle "
+				# gui_pair =  {'who': 1, 'from_whom': 0}
+				gui_pair =  {'who': -1, 'from_whom': -1}
+				gui_for[1] = "forwarded from mem"
+				# gui_from_cycle[1] = 1
 
 		# M -> E forwarding
 		if (wb_state.rd != -1) and (wb_state.rd != '00000') and not wb_state.is_dummy:
 			if wb_state.rd == exe_state.rs1 and not exe_state.is_dummy:
 				exe_state.operand1 = wb_state.register_data
 				data_hazard += 1
-				gui_pair =  {'who': 2, 'from_whom': 0}
+				# gui_pair =  {'who': 2, 'from_whom': 0}
+				gui_pair =  {'who': -1, 'from_whom': -1}
+				gui_for[2] = "forwarded from mem"
+				# gui_from_cycle[2] = 1
 
 			if wb_state.rd == exe_state.rs2 and not exe_state.is_dummy:
 				if exe_opcode != 35: # store
@@ -653,7 +659,10 @@ class HDU:
 				else:
 					exe_state.register_data = wb_state.register_data
 				data_hazard += 1
-				gui_pair =  {'who': 2, 'from_whom': 0}
+				# gui_pair =  {'who': 2, 'from_whom': 0}
+				gui_pair =  {'who': -1, 'from_whom': -1}
+				gui_for[2] = "forwarded from mem"
+				# gui_from_cycle[2] = 1
 
 		# E -> E forwarding
 		if (mem_state.rd != -1) and (mem_state.rd != '00000') and not mem_state.is_dummy:
@@ -663,20 +672,29 @@ class HDU:
 						data_hazard += 1
 						if_stall = True
 						stall_position = min(stall_position, 0)
-						gui_pair =  {'who': 2, 'from_whom': 1}
+						# gui_pair =  {'who': 2, 'from_whom': 1}
+						gui_pair =  {'who': -1, 'from_whom': -1}
+						gui_for[2] = "forwarded from execute"
+						# gui_from_cycle[2] = 1
 
 				else:
-					if (exe_state.rs1 == mem_state.rd) or (exe_state.rs2 == mem_state.rd) and not exe_state.is_dummy:
+					if (exe_state.rs1 == mem_state.rd or exe_state.rs2 == mem_state.rd) and not exe_state.is_dummy:
 						data_hazard += 1
 						if_stall = True
 						stall_position = min(stall_position, 0)
-						gui_pair =  {'who': 2, 'from_whom': 1}
+						# gui_pair =  {'who': 2, 'from_whom': 1}
+						gui_pair =  {'who': -1, 'from_whom': -1}
+						gui_for[2] = "forwarded from execute"
+						# gui_from_cycle[2] = 1
 
 			else:
 				if exe_state.rs1 == mem_state.rd and not exe_state.is_dummy:
 					exe_state.operand1 = mem_state.register_data
 					data_hazard += 1
-					gui_pair =  {'who': 2, 'from_whom': 1}
+					# gui_pair =  {'who': 2, 'from_whom': 1}
+					gui_pair =  {'who': -1, 'from_whom': -1}
+					gui_for[2] = "forwarded from execute"
+					# gui_from_cycle[2] = 1
 
 				if exe_state.rs2 == mem_state.rd and not exe_state.is_dummy:
 					if exe_opcode != 35: # store
@@ -684,7 +702,10 @@ class HDU:
 					else:
 						exe_state.register_data = mem_state.register_data
 					data_hazard += 1
-					gui_pair =  {'who': 2, 'from_whom': 1}
+					# gui_pair =  {'who': 2, 'from_whom': 1}
+					gui_pair =  {'who': -1, 'from_whom': -1}
+					gui_for[2] = "forwarded from execute"
+					# gui_from_cycle[2] = 1
 
 		if decode_opcode == 99 or decode_opcode == 103 and not decode_state.is_dummy: # SB and jalr
 			# M -> D forwarding
@@ -693,13 +714,19 @@ class HDU:
 					decode_state.operand1 = wb_state.register_data
 					decode_state.decode_forwarding_op1 = True
 					data_hazard += 1
-					gui_pair =  {'who': 3, 'from_whom': 0}
+					# gui_pair =  {'who': 3, 'from_whom': 0}
+					gui_pair =  {'who': -1, 'from_whom': -1}
+					gui_for[3] = "forwarded from mem"
+					# gui_from_cycle[3] = 1
 
 				if wb_state.rd == decode_state.rs2:
 					decode_state.operand2 = wb_state.register_data
 					decode_state.decode_forwarding_op2 = True
 					data_hazard += 1
-					gui_pair =  {'who': 3, 'from_whom': 0}
+					# gui_pair =  {'who': 3, 'from_whom': 0}
+					gui_pair =  {'who': -1, 'from_whom': -1}
+					gui_for[3] = "forwarded from mem"
+					# gui_from_cycle[3] = 1
 
 			# E -> D fowarding
 			if (mem_state.rd != -1) and (mem_state.rd != '00000') and not mem_state.is_dummy:
@@ -707,7 +734,9 @@ class HDU:
 					data_hazard += 1
 					if_stall = True
 					stall_position = min(stall_position, 1)
-					
+					# I DON'T UNDERSTAND THIS!!!!
+					# gui_for[3] = "forwarded: execute of cycle "
+					# gui_from_cycle[3] = 2
 
 				else:
 					if mem_state.rd == decode_state.rs1:
@@ -715,22 +744,26 @@ class HDU:
 						decode_state.decode_forwarding_op1 = True
 						data_hazard += 1
 						gui_pair =  {'who': 3, 'from_whom': 1}
+						gui_for[3] = "forwarded from execute"
+						# gui_from_cycle[3] = 1
 
 					if mem_state.rd == decode_state.rs2:
 						decode_state.operand2 = mem_state.register_data
 						decode_state.decode_forwarding_op2 = True
 						data_hazard += 1
 						gui_pair =  {'who': 3, 'from_whom': 1}
+						gui_for[3] = "forwarded from execute"
+						# gui_from_cycle[3] = 1
 
 			# If control instruction depends on the previous instruction
-			if (exe_state.rd != -1) and (exe_state.rd != '00000') and ((exe_state.rd == decode_state.rs1) or (exe_state.rd == decode_state.rs2)) and not exe_state.is_dummy:
+			if (exe_state.rd != -1) and (exe_state.rd != '00000') and ( exe_state.rd == decode_state.rs1 or exe_state.rd == decode_state.rs2) and not exe_state.is_dummy:
 				data_hazard += 1
 				if_stall = True
 				# stall_position = min(stall_position, 1)
 				if stall_position > 1:
 					stall_position = 1
 					gui_pair =  {'who': 3, 'from_whom': 2}
-
+		gui_pair['from'] = gui_for
 		new_states = [wb_state, mem_state, exe_state, decode_state, pipeline_instructions[-1]]
 		return [data_hazard, if_stall, stall_position, new_states, gui_pair]
 
