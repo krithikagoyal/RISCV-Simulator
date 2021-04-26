@@ -52,6 +52,8 @@ def evaluate(processor, pipeline_ins):
 	control_hazard, control_pc, entering, color = processor.decode(pipeline_ins[3], btb)
 	if entering:
 		control_hazard_signals.append(2)
+	elif pipeline_ins[2].is_dummy and color != 0 and len(control_hazard_signals) > 0 and control_hazard_signals[-1] == 2:
+		control_hazard_signals.append(control_hazard_signals[-1])
 	else:
 		control_hazard_signals.append(color)
 	processor.fetch(pipeline_ins[4], btb)
