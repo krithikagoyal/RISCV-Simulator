@@ -344,7 +344,7 @@ class Processor:
 				if btb.find(state.PC) and orig_pc != state.next_pc:
 					self.count_branch_mispredictions += 1
 
-				
+
 				if not btb.find(state.PC):
 					state.inc_select = self.inc_select
 					state.pc_select = self.pc_select
@@ -542,7 +542,7 @@ class Processor:
 			state.asm_code = "jal x" + str(int(state.rd, 2)) + " " + str(self.pc_offset)
 
 		self.get_code[state.PC] = state.asm_code
-		
+
 		if len(state.register_data) > 10:
 			state.register_data = state.register_data[:2] + state.register_data[-8:]
 
@@ -606,7 +606,7 @@ class HDU:
 		count_data_hazard = 0
 		data_hazard = False
 
-		# since we don't have values for indtruction in decode stage
+		# since we don't have values for instruction in decode stage
 		decode_state = pipeline_instructions[-2]
 		bin_instruction = bin(int(decode_state.instruction_word[2:], 16))[2:]
 		bin_instruction = (32 - len(bin_instruction)) * '0' + bin_instruction
@@ -646,7 +646,7 @@ class HDU:
 		mem_state = pipeline_instructions[-4]
 		wb_state = pipeline_instructions[-5]
 
-		# since we don't have values for dindtruction in decode stage
+		# since we don't have values for instruction in decode stage
 		bin_instruction = bin(int(decode_state.instruction_word[2:], 16))[2:]
 		bin_instruction = (32 - len(bin_instruction)) * '0' + bin_instruction
 		decode_opcode = int(bin_instruction[25:32], 2)
@@ -659,10 +659,10 @@ class HDU:
 
 		data_hazard = 0
 		if_stall = False
-		stall_position = 3
+		stall_position = 2
 		gui_pair =  {'who': -1, 'from_whom': -1}
-		# codes for gui_for wb = 0, mem = 1, execute = 2, decode = 3, fetch = 4 
-		gui_for = [""]*5 
+		# codes for gui_for wb = 0, mem = 1, execute = 2, decode = 3, fetch = 4
+		gui_for = [""]*5
 
 		# getting opcodes
 		bin_instruction = bin(int(exe_state.instruction_word[2:], 16))[2:]
@@ -735,7 +735,7 @@ class HDU:
 					gui_pair =  {'who': -1, 'from_whom': -1}
 					gui_for[2] = "forwarded from execute"
 
-		if decode_opcode == 99 or decode_opcode == 103 and not decode_state.is_dummy: # SB and jalr
+		if (decode_opcode == 99 or decode_opcode == 103) and not decode_state.is_dummy: # SB and jalr
 			# M -> D forwarding
 			if wb_state.rd != -1 and wb_state.rd != '00000' and not wb_state.is_dummy:
 				if wb_state.rd == decode_state.rs1:
@@ -777,12 +777,13 @@ class HDU:
 						gui_for[3] = "forwarded from execute"
 
 			# If control instruction depends on the previous instruction
-			if exe_state.rd != -1 and exe_state.rd != '00000' and exe_state.rd == decode_state.rs1 or exe_state.rd == decode_state.rs2 and not exe_state.is_dummy:
+			if exe_state.rd != -1 and exe_state.rd != '00000' and (exe_state.rd == decode_state.rs1 or exe_state.rd == decode_state.rs2) and not exe_state.is_dummy:
 				data_hazard += 1
 				if_stall = True
 				if stall_position > 1:
 					stall_position = 1
 					gui_pair =  {'who': 3, 'from_whom': 2}
+
 		gui_pair['from'] = gui_for
 		new_states = [wb_state, mem_state, exe_state, decode_state, pipeline_instructions[-1]]
 		return [data_hazard, if_stall, stall_position, new_states, gui_pair]
