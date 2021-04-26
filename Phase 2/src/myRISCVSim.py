@@ -624,24 +624,14 @@ class HDU:
 		exe_state = states_to_check[-2]
 		decode_state = states_to_check[-1]
 		if exe_state.rd != -1 and exe_state.rd != '00000' and not exe_state.is_dummy and not decode_state.is_dummy:
-			if exe_state.rd == decode_state.rs1:
-				data_hazard = True
-				count_data_hazard += 1
-				gui_pair =  {'who': 3, 'from_whom': 2}
-
-			if exe_state.rd == decode_state.rs2:
+			if exe_state.rd == decode_state.rs1 or exe_state.rd == decode_state.rs2:
 				data_hazard = True
 				count_data_hazard += 1
 				gui_pair =  {'who': 3, 'from_whom': 2}
 
 		mem_state = states_to_check[-3]
 		if mem_state.rd != -1 and mem_state.rd != '00000' and not mem_state.is_dummy and not decode_state.is_dummy:
-			if mem_state.rd == decode_state.rs1:
-				data_hazard = True
-				count_data_hazard += 1
-				gui_pair =  {'who': 3, 'from_whom': 1}
-
-			if mem_state.rd == decode_state.rs2:
+			if mem_state.rd == decode_state.rs1 or mem_state.rd == decode_state.rs2:
 				data_hazard = True
 				count_data_hazard += 1
 				gui_pair =  {'who': 3, 'from_whom': 1}
