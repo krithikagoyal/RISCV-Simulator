@@ -626,8 +626,8 @@ class HDU:
 		if_stall = False
 		stall_position = 3
 		gui_pair =  {'who': -1, 'from_whom': -1}
-		gui_for = [""]*5 #wb = 0; mem = 1; execute = 2; decode = 3; fetch = 4 
-		# gui_from_cycle = [0,0,0,0,0]
+		# codes for gui_for wb = 0, mem = 1, execute = 2, decode = 3, fetch = 4 
+		gui_for = [""]*5 
 		decode_opcode = int(decode_state.instruction_word, 16) & int('0x7F', 16)
 		exe_opcode = int(exe_state.instruction_word, 16) & int('0x7F', 16)
 		mem_opcode = int(mem_state.instruction_word, 16) & int('0x7F', 16)
@@ -714,9 +714,7 @@ class HDU:
 					data_hazard += 1
 					if_stall = True
 					stall_position = min(stall_position, 1)
-					# I DON'T UNDERSTAND THIS!!!!
-					# gui_for[3] = "forwarded: execute of cycle "
-					# gui_from_cycle[3] = 2
+					gui_pair =  {'who': 3, 'from_whom': 1}
 
 				else:
 					if mem_state.rd == decode_state.rs1:
