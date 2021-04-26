@@ -628,13 +628,26 @@ class HDU:
 		gui_pair =  {'who': -1, 'from_whom': -1}
 		# codes for gui_for wb = 0, mem = 1, execute = 2, decode = 3, fetch = 4 
 		gui_for = [""]*5 
-		decode_opcode = int(decode_state.instruction_word, 16) & int('0x7F', 16)
-		exe_opcode = int(exe_state.instruction_word, 16) & int('0x7F', 16)
-		mem_opcode = int(mem_state.instruction_word, 16) & int('0x7F', 16)
-		wb_opcode = int(wb_state.instruction_word, 16) & int('0x7F', 16)
+
+		# getting opcodes
+		bin_instruction = bin(int(decode_state.instruction_word[2:], 16))[2:]
+		bin_instruction = (32 - len(bin_instruction)) * '0' + bin_instruction
+		decode_opcode = int(bin_instruction[25:32], 2)
+
+		bin_instruction = bin(int(exe_state.instruction_word[2:], 16))[2:]
+		bin_instruction = (32 - len(bin_instruction)) * '0' + bin_instruction
+		exe_opcode = int(bin_instruction[25:32], 2)
+
+		bin_instruction = bin(int(mem_state.instruction_word[2:], 16))[2:]
+		bin_instruction = (32 - len(bin_instruction)) * '0' + bin_instruction
+		mem_opcode = int(bin_instruction[25:32], 2)
+
+		bin_instruction = bin(int(wb_state.instruction_word[2:], 16))[2:]
+		bin_instruction = (32 - len(bin_instruction)) * '0' + bin_instruction
+		wb_opcode = int(bin_instruction[25:32], 2)
 
 		# M -> M forwarding
-		if (wb_opcode == 3) and (mem_opcode == 35) and not wb_state.is_dummy and not mem_state.is_dummy: # 3 == load and 35 == store
+		if wb_opcode == 3 and mem_opcode == 35 and not wb_state.is_dummy and not mem_state.is_dummy: # 3 == load and 35 == store
 			if wb_state.rd != -1 and wb_state.rd != '00000' and wb_state.rd == mem_state.rs2:
 				mem_state.register_data = wb_state.register_data
 				data_hazard += 1
@@ -642,7 +655,7 @@ class HDU:
 				gui_for[1] = "forwarded from mem"
 
 		# M -> E forwarding
-		if (wb_state.rd != -1) and (wb_state.rd != '00000') and not wb_state.is_dummy:
+		if wb_state.rd != -1 and wb_state.rd != '00000' and not wb_state.is_dummy:
 			if wb_state.rd == exe_state.rs1 and not exe_state.is_dummy:
 				exe_state.operand1 = wb_state.register_data
 				data_hazard += 1
@@ -659,20 +672,20 @@ class HDU:
 				gui_for[2] = "forwarded from mem"
 
 		# E -> E forwarding
-		if (mem_state.rd != -1) and (mem_state.rd != '00000') and not mem_state.is_dummy:
+		if mem_state.rd != -1 and mem_state.rd != '00000' and not mem_state.is_dummy:
 			if mem_opcode == 3: # load
 				if exe_opcode == 35: # store
 					if exe_state.rs1 == mem_state.rd and not exe_state.is_dummy:
 						data_hazard += 1
 						if_stall = True
-						stall_position = min(stall_position, 0)
+						stall_position = 0
 						gui_pair =  {'who': 2, 'from_whom': 1}
 
 				else:
 					if (exe_state.rs1 == mem_state.rd or exe_state.rs2 == mem_state.rd) and not exe_state.is_dummy:
 						data_hazard += 1
 						if_stall = True
-						stall_position = min(stall_position, 0)
+						stall_position = 0
 						gui_pair =  {'who': 2, 'from_whom': 1}
 
 			else:
@@ -693,7 +706,7 @@ class HDU:
 
 		if decode_opcode == 99 or decode_opcode == 103 and not decode_state.is_dummy: # SB and jalr
 			# M -> D forwarding
-			if (wb_state.rd != -1) and (wb_state.rd != '00000') and not wb_state.is_dummy:
+			if wb_state.rd != -1 and wb_state.rd != '00000' and not wb_state.is_dummy:
 				if wb_state.rd == decode_state.rs1:
 					decode_state.operand1 = wb_state.register_data
 					decode_state.decode_forwarding_op1 = True
@@ -709,12 +722,13 @@ class HDU:
 					gui_for[3] = "forwarded from mem"
 
 			# E -> D fowarding
-			if (mem_state.rd != -1) and (mem_state.rd != '00000') and not mem_state.is_dummy:
-				if mem_opcode == 3: # load
+			if mem_state.rd != -1 and mem_state.rd != '00000' and not mem_state.is_dummy:
+				if mem_opcode == 3 and (mem_state.rd == decode_state.rs1 or mem_state.rd == decode_state.rs2): # load
 					data_hazard += 1
 					if_stall = True
-					stall_position = min(stall_position, 1)
-					gui_pair =  {'who': 3, 'from_whom': 1}
+					if stall_position > 1:
+						stall_position = 1
+						gui_pair =  {'who': 3, 'from_whom': 1}
 
 				else:
 					if mem_state.rd == decode_state.rs1:
@@ -732,7 +746,7 @@ class HDU:
 						gui_for[3] = "forwarded from execute"
 
 			# If control instruction depends on the previous instruction
-			if (exe_state.rd != -1) and (exe_state.rd != '00000') and ( exe_state.rd == decode_state.rs1 or exe_state.rd == decode_state.rs2) and not exe_state.is_dummy:
+			if exe_state.rd != -1 and exe_state.rd != '00000' and exe_state.rd == decode_state.rs1 or exe_state.rd == decode_state.rs2 and not exe_state.is_dummy:
 				data_hazard += 1
 				if_stall = True
 				if stall_position > 1:
