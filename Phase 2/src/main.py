@@ -314,7 +314,8 @@ if __name__ == '__main__':
 	s[4] = processor.count_alu_inst
 	s[5] = processor.count_control_inst
 	s[7] = number_of_data_hazards
-	s[8] = s[5]
+	if pipelining_enabled:
+		s[8] = s[5]
 	s[9] = processor.count_branch_mispredictions
 	s[10] = number_of_stalls_due_to_data_hazards
 	s[11] = number_of_stalls_due_to_control_hazards
@@ -340,9 +341,11 @@ if __name__ == '__main__':
 				else:
 					tmp.append(str(processor.get_code[pc_tmp[i][j]]))
 			l_dash.append(tmp + [data_hazard_pairs[i]])
-		#resolvong control+data hazard case
+
+		# resolvong control + data hazard case
 		for i in range(len(l)):
 			if data_hazard_pairs[i]['who'] == 3:
 				control_hazard_signals[i] = 0
+
 		# control_hazard_signals is a list on integers 0=> nothing; 1=> red ; 2 => yellow; 3=> green
 		display(l, control_hazard_signals, l_dash )
