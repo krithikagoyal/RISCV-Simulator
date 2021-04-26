@@ -673,8 +673,8 @@ class HDU:
 						if_stall = True
 						stall_position = min(stall_position, 0)
 						# gui_pair =  {'who': 2, 'from_whom': 1}
-						gui_pair =  {'who': -1, 'from_whom': -1}
-						gui_for[2] = "forwarded from execute"
+						# gui_pair =  {'who': -1, 'from_whom': -1}
+						# gui_for[2] = "forwarded from execute"
 						# gui_from_cycle[2] = 1
 
 				else:
@@ -683,8 +683,8 @@ class HDU:
 						if_stall = True
 						stall_position = min(stall_position, 0)
 						# gui_pair =  {'who': 2, 'from_whom': 1}
-						gui_pair =  {'who': -1, 'from_whom': -1}
-						gui_for[2] = "forwarded from execute"
+						# gui_pair =  {'who': -1, 'from_whom': -1}
+						# gui_for[2] = "forwarded from execute"
 						# gui_from_cycle[2] = 1
 
 			else:
