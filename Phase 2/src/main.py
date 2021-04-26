@@ -341,7 +341,7 @@ if __name__ == '__main__':
 		for i in range(len(pc_tmp)):
 			tmp = [str(processor.get_code[x]) for x in pc_tmp[i]] + [data_hazard_pairs[i]]
 			l.append(tmp)
-			tmp = []
+		# 	tmp = []
 		# 	for j in range(5):
 		# 		tmp.append(str(processor.get_code[pc_tmp[i][j]]) + "\n" + data_hazard_pairs[i]['from'][j])
 		# 	l_dash.append(tmp)
