@@ -38,7 +38,10 @@ stats = [
 s = [0]*12
 
 l = []
+l_dash = []
 pc_tmp = []
+data_hazard_pairs = []
+control_hazard_signals = []
 stage = {1: "fetch", 2: "decode", 3: "execute", 4: "memory", 5: "write_back"}
 
 # Function for pipelined execution
@@ -46,7 +49,13 @@ def evaluate(processor, pipeline_ins):
 	processor.write_back(pipeline_ins[0])
 	processor.mem(pipeline_ins[1])
 	processor.execute(pipeline_ins[2])
-	control_hazard, control_pc = processor.decode(pipeline_ins[3], btb)
+	control_hazard, control_pc, entering, color = processor.decode(pipeline_ins[3], btb)
+	if entering:
+		control_hazard_signals.append(2)
+	elif pipeline_ins[2].is_dummy and color != 0 and len(control_hazard_signals) > 0 and control_hazard_signals[-1] == 2:
+		control_hazard_signals.append(control_hazard_signals[-1])
+	else:
+		control_hazard_signals.append(color)
 	processor.fetch(pipeline_ins[4], btb)
 	pipeline_ins = [pipeline_ins[1], pipeline_ins[2], pipeline_ins[3], pipeline_ins[4]]
 	return pipeline_ins, control_hazard, control_pc
@@ -54,20 +63,21 @@ def evaluate(processor, pipeline_ins):
 
 if __name__ == '__main__':
 
-	# set .mc file
+	# set .mc file and input knobs
 	prog_mc_file, pipelining_enabled, forwarding_enabled, print_registers_each_cycle, print_pipeline_registers, print_specific_pipeline_registers = take_input()
-	# invoke classes
-	processor = Processor(prog_mc_file)
-	hdu = HDU()
-	btb = BTB()
 
 	# Knobs
 	# pipelining_enabled = True                       # Knob1
 	# forwarding_enabled = False                      # Knob2
 	# print_registers_each_cycle = False              # Knob3
-	# print_pipeline_registers = False    			      # Knob4
+	# print_pipeline_registers = False    			  # Knob4
 	# print_specific_pipeline_registers = [False, 10] # Knob5
-  
+
+	# invoke classes
+	processor = Processor(prog_mc_file)
+	hdu = HDU()
+	btb = BTB()
+
 	# Signals
 	PC = 0
 	clock_cycles = 0
@@ -96,9 +106,11 @@ if __name__ == '__main__':
 					print("R" + str(i) + ":", processor.R[i], end=" ")
 				print("\n")
 			pc_tmp.append([-1, -1, -1, -1, instruction.PC])
+			data_hazard_pairs.append({'who': -1, 'from_whom': -1})
 
 			processor.decode(instruction)
 			pc_tmp.append([-1, -1, -1, instruction.PC, -1])
+			data_hazard_pairs.append({'who': -1, 'from_whom': -1})
 			clock_cycles += 1
 			if print_registers_each_cycle:
 				print("CLOCK CYCLE:", clock_cycles)
@@ -112,6 +124,7 @@ if __name__ == '__main__':
 
 			processor.execute(instruction)
 			pc_tmp.append([-1, -1, instruction.PC, -1, -1])
+			data_hazard_pairs.append({'who': -1, 'from_whom': -1})
 			clock_cycles += 1
 			if print_registers_each_cycle:
 				print("CLOCK CYCLE:", clock_cycles)
@@ -122,6 +135,7 @@ if __name__ == '__main__':
 
 			processor.mem(instruction)
 			pc_tmp.append([-1, instruction.PC, -1, -1, -1])
+			data_hazard_pairs.append({'who': -1, 'from_whom': -1})
 			clock_cycles += 1
 			if print_registers_each_cycle:
 				print("CLOCK CYCLE:", clock_cycles)
@@ -132,6 +146,8 @@ if __name__ == '__main__':
 
 			processor.write_back(instruction)
 			pc_tmp.append([instruction.PC, -1, -1, -1, -1])
+			data_hazard_pairs.append({'who': -1, 'from_whom': -1})
+			control_hazard_signals += [0,0,0,0,0]
 			clock_cycles += 1
 			if print_registers_each_cycle:
 				print("CLOCK CYCLE:", clock_cycles)
@@ -162,6 +178,7 @@ if __name__ == '__main__':
 					else:
 						tmp.append(old_states[i].PC)
 				pc_tmp.append(tmp)
+				data_hazard_pairs.append(data_hazard[2])
 
 				branch_taken = pipeline_instructions[3].branch_taken
 				branch_pc = pipeline_instructions[3].next_pc
@@ -197,7 +214,7 @@ if __name__ == '__main__':
 						break
 
 			else:
-				data_hazard, if_stall, stall_position, pipeline_instructions = hdu.data_hazard_forwarding(pipeline_instructions)
+				data_hazard, if_stall, stall_position, pipeline_instructions, gui_pair = hdu.data_hazard_forwarding(pipeline_instructions)
 
 				old_states = pipeline_instructions
 				pipeline_instructions, control_hazard, control_pc = evaluate(processor, pipeline_instructions)
@@ -209,6 +226,7 @@ if __name__ == '__main__':
 					else:
 						tmp.append(old_states[i].PC)
 				pc_tmp.append(tmp)
+				data_hazard_pairs.append(gui_pair)
 
 				branch_taken = pipeline_instructions[3].branch_taken
 				branch_pc = pipeline_instructions[3].next_pc
@@ -236,19 +254,6 @@ if __name__ == '__main__':
 						pipeline_instructions = pipeline_instructions[:2] + [State(0)] + old_states[3:]
 						pipeline_instructions[2].is_dummy = True
 						PC -= 4
-
-					# Check if redundant
-					# elif stall_position == 2 and not control_hazard:
-					# 	pipeline_instructions = pipeline_instructions[:3] + [State(0)] + old_states[4:]
-					# 	pipeline_instructions[3].is_dummy = True
-					# 	PC -= 4
-					#
-					# else:
-					# 	# number_of_control_hazards += 1
-					# 	# number_of_stalls_due_to_control_hazards += 1
-					# 	PC = control_pc
-					# 	pipeline_instructions = pipeline_instructions[:3] + [State(0)] + [State(PC)]
-					# 	pipeline_instructions[3].is_dummy = True
 
 				number_of_data_hazards += data_hazard
 
@@ -322,9 +327,19 @@ if __name__ == '__main__':
 		statfile = open("stats.txt", "w")
 		statfile.writelines(stats)
 		statfile.close()
-		# this list is just for testing, original will be created by Harsh
-		# l = [['decode', 'execute', 'mem', 'fetch', 'wb'], ['decode', 'execute', 'mem', 'fetch', 'wb'], ['decode', 'execute', 'mem', 'fetch', 'wb'], ['decode', 'execute', 'mem', 'fetch', 'wb']]
-		for li in pc_tmp:
-			tmp = [str(processor.get_code[i]) for i in li]
+		# l = [['decode\nforwarded from decode', 'execute', 'mem', 'fetch', 'wb', {'who': 1, 'from_whom': 2}], ['decode', 'execute', 'mem', 'fetch', 'wb', {'who': 1, 'from_whom': 3}], ['decode', 'execute', 'mem', 'fetch', 'wb', {'who': 1, 'from_whom': 4}], ['decode', 'execute', 'mem', 'fetch', 'wb', {'who': 1, 'from_whom': 0}]]
+		for i in range(len(pc_tmp)):
+			tmp = [str(processor.get_code[x]) for x in pc_tmp[i]]
 			l.append(tmp)
-		display(l)
+			tmp = []
+			for j in range(5):
+				if forwarding_enabled and pipelining_enabled:
+					if data_hazard_pairs[i]['from'][j] != '':
+						tmp.append(str(processor.get_code[pc_tmp[i][j]]) + "\n" + data_hazard_pairs[i]['from'][j])
+					else:
+						tmp.append(str(processor.get_code[pc_tmp[i][j]]))
+				else:
+					tmp.append(str(processor.get_code[pc_tmp[i][j]]))
+			l_dash.append(tmp + [data_hazard_pairs[i]])
+		# control_hazard_signals is a list on integers 0=> nothing; 1=> red ; 2 => yellow; 3=> green
+		display(l, control_hazard_signals, l_dash )

@@ -133,17 +133,24 @@ class display_data(object):
         self.centralwidget.setObjectName("centralwidget")
         self.label = QtWidgets.QLabel(self.centralwidget)
         self.label.setGeometry(QtCore.QRect(840, 50, 200, 35))
+
         self.memory_button = QtWidgets.QPushButton(self.centralwidget)
-        self.memory_button.setGeometry(QtCore.QRect(720, 3, 125, 40))
+        self.memory_button.setGeometry(QtCore.QRect(660, 3, 125, 40))
         self.memory_button.setObjectName("memory")
         self.register_button = QtWidgets.QPushButton(self.centralwidget)
-        self.register_button.setGeometry(QtCore.QRect(850, 3, 125, 40))
+        self.register_button.setGeometry(QtCore.QRect(790, 3, 125, 40))
         self.register_button.setObjectName("register")
-        self.pipeline_button = QtWidgets.QPushButton(self.centralwidget)
-        self.pipeline_button.setGeometry(QtCore.QRect(980, 3, 125, 40))
-        self.pipeline_button.setObjectName("pipeline")
+        self.data_hazard_button = QtWidgets.QPushButton(self.centralwidget)
+        self.data_hazard_button.setGeometry(QtCore.QRect(920, 3, 125, 40))
+        self.data_hazard_button.setObjectName("data_hazrad")
+        self.control_hazard_button = QtWidgets.QPushButton(self.centralwidget)
+        self.control_hazard_button.setGeometry(QtCore.QRect(1050, 3, 125, 40))
+        self.control_hazard_button.setObjectName("control_hazrad")
+
         self.register_button.clicked.connect(self.show_register_data)
-        self.pipeline_button.clicked.connect(self.show_pipeline_data)
+        self.control_hazard_button.clicked.connect(self.show_control_hazard)
+        self.data_hazard_button.clicked.connect(self.show_data_hazard)
+
         font = QtGui.QFont()
         font.setPointSize(12)
         self.label.setFont(font)
@@ -176,8 +183,11 @@ class display_data(object):
     def show_register_data(self):
         widgets.setCurrentIndex(widgets.currentIndex() + 1)
 
-    def show_pipeline_data(self):
+    def show_data_hazard(self):
         widgets.setCurrentIndex(widgets.currentIndex() + 2)
+
+    def show_control_hazard(self):
+        widgets.setCurrentIndex(widgets.currentIndex() + 3)
 
     def retranslateUi(self, MainWindow, filename):
         _translate = QtCore.QCoreApplication.translate
@@ -185,7 +195,8 @@ class display_data(object):
         self.label.setText(_translate("MainWindow", "Memory Data"))
         self.memory_button.setText(_translate("MainWindow", "Data"))
         self.register_button.setText(_translate("MainWindow", "Register"))
-        self.pipeline_button.setText(_translate("MainWindow", "Pipeline"))
+        self.data_hazard_button.setText(_translate("MainWindow", "Data Hazard"))
+        self.control_hazard_button.setText(_translate("MainWindow", "Control Hazard"))
         item = self.tableWidget.horizontalHeaderItem(0)
         item.setText(_translate("MainWindow", "ADDRESS"))
         item = self.tableWidget.horizontalHeaderItem(1)
@@ -231,17 +242,24 @@ class display_register(object):
         self.centralwidget.setObjectName("centralwidget")
         self.label = QtWidgets.QLabel(self.centralwidget)
         self.label.setGeometry(QtCore.QRect(850, 50, 200, 35))
+
         self.memory_button = QtWidgets.QPushButton(self.centralwidget)
-        self.memory_button.setGeometry(QtCore.QRect(720, 3, 125, 40))
+        self.memory_button.setGeometry(QtCore.QRect(660, 3, 125, 40))
         self.memory_button.setObjectName("memory")
         self.register_button = QtWidgets.QPushButton(self.centralwidget)
-        self.register_button.setGeometry(QtCore.QRect(850, 3, 125, 40))
+        self.register_button.setGeometry(QtCore.QRect(790, 3, 125, 40))
         self.register_button.setObjectName("register")
-        self.pipeline_button = QtWidgets.QPushButton(self.centralwidget)
-        self.pipeline_button.setGeometry(QtCore.QRect(980, 3, 125, 40))
-        self.pipeline_button.setObjectName("pipeline")
+        self.data_hazard_button = QtWidgets.QPushButton(self.centralwidget)
+        self.data_hazard_button.setGeometry(QtCore.QRect(920, 3, 125, 40))
+        self.data_hazard_button.setObjectName("data_hazrad")
+        self.control_hazard_button = QtWidgets.QPushButton(self.centralwidget)
+        self.control_hazard_button.setGeometry(QtCore.QRect(1050, 3, 125, 40))
+        self.control_hazard_button.setObjectName("control_hazrad")
+
         self.memory_button.clicked.connect(self.show_memory_data)
-        self.pipeline_button.clicked.connect(self.show_pipeline_data)
+        self.data_hazard_button.clicked.connect(self.show_data_hazard)
+        self.control_hazard_button.clicked.connect(self.show_control_hazard)
+
         font = QtGui.QFont()
         font.setPointSize(12)
         self.label.setFont(font)
@@ -274,8 +292,11 @@ class display_register(object):
     def show_memory_data(self):
         widgets.setCurrentIndex(widgets.currentIndex() - 1)
     
-    def show_pipeline_data(self):
+    def show_data_hazard(self):
         widgets.setCurrentIndex(widgets.currentIndex() + 1)
+
+    def show_control_hazard(self):
+        widgets.setCurrentIndex(widgets.currentIndex() + 2)
 
     def retranslateUi(self, MainWindow, filename):
         _translate = QtCore.QCoreApplication.translate
@@ -283,7 +304,8 @@ class display_register(object):
         self.label.setText(_translate("MainWindow", "Register Data"))
         self.memory_button.setText(_translate("MainWindow", "Data"))
         self.register_button.setText(_translate("MainWindow", "Register"))
-        self.pipeline_button.setText(_translate("MainWindow", "Pipeline"))
+        self.data_hazard_button.setText(_translate("MainWindow", "Data Hazard"))
+        self.control_hazard_button.setText(_translate("MainWindow", "Control Hazard"))
         item = self.tableWidget.horizontalHeaderItem(0)
         item.setText(_translate("MainWindow", "ADDRESS"))
         item = self.tableWidget.horizontalHeaderItem(1)
@@ -319,7 +341,7 @@ class display_register(object):
             item.setTextAlignment(QtCore.Qt.AlignCenter)
             item.setText(_translate("MainWindow", str(int(f[i][1], 16))))
 
-class display_pipeline(object):
+class display_data_hazard(object):
     def setupUi(self, MainWindow, l):
         MainWindow.width = 1900
         MainWindow.height = 970
@@ -328,24 +350,50 @@ class display_pipeline(object):
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.label = QtWidgets.QLabel(self.centralwidget)
-        self.label.setGeometry(QtCore.QRect(810, 50, 300, 35))
+        self.label.setGeometry(QtCore.QRect(760, 50, 400, 35))
+
         self.memory_button = QtWidgets.QPushButton(self.centralwidget)
-        self.memory_button.setGeometry(QtCore.QRect(720, 3, 125, 40))
+        self.memory_button.setGeometry(QtCore.QRect(660, 3, 125, 40))
         self.memory_button.setObjectName("memory")
         self.register_button = QtWidgets.QPushButton(self.centralwidget)
-        self.register_button.setGeometry(QtCore.QRect(850, 3, 125, 40))
+        self.register_button.setGeometry(QtCore.QRect(790, 3, 125, 40))
         self.register_button.setObjectName("register")
-        self.pipeline_button = QtWidgets.QPushButton(self.centralwidget)
-        self.pipeline_button.setGeometry(QtCore.QRect(980, 3, 125, 40))
-        self.pipeline_button.setObjectName("pipeline")
+        self.data_hazard_button = QtWidgets.QPushButton(self.centralwidget)
+        self.data_hazard_button.setGeometry(QtCore.QRect(920, 3, 125, 40))
+        self.data_hazard_button.setObjectName("data_hazrad")
+        self.control_hazard_button = QtWidgets.QPushButton(self.centralwidget)
+        self.control_hazard_button.setGeometry(QtCore.QRect(1050, 3, 125, 40))
+        self.control_hazard_button.setObjectName("control_hazrad")
+
         self.memory_button.clicked.connect(self.show_memory_data)
         self.register_button.clicked.connect(self.show_register_data)
+        self.control_hazard_button.clicked.connect(self.show_control_hazard)
+
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        self.plainTextEdit = QtWidgets.QPlainTextEdit(self.centralwidget)
+        self.plainTextEdit.setGeometry(QtCore.QRect(290, 95, 700, 40))
+        self.plainTextEdit.setObjectName("plainTextEdit")
+        self.plainTextEdit.setFont(font)
+        self.plainTextEdit_2 = QtWidgets.QPlainTextEdit(self.centralwidget)
+        self.plainTextEdit_2.setGeometry(QtCore.QRect(260, 95, 31, 40))
+        self.plainTextEdit_2.setStyleSheet("background-color: rgb(0, 255, 149);")
+        self.plainTextEdit_2.setObjectName("plainTextEdit_2")
+        self.plainTextEdit_3 = QtWidgets.QPlainTextEdit(self.centralwidget)
+        self.plainTextEdit_3.setGeometry(QtCore.QRect(1000, 95, 31, 40))
+        self.plainTextEdit_3.setStyleSheet("background-color: rgb(255, 252, 105);")
+        self.plainTextEdit_3.setObjectName("plainTextEdit_3")
+        self.plainTextEdit_4 = QtWidgets.QPlainTextEdit(self.centralwidget)
+        self.plainTextEdit_4.setGeometry(QtCore.QRect(1030, 95, 700, 40))
+        self.plainTextEdit_4.setObjectName("plainTextEdit_4")
+        self.plainTextEdit_4.setFont(font)
+
         font = QtGui.QFont()
         font.setPointSize(12)
         self.label.setFont(font)
         self.label.setObjectName("label")
         self.tableWidget = QtWidgets.QTableWidget(self.centralwidget)
-        self.tableWidget.setGeometry(QtCore.QRect(0, 95, MainWindow.width, MainWindow.height - 100))
+        self.tableWidget.setGeometry(QtCore.QRect(0, 130, MainWindow.width, MainWindow.height - 125))
         self.tableWidget.setObjectName("tableWidget")
         self.tableWidget.setColumnCount(5)
         self.tableWidget.setRowCount(len(l)) # changed
@@ -376,23 +424,190 @@ class display_pipeline(object):
     def show_register_data(self):
         widgets.setCurrentIndex(widgets.currentIndex() - 1)
 
+    def show_control_hazard(self):
+        widgets.setCurrentIndex(widgets.currentIndex() + 1)
+
     def retranslateUi(self, MainWindow, l):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "RISC-V Simulator"))
-        self.label.setText(_translate("MainWindow", "Pipeline at each Cycle"))
+        self.label.setText(_translate("MainWindow", "Colors representing Data Hazard"))
         self.memory_button.setText(_translate("MainWindow", "Data"))
         self.register_button.setText(_translate("MainWindow", "Register"))
-        self.pipeline_button.setText(_translate("MainWindow", "Pipeline"))
-        item = self.tableWidget.horizontalHeaderItem(0)
+        self.data_hazard_button.setText(_translate("MainWindow", "Data Hazard"))
+        self.control_hazard_button.setText(_translate("MainWindow", "Control Hazard"))
+        self.plainTextEdit.setPlainText(_translate("MainWindow", "Stall happened because it was dependent on some previous instruction"))
+        self.plainTextEdit_4.setPlainText(_translate("MainWindow", "Stall happened beacuse some previous instruction was dependent on it"))
+        item = self.tableWidget.horizontalHeaderItem(4)
         item.setText(_translate("MainWindow", "Fetch"))
-        item = self.tableWidget.horizontalHeaderItem(1)
+        item = self.tableWidget.horizontalHeaderItem(3)
         item.setText(_translate("MainWindow", "Decode"))
         item = self.tableWidget.horizontalHeaderItem(2)
         item.setText(_translate("MainWindow", "Execute"))
-        item = self.tableWidget.horizontalHeaderItem(3)
+        item = self.tableWidget.horizontalHeaderItem(1)
         item.setText(_translate("MainWindow", "Memory"))
-        item = self.tableWidget.horizontalHeaderItem(4)
+        item = self.tableWidget.horizontalHeaderItem(0)
         item.setText(_translate("MainWindow", "Write back"))
+
+        f = l
+        for i in range(len(f)):
+            if forwarding_enabled and pipelining_enabled:
+                 self.tableWidget.setRowHeight(i, 80)
+            item = QtWidgets.QTableWidgetItem()
+            item.setTextAlignment(QtCore.Qt.AlignCenter)
+            self.tableWidget.setItem(i, 0, item)
+            item.setTextAlignment(QtCore.Qt.AlignCenter)
+            item.setText(_translate("MainWindow", f[i][0]))
+            if '\n' in f[i][0] and forwarding_enabled and pipelining_enabled:
+                item.setForeground(QtGui.QColor(36, 53, 181))
+            item = QtWidgets.QTableWidgetItem()
+            item.setTextAlignment(QtCore.Qt.AlignCenter)
+            self.tableWidget.setItem(i, 1, item)
+            item.setTextAlignment(QtCore.Qt.AlignCenter)
+            item.setText(_translate("MainWindow", f[i][1]))
+            if '\n' in f[i][1] and forwarding_enabled and pipelining_enabled:
+                item.setForeground(QtGui.QColor(36, 53, 181))
+            item = QtWidgets.QTableWidgetItem()
+            item.setTextAlignment(QtCore.Qt.AlignCenter)
+            self.tableWidget.setItem(i, 2, item)
+            item.setTextAlignment(QtCore.Qt.AlignCenter)
+            item.setText(_translate("MainWindow", f[i][2]))
+            if '\n' in f[i][2] and forwarding_enabled and pipelining_enabled:
+                item.setForeground(QtGui.QColor(36, 53, 181))
+            item = QtWidgets.QTableWidgetItem()
+            item.setTextAlignment(QtCore.Qt.AlignCenter)
+            self.tableWidget.setItem(i, 3, item)
+            item.setTextAlignment(QtCore.Qt.AlignCenter)
+            item.setText(_translate("MainWindow", f[i][3]))
+            if '\n' in f[i][3] and forwarding_enabled and pipelining_enabled:
+                item.setForeground(QtGui.QColor(36, 53, 181))
+            item = QtWidgets.QTableWidgetItem()
+            item.setTextAlignment(QtCore.Qt.AlignCenter)
+            self.tableWidget.setItem(i, 4, item)
+            item.setTextAlignment(QtCore.Qt.AlignCenter)
+            item.setText(_translate("MainWindow", f[i][4]))
+            if '\n' in f[i][4] and forwarding_enabled and pipelining_enabled:
+                item.setForeground(QtGui.QColor(36, 53, 181))
+            if f[i][5]['who'] != -1:
+                self.tableWidget.item(i, f[i][5]['who']).setBackground(QtGui.QColor(0, 255, 149))
+                self.tableWidget.item(i, f[i][5]['from_whom']).setBackground(QtGui.QColor(255, 252, 105))
+            
+class display_control_hazard(object):
+    def setupUi(self, MainWindow, l, control_hazard_signals):
+        MainWindow.width = 1900
+        MainWindow.height = 970
+        MainWindow.setObjectName("MainWindow")
+        MainWindow.setGeometry(0, 0, MainWindow.width, MainWindow.height)
+        self.centralwidget = QtWidgets.QWidget(MainWindow)
+        self.centralwidget.setObjectName("centralwidget")
+        self.label = QtWidgets.QLabel(self.centralwidget)
+        self.label.setGeometry(QtCore.QRect(750, 50, 400, 35))
+
+        self.memory_button = QtWidgets.QPushButton(self.centralwidget)
+        self.memory_button.setGeometry(QtCore.QRect(660, 3, 125, 40))
+        self.memory_button.setObjectName("memory")
+        self.register_button = QtWidgets.QPushButton(self.centralwidget)
+        self.register_button.setGeometry(QtCore.QRect(790, 3, 125, 40))
+        self.register_button.setObjectName("register")
+        self.data_hazard_button = QtWidgets.QPushButton(self.centralwidget)
+        self.data_hazard_button.setGeometry(QtCore.QRect(920, 3, 125, 40))
+        self.data_hazard_button.setObjectName("data_hazrad")
+        self.control_hazard_button = QtWidgets.QPushButton(self.centralwidget)
+        self.control_hazard_button.setGeometry(QtCore.QRect(1050, 3, 125, 40))
+        self.control_hazard_button.setObjectName("control_hazrad")
+
+        self.memory_button.clicked.connect(self.show_memory_data)
+        self.register_button.clicked.connect(self.show_register_data)
+        self.data_hazard_button.clicked.connect(self.show_data_hazard)
+
+        # representing colors
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        self.plainTextEdit = QtWidgets.QPlainTextEdit(self.centralwidget)
+        self.plainTextEdit.setGeometry(QtCore.QRect(590, 95, 200, 40))
+        self.plainTextEdit.setObjectName("plainTextEdit")
+        self.plainTextEdit.setFont(font)
+        self.plainTextEdit_2 = QtWidgets.QPlainTextEdit(self.centralwidget)
+        self.plainTextEdit_2.setGeometry(QtCore.QRect(560, 95, 31, 40))
+        self.plainTextEdit_2.setStyleSheet("background-color: rgb(255, 94, 94);")
+        self.plainTextEdit_2.setObjectName("plainTextEdit_2")
+        self.plainTextEdit_3 = QtWidgets.QPlainTextEdit(self.centralwidget)
+        self.plainTextEdit_3.setGeometry(QtCore.QRect(820, 95, 31, 40))
+        self.plainTextEdit_3.setStyleSheet("background-color: rgb(247, 255, 94);")
+        self.plainTextEdit_3.setObjectName("plainTextEdit_3")
+        self.plainTextEdit_4 = QtWidgets.QPlainTextEdit(self.centralwidget)
+        self.plainTextEdit_4.setGeometry(QtCore.QRect(850, 95, 200, 40))
+        self.plainTextEdit_4.setObjectName("plainTextEdit_4")
+        self.plainTextEdit_4.setFont(font)
+        self.plainTextEdit_5 = QtWidgets.QPlainTextEdit(self.centralwidget)
+        self.plainTextEdit_5.setGeometry(QtCore.QRect(1080, 95, 31, 40))
+        self.plainTextEdit_5.setStyleSheet("background-color: rgb(94, 255, 150);")
+        self.plainTextEdit_5.setObjectName("plainTextEdit_5")
+        self.plainTextEdit_6 = QtWidgets.QPlainTextEdit(self.centralwidget)
+        self.plainTextEdit_6.setGeometry(QtCore.QRect(1110, 95, 200, 40))
+        self.plainTextEdit_6.setObjectName("plainTextEdit_6")
+        self.plainTextEdit_6.setFont(font)
+
+        font = QtGui.QFont()
+        font.setPointSize(12)
+        self.label.setFont(font)
+        self.label.setObjectName("label")
+        self.tableWidget = QtWidgets.QTableWidget(self.centralwidget)
+        self.tableWidget.setGeometry(QtCore.QRect(0, 130, MainWindow.width, MainWindow.height - 125))
+        self.tableWidget.setObjectName("tableWidget")
+        self.tableWidget.setColumnCount(5)
+        self.tableWidget.setRowCount(len(l)) # changed
+        font = QtGui.QFont()
+        font.setPointSize(12)
+        self.tableWidget.setFont(font)
+        item = QtWidgets.QTableWidgetItem()
+        self.tableWidget.setHorizontalHeaderItem(0, item)
+        item = QtWidgets.QTableWidgetItem()
+        self.tableWidget.setHorizontalHeaderItem(1, item)
+        item = QtWidgets.QTableWidgetItem()
+        self.tableWidget.setHorizontalHeaderItem(2, item)
+        item = QtWidgets.QTableWidgetItem()
+        self.tableWidget.setHorizontalHeaderItem(3, item)
+        item = QtWidgets.QTableWidgetItem()
+        self.tableWidget.setHorizontalHeaderItem(4, item)
+        self.tableWidget.setColumnWidth(0, int(MainWindow.width / 5) - 20)
+        self.tableWidget.setColumnWidth(1, int(MainWindow.width / 5) - 20)
+        self.tableWidget.setColumnWidth(2, int(MainWindow.width / 5) - 20)
+        self.tableWidget.setColumnWidth(3, int(MainWindow.width / 5) - 20)
+        self.tableWidget.setColumnWidth(4, int(MainWindow.width / 5) - 20)
+        self.retranslateUi(MainWindow, l, control_hazard_signals)
+        QtCore.QMetaObject.connectSlotsByName(MainWindow)
+
+    def show_memory_data(self):
+        widgets.setCurrentIndex(widgets.currentIndex() - 3)
+
+    def show_register_data(self):
+        widgets.setCurrentIndex(widgets.currentIndex() - 2)
+
+    def show_data_hazard(self):
+        widgets.setCurrentIndex(widgets.currentIndex() - 1)
+
+    def retranslateUi(self, MainWindow, l, control_hazard_signals):
+        _translate = QtCore.QCoreApplication.translate
+        MainWindow.setWindowTitle(_translate("MainWindow", "RISC-V Simulator"))
+        self.label.setText(_translate("MainWindow", "Colors representing Control Hazard"))
+        self.memory_button.setText(_translate("MainWindow", "Data"))
+        self.register_button.setText(_translate("MainWindow", "Register"))
+        self.data_hazard_button.setText(_translate("MainWindow", "Data Hazard"))
+        self.control_hazard_button.setText(_translate("MainWindow", "Control Hazard"))
+        item = self.tableWidget.horizontalHeaderItem(4)
+        item.setText(_translate("MainWindow", "Fetch"))
+        item = self.tableWidget.horizontalHeaderItem(3)
+        item.setText(_translate("MainWindow", "Decode"))
+        item = self.tableWidget.horizontalHeaderItem(2)
+        item.setText(_translate("MainWindow", "Execute"))
+        item = self.tableWidget.horizontalHeaderItem(1)
+        item.setText(_translate("MainWindow", "Memory"))
+        item = self.tableWidget.horizontalHeaderItem(0)
+        item.setText(_translate("MainWindow", "Write back"))
+        self.plainTextEdit.setPlainText(_translate("MainWindow", "Wrong Prediction"))
+        self.plainTextEdit_4.setPlainText(_translate("MainWindow", "Came first time"))
+        self.plainTextEdit_6.setPlainText(_translate("MainWindow", "Correct Prediction"))
+
 
         f = l
         for i in range(len(f)):
@@ -416,22 +631,36 @@ class display_pipeline(object):
             self.tableWidget.setItem(i, 3, item)
             item.setTextAlignment(QtCore.Qt.AlignCenter)
             item.setText(_translate("MainWindow", f[i][3]))
+
+            # adding colors for control_hazard
+            if pipelining_enabled:
+                if control_hazard_signals[i] == 1:
+                    item.setBackground(QtGui.QColor(255, 94, 94))
+                if control_hazard_signals[i] == 2:
+                    item.setBackground(QtGui.QColor(247, 255, 94))
+                if control_hazard_signals[i] == 3:
+                    item.setBackground(QtGui.QColor(94, 255, 150))
+
             item = QtWidgets.QTableWidgetItem()
             item.setTextAlignment(QtCore.Qt.AlignCenter)
             self.tableWidget.setItem(i, 4, item)
             item.setTextAlignment(QtCore.Qt.AlignCenter)
             item.setText(_translate("MainWindow", f[i][4]))
+                # self.tableWidget.item(i, f[i][5]['who']).setBackground(QtGui.QColor(0, 153, 51))
 
-def display(l):
+def display(l, control_hazard_signals, l_for):
     MainWindow2 = QtWidgets.QWidget()
     MainWindow3 = QtWidgets.QWidget()
     MainWindow4 = QtWidgets.QWidget()
+    MainWindow5 = QtWidgets.QWidget()
     ui1 = display_data()
     ui1.setupUi(MainWindow2, "data_out.mc")
     ui2 = display_register()
     ui2.setupUi(MainWindow3, "reg_out.mc")
-    ui3 = display_pipeline()
-    ui3.setupUi(MainWindow4, l)
+    ui3 = display_data_hazard()
+    ui3.setupUi(MainWindow4, l_for)
+    ui4 = display_control_hazard()
+    ui4.setupUi(MainWindow5, l, control_hazard_signals)
     global widgets
     widgets = QtWidgets.QStackedWidget()
     widgets.setFixedHeight(970)
@@ -439,6 +668,8 @@ def display(l):
     widgets.addWidget(MainWindow2)
     widgets.addWidget(MainWindow3)
     widgets.addWidget(MainWindow4)
+    widgets.addWidget(MainWindow5)
+    # widgets.addWidget()
     widgets.show()
     sys.exit(app.exec_())
 
@@ -451,3 +682,4 @@ def take_input():
     MainWindow.show()
     app.exec_()
     return filename[0], pipelining_enabled, forwarding_enabled, print_registers_each_cycle, print_pipeline_registers, [print_specific_pipeline_registers, number]
+            # item.setBackground(QtGui.QColor(100,100,150))
