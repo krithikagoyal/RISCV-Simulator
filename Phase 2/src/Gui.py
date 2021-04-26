@@ -429,38 +429,47 @@ class display_data_hazard(object):
 
         f = l
         for i in range(len(f)):
+            if forwarding_enabled and pipelining_enabled:
+                 self.tableWidget.setRowHeight(i, 90)
             item = QtWidgets.QTableWidgetItem()
             item.setTextAlignment(QtCore.Qt.AlignCenter)
             self.tableWidget.setItem(i, 0, item)
             item.setTextAlignment(QtCore.Qt.AlignCenter)
             item.setText(_translate("MainWindow", f[i][0]))
+            if '\n' in f[i][0] and forwarding_enabled and pipelining_enabled:
+                item.setForeground(QtGui.QColor(5, 115, 235))
             item = QtWidgets.QTableWidgetItem()
             item.setTextAlignment(QtCore.Qt.AlignCenter)
             self.tableWidget.setItem(i, 1, item)
             item.setTextAlignment(QtCore.Qt.AlignCenter)
             item.setText(_translate("MainWindow", f[i][1]))
+            if '\n' in f[i][1] and forwarding_enabled and pipelining_enabled:
+                item.setForeground(QtGui.QColor(5, 115, 235))
             item = QtWidgets.QTableWidgetItem()
             item.setTextAlignment(QtCore.Qt.AlignCenter)
             self.tableWidget.setItem(i, 2, item)
             item.setTextAlignment(QtCore.Qt.AlignCenter)
             item.setText(_translate("MainWindow", f[i][2]))
+            if '\n' in f[i][2] and forwarding_enabled and pipelining_enabled:
+                item.setForeground(QtGui.QColor(5, 115, 235))
             item = QtWidgets.QTableWidgetItem()
             item.setTextAlignment(QtCore.Qt.AlignCenter)
             self.tableWidget.setItem(i, 3, item)
             item.setTextAlignment(QtCore.Qt.AlignCenter)
             item.setText(_translate("MainWindow", f[i][3]))
+            if '\n' in f[i][3] and forwarding_enabled and pipelining_enabled:
+                item.setForeground(QtGui.QColor(5, 115, 235))
             item = QtWidgets.QTableWidgetItem()
             item.setTextAlignment(QtCore.Qt.AlignCenter)
             self.tableWidget.setItem(i, 4, item)
             item.setTextAlignment(QtCore.Qt.AlignCenter)
             item.setText(_translate("MainWindow", f[i][4]))
+            if '\n' in f[i][4] and forwarding_enabled and pipelining_enabled:
+                item.setForeground(QtGui.QColor(5, 115, 235))
             if f[i][5]['who'] != -1:
-                self.tableWidget.item(i, f[i][5]['who']).setBackground(QtGui.QColor(0, 153, 51))
-                self.tableWidget.item(i, f[i][5]['from_whom']).setBackground(QtGui.QColor(51, 153, 255))
+                self.tableWidget.item(i, f[i][5]['who']).setBackground(QtGui.QColor(0, 255, 149))
+                self.tableWidget.item(i, f[i][5]['from_whom']).setBackground(QtGui.QColor(255, 252, 105))
             
-            if forwarding_enabled and pipelining_enabled:
-                 self.tableWidget.setRowHeight(i, 90)
-
 class display_control_hazard(object):
     def setupUi(self, MainWindow, l, control_hazard_signals):
         MainWindow.width = 1900
