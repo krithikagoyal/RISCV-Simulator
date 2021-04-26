@@ -212,20 +212,6 @@ class Processor:
 		if not self.pipelining_enabled:
 			return
 
-		bin_instruction = bin(int(state.instruction_word[2:], 16))[2:]
-		bin_instruction = (32 - len(bin_instruction)) * '0' + bin_instruction
-
-		opcode = int(bin_instruction[25:32], 2)
-		# I format
-		if opcode == 3 or opcode == 19 or opcode == 103:
-			state.rs1 = bin_instruction[12:17]
-			state.rs2 = -1
-
-		# R S SB format
-		elif opcode not in [23, 55, 111]:
-			state.rs1 = bin_instruction[12:17]
-			state.rs2 = bin_instruction[7:12]
-
 		btb = args[0]
 
 		if btb.find(state.PC):
@@ -235,7 +221,6 @@ class Processor:
 			else:
 				state.next_pc = state.PC + 4
 
-		return
 
 	# Decodes the instruction and decides the operation to be performed in the execute stage; reads the operands from the register file.
 	def decode(self, state, *args):
@@ -616,12 +601,72 @@ class Processor:
 
 # Hazard Detection Unit, Performs operations related to data hazard, stalling and forwarding
 class HDU:
+	# If forwarding is not enabled
+	def data_hazard_stalling(self, pipeline_instructions):
+		count_data_hazard = 0
+		data_hazard = False
+
+		# since we don't have values for indtruction in decode stage
+		decode_state = pipeline_instructions[:-2]
+		bin_instruction = bin(int(decode_state.instruction_word[2:], 16))[2:]
+		bin_instruction = (32 - len(bin_instruction)) * '0' + bin_instruction
+		decode_opcode = int(bin_instruction[25:32], 2)
+		if decode_opcode in [19, 103, 3]:
+			decode_state.rs1 = bin_instruction[12:17]
+			decode_state.rs2 = -1
+		elif decode_opcode not in [23, 55, 111]:
+			decode_state.rs1 = bin_instruction[12:17]
+			decode_state.rs2 = bin_instruction[7:12]
+
+		states_to_check = pipeline_instructions[:-1]
+		gui_pair =  {'who': -1, 'from_whom': -1}
+
+		exe_state = states_to_check[-2]
+		decode_state = states_to_check[-1]
+		if exe_state.rd != -1 and exe_state.rd != '00000' and not exe_state.is_dummy and not decode_state.is_dummy:
+			if exe_state.rd == decode_state.rs1:
+				data_hazard = True
+				count_data_hazard += 1
+				gui_pair =  {'who': 3, 'from_whom': 2}
+
+			if exe_state.rd == decode_state.rs2:
+				data_hazard = True
+				count_data_hazard += 1
+				gui_pair =  {'who': 3, 'from_whom': 2}
+
+		mem_state = states_to_check[-3]
+		if mem_state.rd != -1 and mem_state.rd != '00000' and not mem_state.is_dummy and not decode_state.is_dummy:
+			if mem_state.rd == decode_state.rs1:
+				data_hazard = True
+				count_data_hazard += 1
+				gui_pair =  {'who': 3, 'from_whom': 1}
+
+			if mem_state.rd == decode_state.rs2:
+				data_hazard = True
+				count_data_hazard += 1
+				gui_pair =  {'who': 3, 'from_whom': 1}
+
+		return [data_hazard, count_data_hazard, gui_pair]
+
+
 	# If forwarding is enabled
 	def data_hazard_forwarding(self, pipeline_instructions):
 		decode_state = pipeline_instructions[-2]
 		exe_state = pipeline_instructions[-3]
 		mem_state = pipeline_instructions[-4]
 		wb_state = pipeline_instructions[-5]
+
+		# since we don't have values for dindtruction in decode stage
+		bin_instruction = bin(int(decode_state.instruction_word[2:], 16))[2:]
+		bin_instruction = (32 - len(bin_instruction)) * '0' + bin_instruction
+		decode_opcode = int(bin_instruction[25:32], 2)
+		if decode_opcode in [19, 103, 3]:
+			decode_state.rs1 = bin_instruction[12:17]
+			decode_state.rs2 = -1
+		elif decode_opcode not in [23, 55, 111]:
+			decode_state.rs1 = bin_instruction[12:17]
+			decode_state.rs2 = bin_instruction[7:12]
+
 		data_hazard = 0
 		if_stall = False
 		stall_position = 3
@@ -630,10 +675,6 @@ class HDU:
 		gui_for = [""]*5 
 
 		# getting opcodes
-		bin_instruction = bin(int(decode_state.instruction_word[2:], 16))[2:]
-		bin_instruction = (32 - len(bin_instruction)) * '0' + bin_instruction
-		decode_opcode = int(bin_instruction[25:32], 2)
-
 		bin_instruction = bin(int(exe_state.instruction_word[2:], 16))[2:]
 		bin_instruction = (32 - len(bin_instruction)) * '0' + bin_instruction
 		exe_opcode = int(bin_instruction[25:32], 2)
@@ -755,38 +796,3 @@ class HDU:
 		gui_pair['from'] = gui_for
 		new_states = [wb_state, mem_state, exe_state, decode_state, pipeline_instructions[-1]]
 		return [data_hazard, if_stall, stall_position, new_states, gui_pair]
-
-	# If forwarding is not enabled
-	def data_hazard_stalling(self, pipeline_instructions):
-		count_data_hazard = 0
-		data_hazard = False
-
-		states_to_check = pipeline_instructions[:-1]
-		gui_pair =  {'who': -1, 'from_whom': -1}
-
-		exe_state = states_to_check[-2]
-		decode_state = states_to_check[-1]
-		if exe_state.rd != -1 and exe_state.rd != '00000' and not exe_state.is_dummy and not decode_state.is_dummy:
-			if exe_state.rd == decode_state.rs1:
-				data_hazard = True
-				count_data_hazard += 1
-				gui_pair =  {'who': 3, 'from_whom': 2}
-
-			if exe_state.rd == decode_state.rs2:
-				data_hazard = True
-				count_data_hazard += 1
-				gui_pair =  {'who': 3, 'from_whom': 2}
-
-		mem_state = states_to_check[-3]
-		if mem_state.rd != -1 and mem_state.rd != '00000' and not mem_state.is_dummy and not decode_state.is_dummy:
-			if mem_state.rd == decode_state.rs1:
-				data_hazard = True
-				count_data_hazard += 1
-				gui_pair =  {'who': 3, 'from_whom': 1}
-
-			if mem_state.rd == decode_state.rs2:
-				data_hazard = True
-				count_data_hazard += 1
-				gui_pair =  {'who': 3, 'from_whom': 1}
-
-		return [data_hazard, count_data_hazard, gui_pair]
