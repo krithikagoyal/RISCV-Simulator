@@ -341,5 +341,9 @@ if __name__ == '__main__':
 				else:
 					tmp.append(str(processor.get_code[pc_tmp[i][j]]))
 			l_dash.append(tmp + [data_hazard_pairs[i]])
+		#resolvong control+data hazard case
+		for i in range(len(l)):
+			if data_hazard_pairs[i]['who'] == 3:
+				control_hazard_signals[i] = 0
 		# control_hazard_signals is a list on integers 0=> nothing; 1=> red ; 2 => yellow; 3=> green
 		display(l, control_hazard_signals, l_dash )
