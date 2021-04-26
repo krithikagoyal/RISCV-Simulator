@@ -266,7 +266,6 @@ class Processor:
 			exit(1)
 
 		op_type = instruction_set_list[track][0]
-		# operation = instruction_set_list[track][1]
 		state.alu_control_signal = track
 
 		state.is_mem = [-1, -1]

@@ -327,7 +327,6 @@ if __name__ == '__main__':
 		statfile = open("stats.txt", "w")
 		statfile.writelines(stats)
 		statfile.close()
-		# l = [['decode\nforwarded from decode', 'execute', 'mem', 'fetch', 'wb', {'who': 1, 'from_whom': 2}], ['decode', 'execute', 'mem', 'fetch', 'wb', {'who': 1, 'from_whom': 3}], ['decode', 'execute', 'mem', 'fetch', 'wb', {'who': 1, 'from_whom': 4}], ['decode', 'execute', 'mem', 'fetch', 'wb', {'who': 1, 'from_whom': 0}]]
 		for i in range(len(pc_tmp)):
 			tmp = [str(processor.get_code[x]) for x in pc_tmp[i]]
 			l.append(tmp)

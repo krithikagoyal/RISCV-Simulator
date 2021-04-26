@@ -642,7 +642,6 @@ class display_control_hazard(object):
             self.tableWidget.setItem(i, 4, item)
             item.setTextAlignment(QtCore.Qt.AlignCenter)
             item.setText(_translate("MainWindow", f[i][4]))
-                # self.tableWidget.item(i, f[i][5]['who']).setBackground(QtGui.QColor(0, 153, 51))
 
 def display(l, control_hazard_signals, l_for):
     MainWindow2 = QtWidgets.QWidget()
@@ -665,7 +664,6 @@ def display(l, control_hazard_signals, l_for):
     widgets.addWidget(MainWindow3)
     widgets.addWidget(MainWindow4)
     widgets.addWidget(MainWindow5)
-    # widgets.addWidget()
     widgets.show()
     sys.exit(app.exec_())
 
@@ -678,4 +676,3 @@ def take_input():
     MainWindow.show()
     app.exec_()
     return filename[0], pipelining_enabled, forwarding_enabled, print_registers_each_cycle, print_pipeline_registers, [print_specific_pipeline_registers, number]
-            # item.setBackground(QtGui.QColor(100,100,150))
