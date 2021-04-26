@@ -432,7 +432,7 @@ class display_data_hazard(object):
         self.data_hazard_button.setText(_translate("MainWindow", "Data Hazard"))
         self.control_hazard_button.setText(_translate("MainWindow", "Control Hazard"))
         self.plainTextEdit.setPlainText(_translate("MainWindow", "Stall happened because it was dependent on some previous instruction"))
-        self.plainTextEdit_4.setPlainText(_translate("MainWindow", "Stall happened beacuse some previous instruction was dependent on it"))
+        self.plainTextEdit_4.setPlainText(_translate("MainWindow", "Stall happened beacuse some next instruction was dependent on it"))
         item = self.tableWidget.horizontalHeaderItem(4)
         item.setText(_translate("MainWindow", "Fetch"))
         item = self.tableWidget.horizontalHeaderItem(3)
