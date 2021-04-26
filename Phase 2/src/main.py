@@ -342,10 +342,11 @@ if __name__ == '__main__':
 			tmp = [str(processor.get_code[x]) for x in pc_tmp[i]] + [data_hazard_pairs[i]]
 			l.append(tmp)
 			tmp = []
-			for j in range(5):
-				tmp.append(str(processor.get_code[pc_tmp[i][j]]) + "\n" + data_hazard_pairs[i]['from'][j])
-			l_dash.append(tmp)
-		# control_hazard_signals is a list on integers 0=> nothing; 1=> red ; 2 => yellow; 3=> green
-		if not forwarding_enabled:
-			l_dash = l
+		# 	for j in range(5):
+		# 		tmp.append(str(processor.get_code[pc_tmp[i][j]]) + "\n" + data_hazard_pairs[i]['from'][j])
+		# 	l_dash.append(tmp)
+		# # control_hazard_signals is a list on integers 0=> nothing; 1=> red ; 2 => yellow; 3=> green
+		# if not forwarding_enabled:
+		# 	l_dash = l
+		l_dash = l
 		display(l, control_hazard_signals, l_dash )
