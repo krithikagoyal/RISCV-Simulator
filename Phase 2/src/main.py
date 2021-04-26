@@ -339,14 +339,17 @@ if __name__ == '__main__':
 		statfile.close()
 		# l = [['decode\nforwarded from decode', 'execute', 'mem', 'fetch', 'wb', {'who': 1, 'from_whom': 2}], ['decode', 'execute', 'mem', 'fetch', 'wb', {'who': 1, 'from_whom': 3}], ['decode', 'execute', 'mem', 'fetch', 'wb', {'who': 1, 'from_whom': 4}], ['decode', 'execute', 'mem', 'fetch', 'wb', {'who': 1, 'from_whom': 0}]]
 		for i in range(len(pc_tmp)):
-			tmp = [str(processor.get_code[x]) for x in pc_tmp[i]] + [data_hazard_pairs[i]]
-			l_dash.append(tmp)
+			tmp = [str(processor.get_code[x]) for x in pc_tmp[i]]
+			l.append(tmp)
 			tmp = []
 			for j in range(5):
 				if forwarding_enabled and pipelining_enabled:
-					tmp.append(str(processor.get_code[pc_tmp[i][j]]) + "\n" + data_hazard_pairs[i]['from'][j])
+					if data_hazard_pairs[i]['from'][j] != '':
+						tmp.append(str(processor.get_code[pc_tmp[i][j]]) + "\n" + data_hazard_pairs[i]['from'][j])
+					else:
+						tmp.append(str(processor.get_code[pc_tmp[i][j]]))
 				else:
 					tmp.append(str(processor.get_code[pc_tmp[i][j]]))
-			l.append(tmp)
+			l_dash.append(tmp + [data_hazard_pairs[i]])
 		# control_hazard_signals is a list on integers 0=> nothing; 1=> red ; 2 => yellow; 3=> green
 		display(l, control_hazard_signals, l_dash )
