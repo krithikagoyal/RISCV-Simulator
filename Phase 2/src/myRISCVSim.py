@@ -607,7 +607,7 @@ class HDU:
 		data_hazard = False
 
 		# since we don't have values for indtruction in decode stage
-		decode_state = pipeline_instructions[:-2]
+		decode_state = pipeline_instructions[-2]
 		bin_instruction = bin(int(decode_state.instruction_word[2:], 16))[2:]
 		bin_instruction = (32 - len(bin_instruction)) * '0' + bin_instruction
 		decode_opcode = int(bin_instruction[25:32], 2)
