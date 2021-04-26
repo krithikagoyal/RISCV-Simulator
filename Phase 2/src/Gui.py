@@ -600,7 +600,7 @@ class display_control_hazard(object):
         item.setText(_translate("MainWindow", "Memory"))
         item = self.tableWidget.horizontalHeaderItem(0)
         item.setText(_translate("MainWindow", "Write back"))
-        self.plainTextEdit.setPlainText(_translate("MainWindow", "Wrong Prediction"))
+        self.plainTextEdit.setPlainText(_translate("MainWindow", "Wrong Prediction/stall"))
         self.plainTextEdit_4.setPlainText(_translate("MainWindow", "Came first time"))
         self.plainTextEdit_6.setPlainText(_translate("MainWindow", "Correct Prediction"))
 
