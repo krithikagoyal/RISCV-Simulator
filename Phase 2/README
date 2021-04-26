@@ -88,7 +88,7 @@ instructions continues till it reaches the instruction “subw x1, x1, x1”.
 In other words, the instruction “0x401080BB” tells the simulator that the
 program has ended.
 
-Further, the user need to set the knobs manually in the *main.py* file.
+The user need to select the input knobs and the input file from the GUI.
 
 
 Output Format:
@@ -113,12 +113,12 @@ the requirements of the project after installing python.
 How to run ?
 ------------
 1. Place your input .mc file(new ones if any) in the test directory.
-2. Set the knobs in the *main.py* file.
-3. Run the following command on the terminal in the src directory:
+2. Run the following command on the terminal in the src directory:
 *python main.py*
 
-A GUI window opens. Select the input file in the GUI. The program runs and the
-GUI window opens again to show the updated memory and register contents.
+A GUI window opens. Select the input file and knobs in the GUI and press the
+"run" button. The program runs and the GUI window opens again to show data
+corresponding to the input program execution.
 
 
 Individual contributions:
@@ -127,31 +127,23 @@ There is no discrete classification as to who coded what. We helped each other
 in completing the whole project and debugging. The below table broadly specifies
 as to who contributed in which part.
 
----------------------------------------------------
-| Student            | Contributed to             |
-|-------------------------------------------------|
-| Akhil Arya         | myRISCVSim.py, Design Doc  |
-| Harshwardhan Kumar | myRISCVSim.py, Design Doc  |
-| Krithika Goyal     | myRISCVSim.py, main.py     |
-| Rhythm Jain        | myRISCVSim.py, Design Doc  |
-| Tarun Singla       | myRISCVSim.py, main.py     |
----------------------------------------------------
+-----------------------------------------------------------
+| Student            | Contributed to                     |
+|---------------------------------------------------------|
+| Akhil Arya         | myRISCVSim.py, Design Doc          |
+| Harshwardhan Kumar | myRISCVSim.py, Design Doc, GUI     |
+| Krithika Goyal     | myRISCVSim.py, main.py, GUI        |
+| Rhythm Jain        | myRISCVSim.py, Design Doc          |
+| Tarun Singla       | myRISCVSim.py, main.py, Design Doc |
+-----------------------------------------------------------
 
 
 GUI:
 ----
 The first GUI window gives user the option to select the input .mc file from the
-test directory.
-The second GUI window contains updated data memory and register contents. It has
-two buttons: one for data memory and other for registers.
+test directory and the input knobs.
+The second GUI window contains 4 buttons showing different data corresponding to
+input program execution like updated data memory, updated register file, data
+hazards, forwarding, control hazards and branch predictions.
 
-Data window:
-It displays the data memory. It has four columns: one for address and rest three
-showing data in hexadecimal, binary and decimal format. In each address, a word
-is displayed with the content of the smallest address in the least significant
-position and so on.
-
-Register Window:
-It displays the register data. It has four columns: one for register number
-and rest three showing the register data in hexadecimal, binary and decimal
-format. The data is from msb to lsb.
+A detailed explanation of GUI is given in the Design Doc.

@@ -69,7 +69,7 @@ class Ui_takeInput(object):
         MainWindow.setWindowTitle(_translate("MainWindow", "RISC-V Simulator"))
         self.pushButton.setText(_translate("MainWindow", "Choose File"))
         self.run.setText(_translate("MainWindow", "Run"))
-        
+
         self.label.setText(_translate("MainWindow", "Choose the input file "))
         self.pushButton.clicked.connect(lambda: self.pushButton_handler(MainWindow))
         self.run.clicked.connect(lambda: self.run_handler(MainWindow))
@@ -109,7 +109,7 @@ class Ui_takeInput(object):
             number, done2 = QtWidgets.QInputDialog.getInt(MainWindow, 'Input Number', 'Enter the instruction number:')
         else:
             number = -1
-    
+
     def pushButton_handler(self, MainWindow):
         self.openDialogBox(MainWindow)
 
@@ -287,7 +287,7 @@ class display_register(object):
 
     def show_memory_data(self):
         widgets.setCurrentIndex(widgets.currentIndex() - 1)
-    
+
     def show_data_hazard(self):
         widgets.setCurrentIndex(widgets.currentIndex() + 1)
 
@@ -486,7 +486,7 @@ class display_data_hazard(object):
             if f[i][5]['who'] != -1:
                 self.tableWidget.item(i, f[i][5]['who']).setBackground(QtGui.QColor(0, 255, 149))
                 self.tableWidget.item(i, f[i][5]['from_whom']).setBackground(QtGui.QColor(255, 252, 105))
-            
+
 class display_control_hazard(object):
     def setupUi(self, MainWindow, l, control_hazard_signals):
         MainWindow.width = 1900
@@ -600,7 +600,7 @@ class display_control_hazard(object):
         item.setText(_translate("MainWindow", "Memory"))
         item = self.tableWidget.horizontalHeaderItem(0)
         item.setText(_translate("MainWindow", "Write back"))
-        self.plainTextEdit.setPlainText(_translate("MainWindow", "Wrong Prediction/stall"))
+        self.plainTextEdit.setPlainText(_translate("MainWindow", "Wrong Prediction"))
         self.plainTextEdit_4.setPlainText(_translate("MainWindow", "Came first time"))
         self.plainTextEdit_6.setPlainText(_translate("MainWindow", "Correct Prediction"))
 
