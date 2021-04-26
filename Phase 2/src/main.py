@@ -63,19 +63,20 @@ def evaluate(processor, pipeline_ins):
 
 if __name__ == '__main__':
 
-	# set .mc file
+	# set .mc file and input knobs
 	prog_mc_file, pipelining_enabled, forwarding_enabled, print_registers_each_cycle, print_pipeline_registers, print_specific_pipeline_registers = take_input()
-	# invoke classes
-	processor = Processor(prog_mc_file)
-	hdu = HDU()
-	btb = BTB()
 
 	# Knobs
 	# pipelining_enabled = True                       # Knob1
 	# forwarding_enabled = False                      # Knob2
 	# print_registers_each_cycle = False              # Knob3
-	# print_pipeline_registers = False    			      # Knob4
+	# print_pipeline_registers = False    			  # Knob4
 	# print_specific_pipeline_registers = [False, 10] # Knob5
+
+	# invoke classes
+	processor = Processor(prog_mc_file)
+	hdu = HDU()
+	btb = BTB()
 
 	# Signals
 	PC = 0
@@ -253,19 +254,6 @@ if __name__ == '__main__':
 						pipeline_instructions = pipeline_instructions[:2] + [State(0)] + old_states[3:]
 						pipeline_instructions[2].is_dummy = True
 						PC -= 4
-
-					# Check if redundant
-					# elif stall_position == 2 and not control_hazard:
-					# 	pipeline_instructions = pipeline_instructions[:3] + [State(0)] + old_states[4:]
-					# 	pipeline_instructions[3].is_dummy = True
-					# 	PC -= 4
-					#
-					# else:
-					# 	# number_of_control_hazards += 1
-					# 	# number_of_stalls_due_to_control_hazards += 1
-					# 	PC = control_pc
-					# 	pipeline_instructions = pipeline_instructions[:3] + [State(0)] + [State(PC)]
-					# 	pipeline_instructions[3].is_dummy = True
 
 				number_of_data_hazards += data_hazard
 
