@@ -489,12 +489,40 @@ class display_control_hazard(object):
         self.register_button.clicked.connect(self.show_register_data)
         self.data_hazard_button.clicked.connect(self.show_data_hazard)
 
+        # representing colors
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        self.plainTextEdit = QtWidgets.QPlainTextEdit(self.centralwidget)
+        self.plainTextEdit.setGeometry(QtCore.QRect(590, 95, 200, 40))
+        self.plainTextEdit.setObjectName("plainTextEdit")
+        self.plainTextEdit.setFont(font)
+        self.plainTextEdit_2 = QtWidgets.QPlainTextEdit(self.centralwidget)
+        self.plainTextEdit_2.setGeometry(QtCore.QRect(560, 95, 31, 40))
+        self.plainTextEdit_2.setStyleSheet("background-color: rgb(255, 94, 94);")
+        self.plainTextEdit_2.setObjectName("plainTextEdit_2")
+        self.plainTextEdit_3 = QtWidgets.QPlainTextEdit(self.centralwidget)
+        self.plainTextEdit_3.setGeometry(QtCore.QRect(820, 95, 31, 40))
+        self.plainTextEdit_3.setStyleSheet("background-color: rgb(247, 255, 94);")
+        self.plainTextEdit_3.setObjectName("plainTextEdit_3")
+        self.plainTextEdit_4 = QtWidgets.QPlainTextEdit(self.centralwidget)
+        self.plainTextEdit_4.setGeometry(QtCore.QRect(850, 95, 200, 40))
+        self.plainTextEdit_4.setObjectName("plainTextEdit_4")
+        self.plainTextEdit_4.setFont(font)
+        self.plainTextEdit_5 = QtWidgets.QPlainTextEdit(self.centralwidget)
+        self.plainTextEdit_5.setGeometry(QtCore.QRect(1080, 95, 31, 40))
+        self.plainTextEdit_5.setStyleSheet("background-color: rgb(94, 255, 150);")
+        self.plainTextEdit_5.setObjectName("plainTextEdit_5")
+        self.plainTextEdit_6 = QtWidgets.QPlainTextEdit(self.centralwidget)
+        self.plainTextEdit_6.setGeometry(QtCore.QRect(1110, 95, 200, 40))
+        self.plainTextEdit_6.setObjectName("plainTextEdit_6")
+        self.plainTextEdit_6.setFont(font)
+
         font = QtGui.QFont()
         font.setPointSize(12)
         self.label.setFont(font)
         self.label.setObjectName("label")
         self.tableWidget = QtWidgets.QTableWidget(self.centralwidget)
-        self.tableWidget.setGeometry(QtCore.QRect(0, 95, MainWindow.width, MainWindow.height - 100))
+        self.tableWidget.setGeometry(QtCore.QRect(0, 130, MainWindow.width, MainWindow.height - 100))
         self.tableWidget.setObjectName("tableWidget")
         self.tableWidget.setColumnCount(5)
         self.tableWidget.setRowCount(len(l)) # changed
@@ -546,6 +574,10 @@ class display_control_hazard(object):
         item.setText(_translate("MainWindow", "Memory"))
         item = self.tableWidget.horizontalHeaderItem(0)
         item.setText(_translate("MainWindow", "Write back"))
+        self.plainTextEdit.setPlainText(_translate("MainWindow", "Wrong Prediction"))
+        self.plainTextEdit_4.setPlainText(_translate("MainWindow", "Came first time"))
+        self.plainTextEdit_6.setPlainText(_translate("MainWindow", "Correct Prediction"))
+
 
         f = l
         for i in range(len(f)):
