@@ -87,16 +87,16 @@ the user to enable/disable pipelining, forwarding, printing register file, and p
 pipeline registers for all or a specific instruction.
 
 At the end of the execution, the simulator prints various insightful statistics in a
-*stats.txt* file. 
+*stats.txt* file.
 
 ## How to run ?
 For any phase,
 1. Place your input .mc file(new ones if any) in the test directory.
-2. Set the knobs(if any) in the *main.py* file.
-3. Run the following command on the terminal in the src directory:
+2. Run the following command on the terminal in the *src* directory:
 ```
 $ python main.py
 ```
 
-A GUI window opens. Select the input file in the GUI. The program runs and the
-GUI window opens again to show the updated memory and register contents.
+A GUI window opens. Select the input file and knobs(if present) in the GUI and
+press the "run" button(if present). The program runs and the GUI window opens
+again to show various data corresponding to the input program execution.
