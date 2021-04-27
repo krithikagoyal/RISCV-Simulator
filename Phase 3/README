@@ -1,0 +1,149 @@
+================================================
+Functional Simulator for RISC-V Processor
+================================================
+
+
+------------------------------------------------
+This project is developed as part of Computer
+Architecture class and is build in 3 phases.
+This is PHASE 2: PIPELINED IMPLEMENTATION
+------------------------------------------------
+
+
+Table of contents:
+1. Contributors
+2. Directory Structure
+3. Input format
+4. Output format
+5. Project requirements / Libraries Used
+6. How to run ?
+7. Individual contributions
+8. GUI
+
+
+Contributors:
+-------------------------------------------------
+| Developer's Name   | Developer's Email ID     |
+|-----------------------------------------------|
+| Akhil Arya         | 2019csb1066@iitrpr.ac.in |
+| Harshwardhan Kumar | 2019csb1089@iitrpr.ac.in |
+| Krithika Goyal     | 2019csb1094@iitrpr.ac.in |
+| Rhythm Jain        | 2019csb1111@iitrpr.ac.in |
+| Tarun Singla       | 2019csb1126@iitrpr.ac.in |
+-------------------------------------------------
+
+
+Directory Structure:
+--------------------
+RISCV-Simulator
+  |
+  |- doc
+      |
+      |- design-doc.docx
+  |- src
+      |
+      |- Gui.py
+      |- Instruction_Set_List.csv
+      |- main.py
+      |- myRISCVSim.py
+  |- test
+      |
+      |- bubble_sort.mc
+      |- factorial.mc
+      |- fibonacci.mc
+      |- TC_1_Fibonacci_Assembly.s
+      |- TC_2_Factorial_Assembly.s
+      |- TC_1_BubbleSort_Assembly.s
+      |- Test.md
+  |
+  |- Project-statement.txt
+  |- README
+  |- requirements.txt
+
+
+Input Format:
+-------------
+Input to the simulator is a .mc file that contains the encoded instructions and
+the corresponding addresses at which the instruction is supposed to be stored,
+separated by a space. For example:
+0x0 0x003100B3
+0x4 0x00A00113
+0x8 0x00200193
+
+It also contains the data to be pre-loaded into the memory in a similar format.
+For example:
+0x10000000 0x00000010
+0x10000004 0x00000020
+
+The simulator supports below 29 instructions:
+R Format: add, and, or, sll, slt, sra, srl, sub, xor, mul, div, rem.
+I Format: andi, addi, ori, lb, lh, lw, jalr.
+S Format: sb, sw, sh.
+SB Format: beq, bne, bge, blt.
+U Format: auipc, lui.
+UJ Format: jal.
+
+Additionally, an exit instruction is also supported. The execution of
+instructions continues till it reaches the instruction “subw x1, x1, x1”.
+In other words, the instruction “0x401080BB” tells the simulator that the
+program has ended.
+
+The user need to select the input knobs and the input file from the GUI.
+
+
+Output Format:
+--------------
+1. As an output, the simulator writes the updated memory contents in a "data_out.mc" file.
+2. A "reg_out.mc" file is also produced containing the contents of the registers.
+3. Further, the simulator prints various insightful statistics in a "stats.txt" file.
+4. Additionally, the simulator also prints register files, pipeline registers for all
+or a specific instruction as per the knobs.
+
+
+Project requirements / Libraries Used:
+--------------------------------------
+This simulator is built using Python.
+The user must install python3 and all libraries stated in requirements.txt.
+
+Run the following command in the terminal in the main directory to install all
+the requirements of the project after installing python.
+*pip install -r requirements.txt*
+
+
+How to run ?
+------------
+1. Place your input .mc file(new ones if any) in the test directory.
+2. Run the following command on the terminal in the src directory:
+*python main.py*
+
+A GUI window opens. Select the input file and knobs in the GUI and press the
+"run" button. The program runs and the GUI window opens again to show data
+corresponding to the input program execution.
+
+
+Individual contributions:
+-------------------------
+There is no discrete classification as to who coded what. We helped each other
+in completing the whole project and debugging. The below table broadly specifies
+as to who contributed in which part.
+
+-----------------------------------------------------------
+| Student            | Contributed to                     |
+|---------------------------------------------------------|
+| Akhil Arya         | myRISCVSim.py, Design Doc          |
+| Harshwardhan Kumar | myRISCVSim.py, Design Doc, GUI     |
+| Krithika Goyal     | myRISCVSim.py, main.py, GUI        |
+| Rhythm Jain        | myRISCVSim.py, Design Doc          |
+| Tarun Singla       | myRISCVSim.py, main.py, Design Doc |
+-----------------------------------------------------------
+
+
+GUI:
+----
+The first GUI window gives user the option to select the input .mc file from the
+test directory and the input knobs.
+The second GUI window contains 4 buttons showing different data corresponding to
+input program execution like updated data memory, updated register file, data
+hazards, forwarding, control hazards and branch predictions.
+
+A detailed explanation of GUI is given in the Design Doc.
