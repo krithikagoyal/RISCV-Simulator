@@ -18,6 +18,7 @@ Project Name: Functional Simulator for subset of RISC-V Processor
 
 from Gui import display, take_input
 from myRISCVSim import State, Processor, BTB, HDU
+from memory import Memory
 import time
 
 stats = [
@@ -73,8 +74,23 @@ if __name__ == '__main__':
 	# print_pipeline_registers = False    			  # Knob4
 	# print_specific_pipeline_registers = [False, 10] # Knob5
 
+	# Give error if no value specified in the input or GUI
+	# Data cache inputs
+	data_cache_size = 128
+	data_cache_block_size = 16 # Word is 4B
+	data_cache_associativity = 0 # 0/1/2[FA/DM/SA]
+	data_cache_ways = -1
+
+	# Instruction cache inputs
+	instruction_cache_size = 128
+	instruction_cache_block_size = 16 # Word is 4B
+	instruction_cache_associativity = 0 # 0/1/2[FA/DM/SA]
+	instruction_cache_ways = -1
+
 	# invoke classes
-	processor = Processor(prog_mc_file)
+	data_cache = Memory(data_cache_size, data_cache_block_size, data_cache_associativity, data_cache_ways)
+	instruction_cache = Memory(instruction_cache_size, instruction_cache_block_size, instruction_cache_associativity, instruction_cache_ways)
+	processor = Processor(prog_mc_file, data_cache, instruction_cache)
 	hdu = HDU()
 	btb = BTB()
 
