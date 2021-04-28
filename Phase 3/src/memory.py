@@ -45,14 +45,34 @@ class Memory:
 		address = (32 - len(address)) * '0' + address
         return int(address[:-(self.number_of_block_offset_bits+self.number_of_index_bits)], 2)
 
-    def get_block_offset(sel, address):
+    def get_block_offset(self, address):
         address = bin(int(address[2:], 16))[2:]
 		address = (32 - len(address)) * '0' + address
         return int(address[-(self.number_of_block_offset_bits):], 2)
 
+    def replace_block(index, cache_tag, tag):
+        pass
+
+    def update_recency(index, tag):
+        curr_recency = self.cache[index][tag][1]
+        self.cache[index][tag][1] = self.ways - 1
+        for cache_tag in self.cache[index].keys():
+            if self.cache[index][tag][1] > curr_recency:
+                self.cache[index][tag][1] -= 1
+
     def read(self, address, MEM):
         index = self.get_index(address)
-        pass
+        tag = self.get_tag(address)
+        block_offset = self.get_block_offset(address)
+        if tag not in self.cache[index].keys():
+            for cache_tag in self.cache[index].keys():
+                if self.cache[index][cache_tag][1] == 0:
+                    self.replace_block(index, cache_tag, tag)
+                    break
+
+        block = self.cache[index][tag]
+        self.update_recency(index, tag)
+        return block[block_offset + 3] + block[block_offset + 2] + block[block_offset + 1] + block[block_offset] 
 
     # Write Through and No-write Allocate
     # Data at lower address first
