@@ -75,18 +75,23 @@ class Memory:
 		return block[block_offset + 3] + block[block_offset + 2] + block[block_offset + 1] + block[block_offset]
 
 	# Write Through and No-write Allocate
-	# Data at lower address first
-	def write(self, address, data, MEM):
+	# Data word at lower address first
+	def write(self, address, data, MEM, type):
 		index = self.get_index(address)
 		tag = self.get_tag(address)
 		if tag in self.cache[index].keys():
 			offset = self.get_block_offset(address)
-			self.cache[index][tag][0] = self.cache[index][tag][0][:4*offset] + data[2:] + self.cache[index][tag][0][4*offset+4:]
+			if type == 3:
+				self.cache[index][tag][0] = self.cache[index][tag][0][:8*offset] + data[8:10] + data[6:8] + data[4:6] + data[2:4] + self.cache[index][tag][0][8*offset+8:]
+			elif type == 1:
+				self.cache[index][tag][0] = self.cache[index][tag][0][:8*offset+4] + data[8:10] + data[6:8] + self.cache[index][tag][0][8*offset+8:]
+			else:
+				self.cache[index][tag][0] = self.cache[index][tag][0][:8*offset+6] + data[8:10] + self.cache[index][tag][0][8*offset+8:]
 
-		idx = int(address[2:], 16)
-		MEM[idx] =  data[8:10]
-		MEM[idx + 1] = data[6:8]
-		MEM[idx + 2] = data[4:6]
-		MEM[idx + 3] = data[2:4]
-
-# issue if data is not a word
+		if type >= 3:
+			MEM[address + 3] = data[2:4]
+			MEM[address + 2] = data[4:6]
+		if type >= 1:
+			MEM[address + 1] = data[6:8]
+		if type >= 0:
+			MEM[address] = data[8:10]

@@ -573,13 +573,14 @@ class Processor:
 			state.register_data = sign_extend(state.register_data)
 
 		else:
-			if state.is_mem[1] >= 3:
-				self.MEM[state.memory_address + 3] = state.register_data[2:4]
-				self.MEM[state.memory_address + 2] = state.register_data[4:6]
-			if state.is_mem[1] >= 1:
-				self.MEM[state.memory_address + 1] = state.register_data[6:8]
-			if state.is_mem[1] >= 0:
-				self.MEM[state.memory_address] = state.register_data[8:10]
+			self.data_cache.write(state.memory_address, state.register_data, self.MEM, state.is_mem[1])
+			# if state.is_mem[1] >= 3:
+			# 	self.MEM[state.memory_address + 3] = state.register_data[2:4]
+			# 	self.MEM[state.memory_address + 2] = state.register_data[4:6]
+			# if state.is_mem[1] >= 1:
+			# 	self.MEM[state.memory_address + 1] = state.register_data[6:8]
+			# if state.is_mem[1] >= 0:
+			# 	self.MEM[state.memory_address] = state.register_data[8:10]
 
 	# Writes the results back to the register file
 	def write_back(self, state):
