@@ -89,7 +89,7 @@ class Memory:
 
 		block = self.cache[index][tag][0]
 		self.update_recency(index, tag)
-		return block[block_offset:block_offset + 8]
+		return block[2 * block_offset:2 * block_offset + 8]
 
 	# Write Through and No-write Allocate
 	# Data word at lower address first
@@ -100,11 +100,11 @@ class Memory:
 		if tag in self.cache[index].keys():
 			offset = self.get_block_offset(address)
 			if type == 3:
-				self.cache[index][tag][0] = self.cache[index][tag][0][:offset] + data[8:10] + data[6:8] + data[4:6] + data[2:4] + self.cache[index][tag][0][offset+8:]
+				self.cache[index][tag][0] = self.cache[index][tag][0][:2 * offset] + data[8:10] + data[6:8] + data[4:6] + data[2:4] + self.cache[index][tag][0][2 * offset + 8:]
 			elif type == 1:
-				self.cache[index][tag][0] = self.cache[index][tag][0][:offset] + data[8:10] + data[6:8] + self.cache[index][tag][0][offset+4:]
+				self.cache[index][tag][0] = self.cache[index][tag][0][:2 * offset] + data[8:10] + data[6:8] + self.cache[index][tag][0][2 * offset + 4:]
 			else:
-				self.cache[index][tag][0] = self.cache[index][tag][0][:offset] + data[8:10] + self.cache[index][tag][0][offset+2:]
+				self.cache[index][tag][0] = self.cache[index][tag][0][:2 * offset] + data[8:10] + self.cache[index][tag][0][2 * offset + 2:]
 
 		if type >= 3:
 			MEM[address + 3] = data[2:4]

@@ -78,14 +78,14 @@ if __name__ == '__main__':
 	# Data cache inputs
 	data_cache_size = 128
 	data_cache_block_size = 16 # Word is 4B
-	data_cache_associativity = 0 # 0/1/2[FA/DM/SA]
-	data_cache_ways = -1
+	data_cache_associativity = 1 # 0/1/2[FA/DM/SA]
+	data_cache_ways = 1
 
 	# Instruction cache inputs
 	instruction_cache_size = 128
 	instruction_cache_block_size = 16 # Word is 4B
-	instruction_cache_associativity = 0 # 0/1/2[FA/DM/SA]
-	instruction_cache_ways = -1
+	instruction_cache_associativity = 1 # 0/1/2[FA/DM/SA]
+	instruction_cache_ways = 1
 
 	# invoke classes
 	data_cache = Memory(data_cache_size, data_cache_block_size, data_cache_associativity, data_cache_ways)
