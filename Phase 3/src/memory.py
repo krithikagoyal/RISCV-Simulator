@@ -50,15 +50,16 @@ class Memory:
 		address = (32 - len(address)) * '0' + address
 		return int(address[-(self.number_of_block_offset_bits):], 2)
 
-	def replace_block(self, index, cache_tag, tag):
-		pass
+	def replace_block(self, index, cache_tag, tag, MEM):
+		self.cache[index].pop(cache_tag)
+		block = MEM[tag:tag + 32]
+		self.cache[index][tag][0] = block
+		self.cache[index][tag][1] = self.ways - 1
 
 	def update_recency(self, index, tag):
-		curr_recency = self.cache[index][tag][1]
 		self.cache[index][tag][1] = self.ways - 1
 		for cache_tag in self.cache[index].keys():
-			if self.cache[index][tag][1] > curr_recency:
-				self.cache[index][tag][1] -= 1
+			self.cache[index][cache_tag][1] -= 1
 
 	def read(self, address, MEM):
 		index = self.get_index(address)
@@ -67,10 +68,10 @@ class Memory:
 		if tag not in self.cache[index].keys():
 			for cache_tag in self.cache[index].keys():
 				if self.cache[index][cache_tag][1] == 0:
-					self.replace_block(index, cache_tag, tag)
+					self.replace_block(index, cache_tag, tag, MEM)
 					break
 
-		block = self.cache[index][tag]
+		block = self.cache[index][tag][0]
 		self.update_recency(index, tag)
 		return block[block_offset + 3] + block[block_offset + 2] + block[block_offset + 1] + block[block_offset]
 
