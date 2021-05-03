@@ -57,6 +57,7 @@ class Memory:
 		self.cache[index].pop(cache_tag)
 		tag = self.get_tag(address)
 		self.cache[index][tag] = ['', self.ways - 1]
+		address = (address // self.block_size) * self.block_size
 		for i in range(self.block_size):
 			self.cache[index][tag][0] += MEM[address + i]
 
@@ -70,11 +71,11 @@ class Memory:
 		index = self.get_index(address)
 		tag = self.get_tag(address)
 		self.cache[index][tag] = ['', self.ways - 1]
+		address = (address // self.block_size) * self.block_size
 		for i in range(self.block_size):
 			self.cache[index][tag][0] += MEM[address + i]
 
 	def read(self, address, MEM):
-		# print("read")
 		index = self.get_index(address)
 		tag = self.get_tag(address)
 		block_offset = self.get_block_offset(address)

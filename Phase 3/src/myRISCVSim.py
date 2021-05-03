@@ -209,8 +209,10 @@ class Processor:
 			state.is_dummy = True
 			return
 
-		state.instruction_word = '0x' + self.MEM[state.PC + 3] + self.MEM[state.PC + 2] + self.MEM[state.PC + 1] + self.MEM[state.PC]
-
+		data = self.instruction_cache.read(state.PC, self.MEM)
+		state.instruction_word = '0x' + data[6:8] + data[4:6] + data[2:4] + data[0:2]
+		# state.instruction_word = '0x' + self.MEM[state.PC + 3] + self.MEM[state.PC + 2] + self.MEM[state.PC + 1] + self.MEM[state.PC]
+  
 		if not self.pipelining_enabled:
 			return
 
