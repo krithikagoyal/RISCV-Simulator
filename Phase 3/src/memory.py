@@ -74,6 +74,7 @@ class Memory:
 			self.cache[index][tag][0] += MEM[address + i]
 
 	def read(self, address, MEM):
+		# print("read")
 		index = self.get_index(address)
 		tag = self.get_tag(address)
 		block_offset = self.get_block_offset(address)
@@ -93,16 +94,17 @@ class Memory:
 	# Write Through and No-write Allocate
 	# Data word at lower address first
 	def write(self, address, data, MEM, type):
+		# print("write")
 		index = self.get_index(address)
 		tag = self.get_tag(address)
 		if tag in self.cache[index].keys():
 			offset = self.get_block_offset(address)
 			if type == 3:
-				self.cache[index][tag][0] = self.cache[index][tag][0][:8*offset] + data[8:10] + data[6:8] + data[4:6] + data[2:4] + self.cache[index][tag][0][8*offset+8:]
+				self.cache[index][tag][0] = self.cache[index][tag][0][:offset] + data[8:10] + data[6:8] + data[4:6] + data[2:4] + self.cache[index][tag][0][offset+8:]
 			elif type == 1:
-				self.cache[index][tag][0] = self.cache[index][tag][0][:8*offset+4] + data[8:10] + data[6:8] + self.cache[index][tag][0][8*offset+8:]
+				self.cache[index][tag][0] = self.cache[index][tag][0][:offset] + data[8:10] + data[6:8] + self.cache[index][tag][0][offset+4:]
 			else:
-				self.cache[index][tag][0] = self.cache[index][tag][0][:8*offset+6] + data[8:10] + self.cache[index][tag][0][8*offset+8:]
+				self.cache[index][tag][0] = self.cache[index][tag][0][:offset] + data[8:10] + self.cache[index][tag][0][offset+2:]
 
 		if type >= 3:
 			MEM[address + 3] = data[2:4]

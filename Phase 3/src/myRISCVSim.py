@@ -562,7 +562,6 @@ class Processor:
 		if state.is_mem[0] == -1:
 			return
 
-
 		elif state.is_mem[0] == 0:
 			state.register_data = '0x'
 			data = self.data_cache.read(state.memory_address, self.MEM)
@@ -584,6 +583,8 @@ class Processor:
 			# 	self.MEM[state.memory_address + 1] = state.register_data[6:8]
 			# if state.is_mem[1] >= 0:
 			# 	self.MEM[state.memory_address] = state.register_data[8:10]
+
+		# print(state.instruction_word)
 
 	# Writes the results back to the register file
 	def write_back(self, state):
