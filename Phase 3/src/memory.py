@@ -33,6 +33,7 @@ class Memory:
 		self.cache = [dict() for i in range(self.sets)] # {tag: (block, recency)}
 
 	def get_index(self, address):
+		address = hex(address)
 		address = bin(int(address[2:], 16))[2:]
 		address = (32 - len(address)) * '0' + address
 		if self.number_of_index_bits == 0:
@@ -41,39 +42,53 @@ class Memory:
 			return int(address[-(self.number_of_block_offset_bits+self.number_of_index_bits):-self.number_of_block_offset_bits], 2)
 
 	def get_tag(self, address):
+		address = hex(address)
 		address = bin(int(address[2:], 16))[2:]
 		address = (32 - len(address)) * '0' + address
 		return int(address[:-(self.number_of_block_offset_bits+self.number_of_index_bits)], 2)
 
 	def get_block_offset(self, address):
+		address = hex(address)
 		address = bin(int(address[2:], 16))[2:]
 		address = (32 - len(address)) * '0' + address
 		return int(address[-(self.number_of_block_offset_bits):], 2)
 
-	def replace_block(self, index, cache_tag, tag, MEM):
+	def replace_block(self, index, cache_tag, address, MEM):
 		self.cache[index].pop(cache_tag)
-		block = MEM[tag:tag + 32]
-		self.cache[index][tag][0] = block
-		self.cache[index][tag][1] = self.ways - 1
+		tag = self.get_tag(address)
+		self.cache[index][tag] = ['', self.ways - 1]
+		for i in range(self.block_size):
+			self.cache[index][tag][0] += MEM[address + i]
 
 	def update_recency(self, index, tag):
-		self.cache[index][tag][1] = self.ways - 1
+		self.cache[index][tag][1] = self.ways
 		for cache_tag in self.cache[index].keys():
-			self.cache[index][cache_tag][1] -= 1
+			if self.cache[index][cache_tag][1] != 0:
+				self.cache[index][cache_tag][1] -= 1
+
+	def add_block(self, address, MEM):
+		index = self.get_index(address)
+		tag = self.get_tag(address)
+		self.cache[index][tag] = ['', self.ways - 1]
+		for i in range(self.block_size):
+			self.cache[index][tag][0] += MEM[address + i]
 
 	def read(self, address, MEM):
 		index = self.get_index(address)
 		tag = self.get_tag(address)
 		block_offset = self.get_block_offset(address)
 		if tag not in self.cache[index].keys():
-			for cache_tag in self.cache[index].keys():
-				if self.cache[index][cache_tag][1] == 0:
-					self.replace_block(index, cache_tag, tag, MEM)
-					break
+			if len(self.cache[index]) != self.ways:
+				self.add_block(address, MEM)
+			else:
+				for cache_tag in self.cache[index].keys():
+					if self.cache[index][cache_tag][1] == 0:
+						self.replace_block(index, cache_tag, address, MEM)
+						break
 
 		block = self.cache[index][tag][0]
 		self.update_recency(index, tag)
-		return block[block_offset + 3] + block[block_offset + 2] + block[block_offset + 1] + block[block_offset]
+		return block[block_offset:block_offset + 8]
 
 	# Write Through and No-write Allocate
 	# Data word at lower address first

@@ -264,6 +264,7 @@ class Processor:
 			track += 1
 
 		if not match_found:
+			print(bin_instruction, state.instruction_word, opcode, func3, func7)
 			print("ERROR: Unidentifiable machine code!\n")
 			exit(1)
 
@@ -561,14 +562,16 @@ class Processor:
 		if state.is_mem[0] == -1:
 			return
 
+
 		elif state.is_mem[0] == 0:
 			state.register_data = '0x'
+			data = self.data_cache.read(state.memory_address, self.MEM)
 			if state.is_mem[1] == 0:
-				state.register_data += self.MEM[state.memory_address]
+				state.register_data += data[0:2] # self.MEM[state.memory_address]
 			elif state.is_mem[1] == 1:
-				state.register_data += (self.MEM[state.memory_address + 1] + self.MEM[state.memory_address])
+				state.register_data += data[2:4] + data[0:2] # (self.MEM[state.memory_address + 1] + self.MEM[state.memory_address])
 			else:
-				state.register_data += (self.MEM[state.memory_address + 3] + self.MEM[state.memory_address + 2] + self.MEM[state.memory_address + 1] + self.MEM[state.memory_address])
+				state.register_data += data[6:8] + data[4:6] + data[2:4] + data[0:2] # (self.MEM[state.memory_address + 3] + self.MEM[state.memory_address + 2] + self.MEM[state.memory_address + 1] + self.MEM[state.memory_address])
 
 			state.register_data = sign_extend(state.register_data)
 
