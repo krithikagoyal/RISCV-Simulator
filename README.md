@@ -7,7 +7,8 @@
 3. [Requirements](https://github.com/Harshiitrpr/RISCV-Simulator#requirements)
 4. [Phase 1 (Single Cycle Execution)](https://github.com/Harshiitrpr/RISCV-Simulator#phase-1-single-cycle-execution)
 5. [Phase 2 (Pipelined Implementation)](https://github.com/Harshiitrpr/RISCV-Simulator#phase-2-pipelined-implementation)
-6. [How to run ?](https://github.com/Harshiitrpr/RISCV-Simulator#how-to-run-)
+6. [Phase 3 (Cache Implementation)](https://github.com/Harshiitrpr/RISCV-Simulator#phase-3-cache-implementation)
+7. [How to run ?](https://github.com/Harshiitrpr/RISCV-Simulator#how-to-run-)
 
 ## Contributors
 ```
@@ -34,6 +35,7 @@ RISCV-Simulator
       |- Gui.py
       |- Instruction_Set_List.csv
       |- main.py
+      |- memory.py(Phase 3 only)
       |- myRISCVSim.py
   |- test
       |
@@ -89,6 +91,14 @@ pipeline registers for all or a specific instruction.
 At the end of the execution, the simulator prints various insightful statistics in a
 *stats.txt* file.
 
+## PHASE 3 (Cache Implementation)
+The simulator now supports both data and instruction caches. Various input
+parameters like cache size, cache block size, type of cache and number of ways
+can be set by the user.
+
+At the end of the execution, the simulator prints various insightful statistics in a
+*stats.txt* file.
+
 ## How to run ?
 For any phase,
 1. Place your input .mc file(new ones if any) in the test directory.
@@ -97,6 +107,6 @@ For any phase,
 $ python main.py
 ```
 
-A GUI window opens. Select the input file and knobs(if present) in the GUI and
-press the "run" button(if present). The program runs and the GUI window opens
+A GUI window opens. Select the input file, knobs(if present), cache parameters(if present)
+in the GUI and press the "run" button(if present). The program runs and the GUI window opens
 again to show various data corresponding to the input program execution.

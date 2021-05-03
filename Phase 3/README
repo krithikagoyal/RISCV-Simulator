@@ -6,7 +6,7 @@ Functional Simulator for RISC-V Processor
 ------------------------------------------------
 This project is developed as part of Computer
 Architecture class and is build in 3 phases.
-This is PHASE 2: PIPELINED IMPLEMENTATION
+This is PHASE 3: CACHE IMPLEMENTATION
 ------------------------------------------------
 
 
@@ -45,6 +45,7 @@ RISCV-Simulator
       |- Gui.py
       |- Instruction_Set_List.csv
       |- main.py
+      |- memory.py
       |- myRISCVSim.py
   |- test
       |
@@ -88,7 +89,8 @@ instructions continues till it reaches the instruction “subw x1, x1, x1”.
 In other words, the instruction “0x401080BB” tells the simulator that the
 program has ended.
 
-The user need to select the input knobs and the input file from the GUI.
+The user need to select the input knobs, cache input parameters and the input
+file from the GUI.
 
 
 Output Format:
@@ -116,9 +118,9 @@ How to run ?
 2. Run the following command on the terminal in the src directory:
 *python main.py*
 
-A GUI window opens. Select the input file and knobs in the GUI and press the
-"run" button. The program runs and the GUI window opens again to show data
-corresponding to the input program execution.
+A GUI window opens. Select the input file, cache input parameters and knobs in
+the GUI and press the "run" button. The program runs and the GUI window opens
+again to show data corresponding to the input program execution.
 
 
 Individual contributions:

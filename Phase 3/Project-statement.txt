@@ -1,54 +1,38 @@
 CS204 - Computer Architecture
 
-Course Project Phase 2 Details
-Pipelined Implementation of 32bit RISC-V instruction execution
+Course Project - Phase 3 Description
+Appending RISC-V pipeline with Caches
 
 
-General guidelines:
-1. You are expected to build on your Phase 1 code, and make it pipelined.
-2. Introduce pipeline registers/inter-stage buffers between each of the execution steps.
-3. Change the data path and control path to support pipelining.
-4. You need to introduce logic of data forwarding, stalling, flushing the pipeline.
-5. You'll need to give two memories: one for text segment and another for data segment.
-6. For control hazards, include static branch prediction.
+Phase 3: Appending a cache like memory module to Phase 2.
+In this phase, you'll create the instruction and data cache modules. Instead of
+directly reading from .mc file (or some other temporary structure), you'll read
+the instructions, read/write data from these cache modules.
 
 
-Input knobs that need to be included:
-1. Enable/disable pipelining.
-    If Knob1 is set, it would work as pipelined execution. If not set, its similar to Phase 1.
-2. Enable/disable data forwarding.
-    If this knob is not set, pipeline is expected to work with stalling.
-3. Enable/disable printing values in the register file at the end of each cycle.
-4. Enable/disable printing information in the pipeline registers at the end of each cycle
-    (similar to tracing), along with cycle number.
-5. This knob is like enabling Knob4 for a specific instruction. With this feature we will
-    be able to see the pipeline registers information for a particular instruction of our
-    interest. Here, the instruction can be specified as number (example, if the instruction
-    we are interested in is the 10th instruction in the input program, 10 will be taken as
-    input).
-
-
-Stats to be printed in an output file at the end of the simulation:
-Stat1: Total number of cycles
-Stat2: Total instructions executed
-Stat3: CPI
-Stat4: Number of Data-transfer (load and store) instructions executed
-Stat5: Number of ALU instructions executed
-Stat6: Number of Control instructions executed
-Stat7: Number of stalls/bubbles in the pipeline
-Stat8: Number of data hazards
-Stat9: Number of control hazards
-Stat10: Number of branch mispredictions
-Stat11: Number of stalls due to data hazards
-Stat12: Number of stalls due to control hazards
-
-
-Test cases for Phase 2 are similar to Phase 1.
+More details of Cache model:
+1. Input parameters: Cache size, Cache block size, Direct mapped (DM)/Full Assoc
+    (FA)/ Set Assoc(SA), Number of ways for SA.
+2. Output: Number of accesses, number of hits, and number of misses.
+3. Implement LRU as the replacement policy for the caches with configuration of
+    either FA or SA.
+4. You need not implement pipeline stalls upon a cache miss. Meaning you are
+    effectively modeling the functionality of a Cache, that will not have any
+    impact on the pipeline proceedings. Your cache model is more like an
+    accountant tracking the accesses, hits, misses.
+5. You'll need to instantiate two caches, one will work as Instruction cache(I$)
+    and another will work as Data cache (D$). So, all the requests from Fetch
+    stage of your pipeline will be handled by I$. Like wise, requests from
+    Memory stage will be handled by D$.
+6. You'll give a provision to the user to specify input configurations for I$
+    and D$ separately.
+7. At the end of simulation, two sets of stats will be printed - one for I$ and
+    another for D$.
 
 
 GUI requirements for bonus points (1%):
-1. A block diagram of the five pipeline stages.
-2. In each cycle, give details of the instruction being executed in each stage during that cycle.
-3. Highlight the data hazard and control hazard cases.
-4. Highlight the forwarding path taken to handle the data hazard.
-5. Show the output of the static branch predictor whenever used.
+1. You would require to show the user the content of all the sets of the cache
+    (both I$ and D$) which have non-zero data.
+2. For each Fetch, Load, Store, show the set that is accessed.
+3. Upon a miss, show the victim block.
+4. The number of accesses, hits, misses are required to be shown.
