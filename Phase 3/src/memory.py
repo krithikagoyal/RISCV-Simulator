@@ -12,10 +12,7 @@ class Memory:
 		#
 		self.count_accesses = 0
 		self.count_hits = 0
-		self.count_total_misses = 0
-		self.count_cold_misses = 0
-		self.count_capacity_misses = 0
-		self.count_conflict_misses = 0
+		self.count_misses = 0
 		#
 		self.set()
 
@@ -77,6 +74,7 @@ class Memory:
 	# Write Through and No-write Allocate
 	# Data word at lower address first
 	def write(self, address, data, MEM, type):
+		self.count_accesses += 1 # Hits? Misses?
 		index = self.get_index(address)
 		tag = self.get_tag(address)
 		if tag in self.cache[index].keys():

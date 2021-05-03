@@ -36,7 +36,21 @@ stats = [
 	"Number of stalls due to control hazards: "
 ]
 
+instruction_cache_stats = [
+	"Number of accesses: ",
+	"Number of hits: ",
+	"Number of misses: "
+]
+
+data_cache_stats = [
+	"Number of accesses: ",
+	"Number of hits: ",
+	"Number of misses: "
+]
+
 s = [0]*12
+ic = [0]*3
+dc = [0]*3
 
 l = []
 l_dash = []
@@ -337,13 +351,35 @@ if __name__ == '__main__':
 	s[11] = number_of_stalls_due_to_control_hazards
 	s[6] = s[10] + s[11]
 
+	ic[0] = instruction_cache.count_accesses
+	ic[1] = instruction_cache.count_hits
+	ic[2] = instruction_cache.count_misses
+
+	dc[0] = data_cache.count_accesses
+	dc[1] = data_cache.count_hits
+	dc[2] = data_cache.count_misses
+
 	if prog_end:
 		processor.write_data_memory()
+
+		statfile = open("stats.txt", "w")
+
 		for i in range(12):
 			stats[i] += str(s[i]) + '\n'
-		statfile = open("stats.txt", "w")
 		statfile.writelines(stats)
+
+		statfile.write("Instruction Cache: \n")
+		for i in range(3):
+			instruction_cache_stats[i] += str(ic[i]) + '\n'
+		statfile.writelines(instruction_cache_stats)
+
+		statfile.write("Data Cache: \n")
+		for i in range(3):
+			data_cache_stats[i] += str(dc[i]) + '\n'
+		statfile.writelines(data_cache_stats)
+
 		statfile.close()
+		
 		for i in range(len(pc_tmp)):
 			tmp = [str(processor.get_code[x]) for x in pc_tmp[i]]
 			l.append(tmp)
