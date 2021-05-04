@@ -79,7 +79,7 @@ def evaluate(processor, pipeline_ins):
 if __name__ == '__main__':
 
 	# set .mc file and input knobs
-	prog_mc_file, pipelining_enabled, forwarding_enabled, print_registers_each_cycle, print_pipeline_registers, print_specific_pipeline_registers = take_input()
+	prog_mc_file, pipelining_enabled, forwarding_enabled, print_registers_each_cycle, print_pipeline_registers, print_specific_pipeline_registers, cache_in = take_input()
 
 	# Knobs
 	# pipelining_enabled = True                       # Knob1
@@ -90,16 +90,28 @@ if __name__ == '__main__':
 
 	# Give error if no value specified in the input or GUI
 	# Data cache inputs
-	data_cache_size = 128
-	data_cache_block_size = 16 # Word is 4B
-	data_cache_associativity = 2 # 0/1/2[FA/DM/SA]
-	data_cache_ways = 2
+	# data_cache_size = 128
+	# data_cache_block_size = 16 # Word is 4B
+	# data_cache_associativity = 2 # 0/1/2[FA/DM/SA]
+	# data_cache_ways = 2
+
+	# # Instruction cache inputs
+	# instruction_cache_size = 128
+	# instruction_cache_block_size = 16 # Word is 4B
+	# instruction_cache_associativity = 2 # 0/1/2[FA/DM/SA]
+	# instruction_cache_ways = 2
+
+	data_cache_size = int(cache_in[0])
+	data_cache_block_size = int(cache_in[1]) # Word is 4B
+	data_cache_associativity = int(cache_in[2]) # 0/1/2[FA/DM/SA]
+	data_cache_ways = int(cache_in[3])
 
 	# Instruction cache inputs
-	instruction_cache_size = 128
-	instruction_cache_block_size = 16 # Word is 4B
-	instruction_cache_associativity = 2 # 0/1/2[FA/DM/SA]
-	instruction_cache_ways = 2
+	instruction_cache_size = int(cache_in[4])
+	instruction_cache_block_size = int(cache_in[5]) # Word is 4B
+	instruction_cache_associativity = int(cache_in[6]) # 0/1/2[FA/DM/SA]
+	instruction_cache_ways = int(cache_in[7])
+
 
 	# invoke classes
 	data_cache = Memory(data_cache_size, data_cache_block_size, data_cache_associativity, data_cache_ways)
