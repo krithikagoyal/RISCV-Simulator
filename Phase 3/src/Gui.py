@@ -79,7 +79,7 @@ class Ui_takeInput(object):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "RISC-V Simulator"))
         self.pushButton.setText(_translate("MainWindow", "Choose File"))
-        self.run.setText(_translate("MainWindow", "Continue"))
+        self.run.setText(_translate("MainWindow", "Next"))
 
         self.label.setText(_translate("MainWindow", "Choose the input file "))
         self.pushButton.clicked.connect(lambda: self.pushButton_handler(MainWindow))
@@ -206,9 +206,15 @@ class Ui_takeDataCacheInput(object):
         self.pushButton_2.setText(_translate("MainWindow", "Back"))
     
     def go_next(self):
+        global data_cache_size, data_cache_block_size
+        data_cache_size = 128
+        data_cache_block_size = 16 # Word is 4B
         w.setCurrentIndex(w.currentIndex() + 1)
         
     def go_back(self):
+        global data_cache_size, data_cache_block_size
+        data_cache_size = 128
+        data_cache_block_size = 16 # Word is 4B
         w.setCurrentIndex(w.currentIndex() - 1)
 
 class Ui_takeInstructionCacheInput(object):
@@ -278,14 +284,20 @@ class Ui_takeInstructionCacheInput(object):
         self.radioButton.setText(_translate("MainWindow", "Fully associative"))
         self.radioButton_2.setText(_translate("MainWindow", "Set associative"))
         self.radioButton_3.setText(_translate("MainWindow", "Direct mapped"))
-        self.pushButton.setText(_translate("MainWindow", "Next"))
+        self.pushButton.setText(_translate("MainWindow", "Run"))
         self.label_4.setText(_translate("MainWindow", "Select associativity:"))
         self.pushButton_2.setText(_translate("MainWindow", "Back"))
         
     def go_next(self):
-        w.setCurrentIndex(w.currentIndex() + 1)
+        global instruction_cache_size, instruction_cache_block_size
+        instruction_cache_size = self.lineEdit.text()
+        instruction_cache_block_size = self.lineEdit_2.text() # Word is 4B
+        w.close()
         
     def go_back(self):
+        global instruction_cache_size, instruction_cache_block_size
+        instruction_cache_size = self.lineEdit.text()
+        instruction_cache_block_size = self.lineEdit_2.text() # Word is 4B
         w.setCurrentIndex(w.currentIndex() - 1)
 
 class display_data(object):
