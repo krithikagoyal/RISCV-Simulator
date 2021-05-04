@@ -10,6 +10,17 @@ print_registers_each_cycle = False
 print_specific_pipeline_registers = False
 print_pipeline_registers = False
 number = -1
+data_cache_size = 128
+data_cache_block_size = 16 # Word is 4B
+data_cache_associativity = 2 # 0/1/2[FA/DM/SA]
+data_cache_ways = 2
+
+# Instruction cache inputs
+instruction_cache_size = 128
+instruction_cache_block_size = 16 # Word is 4B
+instruction_cache_associativity = 2 # 0/1/2[FA/DM/SA]
+instruction_cache_ways = 2
+
 
 class Ui_takeInput(object):
     def setupUi(self, MainWindow):
@@ -68,7 +79,7 @@ class Ui_takeInput(object):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "RISC-V Simulator"))
         self.pushButton.setText(_translate("MainWindow", "Choose File"))
-        self.run.setText(_translate("MainWindow", "Run"))
+        self.run.setText(_translate("MainWindow", "Continue"))
 
         self.label.setText(_translate("MainWindow", "Choose the input file "))
         self.pushButton.clicked.connect(lambda: self.pushButton_handler(MainWindow))
@@ -121,7 +132,161 @@ class Ui_takeInput(object):
         filename = QFileDialog.getOpenFileName(MainWindow, 'Open file', path, "*.mc")
 
     def run_handler(self, MainWindow):
-        MainWindow.close()
+        w.setCurrentIndex(w.currentIndex() + 1)
+
+class Ui_takeDataCacheInput(object):
+    def setupUi(self, MainWindow):
+        MainWindow.setObjectName("MainWindow")
+        MainWindow.resize(875, 660)
+        self.centralwidget = QtWidgets.QWidget(MainWindow)
+        self.centralwidget.setObjectName("centralwidget")
+        self.label = QtWidgets.QLabel(self.centralwidget)
+        self.label.setGeometry(QtCore.QRect(290, 80, 261, 61))
+        self.label.setObjectName("label")
+        self.label_2 = QtWidgets.QLabel(self.centralwidget)
+        self.label_2.setGeometry(QtCore.QRect(260, 190, 91, 21))
+        self.label_2.setObjectName("label_2")
+        self.label_3 = QtWidgets.QLabel(self.centralwidget)
+        self.label_3.setGeometry(QtCore.QRect(220, 240, 131, 16))
+        self.label_3.setObjectName("label_3")
+        self.label_6 = QtWidgets.QLabel(self.centralwidget)
+        self.label_6.setGeometry(QtCore.QRect(80, 180, 16, 16))
+        self.label_6.setText("")
+        self.label_6.setObjectName("label_6")
+        self.radioButton = QtWidgets.QRadioButton(self.centralwidget)
+        self.radioButton.setGeometry(QtCore.QRect(350, 330, 161, 23))
+        self.radioButton.setObjectName("radioButton")
+        self.radioButton_2 = QtWidgets.QRadioButton(self.centralwidget)
+        self.radioButton_2.setGeometry(QtCore.QRect(350, 370, 151, 23))
+        self.radioButton_2.setObjectName("radioButton_2")
+        self.radioButton_3 = QtWidgets.QRadioButton(self.centralwidget)
+        self.radioButton_3.setGeometry(QtCore.QRect(350, 290, 141, 23))
+        self.radioButton_3.setObjectName("radioButton_3")
+        self.pushButton = QtWidgets.QPushButton(self.centralwidget)
+        self.pushButton.setGeometry(QtCore.QRect(440, 440, 141, 51))
+        self.pushButton.setObjectName("pushButton")
+        self.label_4 = QtWidgets.QLabel(self.centralwidget)
+        self.label_4.setGeometry(QtCore.QRect(200, 290, 161, 19))
+        self.label_4.setObjectName("label_4")
+        self.lineEdit = QtWidgets.QLineEdit(self.centralwidget)
+        self.lineEdit.setGeometry(QtCore.QRect(350, 190, 113, 25))
+        self.lineEdit.setObjectName("lineEdit")
+        self.lineEdit_2 = QtWidgets.QLineEdit(self.centralwidget)
+        self.lineEdit_2.setGeometry(QtCore.QRect(350, 240, 113, 25))
+        self.lineEdit_2.setObjectName("lineEdit_2")
+        self.pushButton_2 = QtWidgets.QPushButton(self.centralwidget)
+        self.pushButton_2.setGeometry(QtCore.QRect(270, 440, 151, 51))
+        self.pushButton_2.setObjectName("pushButton_2")
+        MainWindow.setCentralWidget(self.centralwidget)
+        self.menubar = QtWidgets.QMenuBar(MainWindow)
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 875, 31))
+        self.menubar.setObjectName("menubar")
+        MainWindow.setMenuBar(self.menubar)
+        self.statusbar = QtWidgets.QStatusBar(MainWindow)
+        self.statusbar.setObjectName("statusbar")
+        MainWindow.setStatusBar(self.statusbar)
+        
+        self.pushButton.clicked.connect(self.go_next)
+        self.pushButton_2.clicked.connect(self.go_back)
+
+        self.retranslateUi(MainWindow)
+        QtCore.QMetaObject.connectSlotsByName(MainWindow)
+
+    def retranslateUi(self, MainWindow):
+        _translate = QtCore.QCoreApplication.translate
+        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
+        self.label.setText(_translate("MainWindow", "Enter data cache specifications:"))
+        self.label_2.setText(_translate("MainWindow", "Cache size:"))
+        self.label_3.setText(_translate("MainWindow", "Cache block size:"))
+        self.radioButton.setText(_translate("MainWindow", "Fully associative"))
+        self.radioButton_2.setText(_translate("MainWindow", "Set associative"))
+        self.radioButton_3.setText(_translate("MainWindow", "Direct mapped"))
+        self.pushButton.setText(_translate("MainWindow", "Next"))
+        self.label_4.setText(_translate("MainWindow", "Select associativity:"))
+        self.pushButton_2.setText(_translate("MainWindow", "Back"))
+    
+    def go_next(self):
+        w.setCurrentIndex(w.currentIndex() + 1)
+        
+    def go_back(self):
+        w.setCurrentIndex(w.currentIndex() - 1)
+
+class Ui_takeInstructionCacheInput(object):
+    def setupUi(self, MainWindow):
+        MainWindow.setObjectName("MainWindow")
+        MainWindow.resize(875, 660)
+        self.centralwidget = QtWidgets.QWidget(MainWindow)
+        self.centralwidget.setObjectName("centralwidget")
+        self.label = QtWidgets.QLabel(self.centralwidget)
+        self.label.setGeometry(QtCore.QRect(290, 80, 261, 61))
+        self.label.setObjectName("label")
+        self.label_2 = QtWidgets.QLabel(self.centralwidget)
+        self.label_2.setGeometry(QtCore.QRect(260, 190, 91, 21))
+        self.label_2.setObjectName("label_2")
+        self.label_3 = QtWidgets.QLabel(self.centralwidget)
+        self.label_3.setGeometry(QtCore.QRect(220, 240, 131, 16))
+        self.label_3.setObjectName("label_3")
+        self.label_6 = QtWidgets.QLabel(self.centralwidget)
+        self.label_6.setGeometry(QtCore.QRect(80, 180, 16, 16))
+        self.label_6.setText("")
+        self.label_6.setObjectName("label_6")
+        self.radioButton = QtWidgets.QRadioButton(self.centralwidget)
+        self.radioButton.setGeometry(QtCore.QRect(350, 330, 161, 23))
+        self.radioButton.setObjectName("radioButton")
+        self.radioButton_2 = QtWidgets.QRadioButton(self.centralwidget)
+        self.radioButton_2.setGeometry(QtCore.QRect(350, 370, 151, 23))
+        self.radioButton_2.setObjectName("radioButton_2")
+        self.radioButton_3 = QtWidgets.QRadioButton(self.centralwidget)
+        self.radioButton_3.setGeometry(QtCore.QRect(350, 290, 141, 23))
+        self.radioButton_3.setObjectName("radioButton_3")
+        self.pushButton = QtWidgets.QPushButton(self.centralwidget)
+        self.pushButton.setGeometry(QtCore.QRect(440, 440, 141, 51))
+        self.pushButton.setObjectName("pushButton")
+        self.label_4 = QtWidgets.QLabel(self.centralwidget)
+        self.label_4.setGeometry(QtCore.QRect(200, 290, 161, 19))
+        self.label_4.setObjectName("label_4")
+        self.lineEdit = QtWidgets.QLineEdit(self.centralwidget)
+        self.lineEdit.setGeometry(QtCore.QRect(350, 190, 113, 25))
+        self.lineEdit.setObjectName("lineEdit")
+        self.lineEdit_2 = QtWidgets.QLineEdit(self.centralwidget)
+        self.lineEdit_2.setGeometry(QtCore.QRect(350, 240, 113, 25))
+        self.lineEdit_2.setObjectName("lineEdit_2")
+        self.pushButton_2 = QtWidgets.QPushButton(self.centralwidget)
+        self.pushButton_2.setGeometry(QtCore.QRect(270, 440, 151, 51))
+        self.pushButton_2.setObjectName("pushButton_2")
+        MainWindow.setCentralWidget(self.centralwidget)
+        self.menubar = QtWidgets.QMenuBar(MainWindow)
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 875, 31))
+        self.menubar.setObjectName("menubar")
+        MainWindow.setMenuBar(self.menubar)
+        self.statusbar = QtWidgets.QStatusBar(MainWindow)
+        self.statusbar.setObjectName("statusbar")
+        MainWindow.setStatusBar(self.statusbar)
+
+        self.pushButton.clicked.connect(self.go_next)
+        self.pushButton_2.clicked.connect(self.go_back)
+
+        self.retranslateUi(MainWindow)
+        QtCore.QMetaObject.connectSlotsByName(MainWindow)
+        
+    def retranslateUi(self, MainWindow):
+        _translate = QtCore.QCoreApplication.translate
+        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
+        self.label.setText(_translate("MainWindow", "Enter instruction cache specifications:"))
+        self.label_2.setText(_translate("MainWindow", "Cache size:"))
+        self.label_3.setText(_translate("MainWindow", "Cache block size:"))
+        self.radioButton.setText(_translate("MainWindow", "Fully associative"))
+        self.radioButton_2.setText(_translate("MainWindow", "Set associative"))
+        self.radioButton_3.setText(_translate("MainWindow", "Direct mapped"))
+        self.pushButton.setText(_translate("MainWindow", "Next"))
+        self.label_4.setText(_translate("MainWindow", "Select associativity:"))
+        self.pushButton_2.setText(_translate("MainWindow", "Back"))
+        
+    def go_next(self):
+        w.setCurrentIndex(w.currentIndex() + 1)
+        
+    def go_back(self):
+        w.setCurrentIndex(w.currentIndex() - 1)
 
 class display_data(object):
     def setupUi(self, MainWindow, filename):
@@ -670,9 +835,22 @@ def display(l, control_hazard_signals, l_for):
 def take_input():
     global app
     app = QtWidgets.QApplication(sys.argv)
-    MainWindow = QtWidgets.QMainWindow()
-    ui = Ui_takeInput()
-    ui.setupUi(MainWindow)
-    MainWindow.show()
+    MainWindow1 = QtWidgets.QMainWindow()
+    ui1 = Ui_takeInput()
+    ui1.setupUi(MainWindow1)
+    MainWindow2 = QtWidgets.QMainWindow()
+    ui2 = Ui_takeDataCacheInput()
+    ui2.setupUi(MainWindow2)
+    MainWindow3 = QtWidgets.QMainWindow()
+    ui3 = Ui_takeInstructionCacheInput()
+    ui3.setupUi(MainWindow3)
+    global w
+    w = QtWidgets.QStackedWidget()
+    w.addWidget(MainWindow1)
+    w.addWidget(MainWindow2)
+    w.addWidget(MainWindow3)
+    w.show()
     app.exec_()
     return filename[0], pipelining_enabled, forwarding_enabled, print_registers_each_cycle, print_pipeline_registers, [print_specific_pipeline_registers, number]
+
+take_input()
