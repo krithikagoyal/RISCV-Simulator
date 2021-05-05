@@ -58,11 +58,14 @@ pc_tmp = []
 data_hazard_pairs = []
 control_hazard_signals = []
 stage = {1: "fetch", 2: "decode", 3: "execute", 4: "memory", 5: "write_back"}
+#phase 3
+
+memory_table = []
 
 # Function for pipelined execution
 def evaluate(processor, pipeline_ins):
 	processor.write_back(pipeline_ins[0])
-	processor.mem(pipeline_ins[1])
+	gui_mem = processor.mem(pipeline_ins[1])
 	processor.execute(pipeline_ins[2])
 	control_hazard, control_pc, entering, color = processor.decode(pipeline_ins[3], btb)
 	if entering:
@@ -71,8 +74,9 @@ def evaluate(processor, pipeline_ins):
 		control_hazard_signals.append(control_hazard_signals[-1])
 	else:
 		control_hazard_signals.append(color)
-	processor.fetch(pipeline_ins[4], btb)
+	gui_fetch = processor.fetch(pipeline_ins[4], btb)
 	pipeline_ins = [pipeline_ins[1], pipeline_ins[2], pipeline_ins[3], pipeline_ins[4]]
+	memory_table.append([gui_fetch,gui_mem])
 	return pipeline_ins, control_hazard, control_pc
 
 
@@ -127,7 +131,7 @@ if __name__ == '__main__':
 		while True:
 			instruction = State(PC)
 
-			processor.fetch(instruction)
+			gui_read = processor.fetch(instruction)
 			clock_cycles += 1
 			if print_registers_each_cycle:
 				print("CLOCK CYCLE:", clock_cycles)
@@ -137,6 +141,8 @@ if __name__ == '__main__':
 				print("\n")
 			pc_tmp.append([-1, -1, -1, -1, instruction.PC])
 			data_hazard_pairs.append({'who': -1, 'from_whom': -1})
+			memory_table.append([gui_read,False])
+
 
 			processor.decode(instruction)
 			pc_tmp.append([-1, -1, -1, instruction.PC, -1])
@@ -163,7 +169,7 @@ if __name__ == '__main__':
 					print("R" + str(i) + ":", processor.R[i], end=" ")
 				print("\n")
 
-			processor.mem(instruction)
+			gui_data = processor.mem(instruction)
 			pc_tmp.append([-1, instruction.PC, -1, -1, -1])
 			data_hazard_pairs.append({'who': -1, 'from_whom': -1})
 			clock_cycles += 1
@@ -173,6 +179,7 @@ if __name__ == '__main__':
 				for i in range(32):
 					print("R" + str(i) + ":", processor.R[i], end=" ")
 				print("\n")
+			memory_table.append(["",gui_data])
 
 			processor.write_back(instruction)
 			pc_tmp.append([instruction.PC, -1, -1, -1, -1])
@@ -399,5 +406,44 @@ if __name__ == '__main__':
 			if data_hazard_pairs[i]['who'] == 3:
 				control_hazard_signals[i] = 0
 
+		mem_gui = []		
+		for i in range(len(memory_table)):
+			tmp = ["",""]
+			if memory_table[i][0]:
+				d = memory_table[i][0]
+				if d['action'] == 'read':
+					s = "tried reading data from set: " +  str(d['index'] ) + " with block-offset: " + str(d['block_offset']) + "\n"
+					if d['status'] == 'found':
+						s += 'READ HIT'
+					elif d['status'] == 'added':
+						s += 'READ MISS: added from main memory'
+					else:
+						s += 'READ MISS: replaced victim of tag: ' + str(d['victim'])
+				elif d['action'] == 'write':
+					s = "tried writing data in set: " +  str(d['index'] ) + " with block-offset: " + str(d['block_offset']) + "\n"
+					if d['status'] == 'found':
+						s += 'WRITE HIT'
+					else:
+						s += 'WRITE MISS: writing through in main memory '
+				tmp[0] = s
+			if memory_table[i][1]:
+				d = memory_table[i][1]
+				if d['action'] == 'read':
+					s = "tried reading data from set: " +  str(d['index'] ) + " with block-offset: " + str(d['block_offset']) + "\n"
+					if d['status'] == 'found':
+						s += 'READ HIT'
+					elif d['status'] == 'added':
+						s += 'READ MISS: added from main memory'
+					else:
+						s += 'READ MISS: replaced victim of tag: ' + str(d['victim'])
+				elif d['action'] == 'write':
+					s = "tried writing data in set: " +  str(d['index'] ) + " with block-offset: " + str(d['block_offset']) + "\n"
+					if d['status'] == 'found':
+						s += 'WRITE HIT'
+					else:
+						s += 'WRITE MISS: writing through in main memory '
+				tmp[1] = s
+			mem_gui.append(tmp)
+
 		# control_hazard_signals is a list on integers 0=> nothing; 1=> red ; 2 => yellow; 3=> green
-		display(l, control_hazard_signals, l_dash )
+		display(l, control_hazard_signals, l_dash)

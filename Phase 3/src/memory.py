@@ -73,30 +73,46 @@ class Memory:
 			self.cache[index][tag][0] += MEM[address + i]
 
 	def read(self, address, MEM):
+		gui_data = {}
 		index = self.get_index(address)
 		tag = self.get_tag(address)
 		block_offset = self.get_block_offset(address)
+		gui_data['action'] = "read"
+		gui_data['index'] = index
+		gui_data['block_offset'] = block_offset
+		gui_data['status'] = "found"
 		if tag not in self.cache[index].keys():
 			if len(self.cache[index]) != self.ways:
 				self.add_block(address, MEM)
+				gui_data['status'] = "added"
 			else:
 				for cache_tag in self.cache[index].keys():
 					if self.cache[index][cache_tag][1] == 0:
 						self.replace_block(index, cache_tag, address, MEM)
+						gui_data['status'] = "replaced"
+						gui_data['victim'] = cache_tag
 						break
 
 		block = self.cache[index][tag][0]
 		self.update_recency(index, tag)
-		return block[2 * block_offset:2 * block_offset + 8]
+		return block[2 * block_offset:2 * block_offset + 8], gui_data
 
 	# Write Through and No-write Allocate
 	# Data word at lower address first
 	def write(self, address, data, MEM, type):
 		self.count_accesses += 1 # Hits? Misses?
+		gui_data = {}
 		index = self.get_index(address)
 		tag = self.get_tag(address)
+		gui_data['action'] = "write"
+		gui_data['index'] = index
+		gui_data['status'] = 'not found'
+		offset = self.get_block_offset(address)
+		gui_data['block_offset'] = offset
 		if tag in self.cache[index].keys():
-			offset = self.get_block_offset(address)
+			gui_data['status'] = "found"
+			# offset = self.get_block_offset(address)
+			# gui_data['block_offset'] = offset
 			if type == 3:
 				self.cache[index][tag][0] = self.cache[index][tag][0][:2 * offset] + data[8:10] + data[6:8] + data[4:6] + data[2:4] + self.cache[index][tag][0][2 * offset + 8:]
 			elif type == 1:
@@ -111,3 +127,4 @@ class Memory:
 			MEM[address + 1] = data[6:8]
 		if type >= 0:
 			MEM[address] = data[8:10]
+		return gui_data
