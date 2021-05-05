@@ -105,7 +105,7 @@ if __name__ == '__main__':
 	data_cache_block_size = int(cache_in[1]) # Word is 4B
 	data_cache_associativity = int(cache_in[2]) # 0/1/2[FA/DM/SA]
 	data_cache_ways = int(cache_in[3])
-
+	
 	# Instruction cache inputs
 	instruction_cache_size = int(cache_in[4])
 	instruction_cache_block_size = int(cache_in[5]) # Word is 4B
@@ -380,18 +380,18 @@ if __name__ == '__main__':
 			stats[i] += str(s[i]) + '\n'
 		statfile.writelines(stats)
 
-		statfile.write("Instruction Cache: \n")
+		statfile.write("\nInstruction Cache: \n")
 		for i in range(3):
 			instruction_cache_stats[i] += str(ic[i]) + '\n'
 		statfile.writelines(instruction_cache_stats)
 
-		statfile.write("Data Cache: \n")
+		statfile.write("\nData Cache: \n")
 		for i in range(3):
 			data_cache_stats[i] += str(dc[i]) + '\n'
 		statfile.writelines(data_cache_stats)
 
 		statfile.close()
-		
+
 		for i in range(len(pc_tmp)):
 			tmp = [str(processor.get_code[x]) for x in pc_tmp[i]]
 			l.append(tmp)

@@ -4,17 +4,21 @@ from PyQt5.QtWidgets import QInputDialog, QFileDialog
 import time
 import os
 
+# Knobs
 pipelining_enabled = False
 forwarding_enabled = False
 print_registers_each_cycle = False
 print_specific_pipeline_registers = False
 print_pipeline_registers = False
 number = -1
+
+# Data cache parameters
 data_cache_size = 128
 data_cache_block_size = 16 # Word is 4B
 data_cache_associativity = 2 # 0/1/2[FA/DM/SA]
 data_cache_ways = 2
-# Instruction cache inputs
+
+# Instruction cache parameters
 instruction_cache_size = 128
 instruction_cache_block_size = 16 # Word is 4B
 instruction_cache_associativity = 2 # 0/1/2[FA/DM/SA]
@@ -137,10 +141,10 @@ class Ui_takeDataCacheInput(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(875, 660)
-        
+
         font = QtGui.QFont()
         font.setPointSize(16)
-        
+
         font2 = QtGui.QFont()
         font2.setPointSize(11)
 
@@ -208,7 +212,7 @@ class Ui_takeDataCacheInput(object):
 
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
-        
+
         self.radioButton.toggled.connect(self.fully_associative)
         self.radioButton_2.toggled.connect(lambda: self.set_associative(MainWindow))
         self.radioButton_3.toggled.connect(self.direct_mapped)
@@ -225,7 +229,7 @@ class Ui_takeDataCacheInput(object):
         self.pushButton.setText(_translate("MainWindow", "Next"))
         self.label_4.setText(_translate("MainWindow", "Select associativity:"))
         self.pushButton_2.setText(_translate("MainWindow", "Back"))
-        
+
     def fully_associative(self):
         global data_cache_associativity
         if self.radioButton.isChecked():
@@ -247,7 +251,7 @@ class Ui_takeDataCacheInput(object):
         data_cache_size = 128
         data_cache_block_size = 16 # Word is 4B
         w.setCurrentIndex(w.currentIndex() + 1)
-        
+
     def go_back(self):
         global data_cache_size, data_cache_block_size
         data_cache_size = 128
@@ -258,10 +262,10 @@ class Ui_takeInstructionCacheInput(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(875, 660)
-        
+
         font = QtGui.QFont()
         font.setPointSize(16)
-        
+
         font2 = QtGui.QFont()
         font2.setPointSize(11)
 
@@ -329,11 +333,11 @@ class Ui_takeInstructionCacheInput(object):
 
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
-        
+
         self.radioButton.toggled.connect(self.fully_associative)
         self.radioButton_2.toggled.connect(lambda: self.set_associative(MainWindow))
         self.radioButton_3.toggled.connect(self.direct_mapped)
-        
+
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
@@ -346,7 +350,7 @@ class Ui_takeInstructionCacheInput(object):
         self.pushButton.setText(_translate("MainWindow", "Run"))
         self.label_4.setText(_translate("MainWindow", "Select associativity:"))
         self.pushButton_2.setText(_translate("MainWindow", "Back"))
-    
+
     def fully_associative(self):
         global instruction_cache_associativity
         if self.radioButton.isChecked():
@@ -368,7 +372,7 @@ class Ui_takeInstructionCacheInput(object):
         instruction_cache_size = self.lineEdit.text()
         instruction_cache_block_size = self.lineEdit_2.text() # Word is 4B
         w.close()
-        
+
     def go_back(self):
         global instruction_cache_size, instruction_cache_block_size
         instruction_cache_size = self.lineEdit.text()

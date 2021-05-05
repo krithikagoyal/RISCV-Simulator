@@ -8,7 +8,7 @@ class Memory:
 		self.ways = ways
 		self.sets = 0
 		self.number_of_index_bits = 0
-		self.number_of_block_offset_bits = int(math.log(block_size, 2))
+		self.number_of_block_offset_bits = int(math.ceil(math.log(block_size, 2)))
 		#
 		self.count_accesses = 0
 		self.count_hits = 0
@@ -21,11 +21,11 @@ class Memory:
 			self.sets = 1
 		elif self.associativity == 1:
 			self.sets = self.cache_size // self.block_size
-			self.number_of_index_bits = int(math.log(self.sets, 2))
+			self.number_of_index_bits = int(math.ceil(math.log(self.sets, 2)))
 		else:
 			self.sets = self.cache_size // self.block_size
 			self.sets = self.sets // self.ways
-			self.number_of_index_bits = int(math.log(self.sets, 2))
+			self.number_of_index_bits = int(math.ceil(math.log(self.sets, 2)))
 
 		self.cache = [dict() for i in range(self.sets)] # {tag: (block, recency)}
 
