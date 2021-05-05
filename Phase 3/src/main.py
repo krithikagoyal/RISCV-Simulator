@@ -37,20 +37,22 @@ stats = [
 ]
 
 instruction_cache_stats = [
-	"Number of accesses: ",
-	"Number of hits: ",
-	"Number of misses: "
+	"Number of read accesses: ",
+	"Number of read hits: ",
+	"Number of read misses: ",
+	"Number of write-through no-write allocates: ",
 ]
 
 data_cache_stats = [
-	"Number of accesses: ",
-	"Number of hits: ",
-	"Number of misses: "
+	"Number of read accesses: ",
+	"Number of read hits: ",
+	"Number of read misses: ",
+	"Number of write-through no-write allocates: ",
 ]
 
 s = [0]*12
-ic = [0]*3
-dc = [0]*3
+ic = [0]*4
+dc = [0]*4
 
 l = []
 l_dash = []
@@ -78,7 +80,7 @@ def evaluate(processor, pipeline_ins):
 
 if __name__ == '__main__':
 
-	# set .mc file and input knobs
+	# set .mc file, input knobs and cache inputs
 	prog_mc_file, pipelining_enabled, forwarding_enabled, print_registers_each_cycle, print_pipeline_registers, print_specific_pipeline_registers, cache_in = take_input()
 
 	# Knobs
@@ -90,28 +92,16 @@ if __name__ == '__main__':
 
 	# Give error if no value specified in the input or GUI
 	# Data cache inputs
-	# data_cache_size = 128
-	# data_cache_block_size = 16 # Word is 4B
-	# data_cache_associativity = 2 # 0/1/2[FA/DM/SA]
-	# data_cache_ways = 2
-
-	# # Instruction cache inputs
-	# instruction_cache_size = 128
-	# instruction_cache_block_size = 16 # Word is 4B
-	# instruction_cache_associativity = 2 # 0/1/2[FA/DM/SA]
-	# instruction_cache_ways = 2
-
 	data_cache_size = int(cache_in[0])
 	data_cache_block_size = int(cache_in[1]) # Word is 4B
 	data_cache_associativity = int(cache_in[2]) # 0/1/2[FA/DM/SA]
 	data_cache_ways = int(cache_in[3])
-	
+
 	# Instruction cache inputs
 	instruction_cache_size = int(cache_in[4])
 	instruction_cache_block_size = int(cache_in[5]) # Word is 4B
 	instruction_cache_associativity = int(cache_in[6]) # 0/1/2[FA/DM/SA]
 	instruction_cache_ways = int(cache_in[7])
-
 
 	# invoke classes
 	data_cache = Memory(data_cache_size, data_cache_block_size, data_cache_associativity, data_cache_ways)
@@ -363,13 +353,15 @@ if __name__ == '__main__':
 	s[11] = number_of_stalls_due_to_control_hazards
 	s[6] = s[10] + s[11]
 
-	ic[0] = instruction_cache.count_accesses
-	ic[1] = instruction_cache.count_hits
-	ic[2] = instruction_cache.count_misses
+	ic[0] = instruction_cache.count_reads
+	ic[1] = instruction_cache.count_read_hits
+	ic[2] = instruction_cache.count_read_misses
+	ic[3] = instruction_cache.count_writes
 
-	dc[0] = data_cache.count_accesses
-	dc[1] = data_cache.count_hits
-	dc[2] = data_cache.count_misses
+	dc[0] = data_cache.count_reads
+	dc[1] = data_cache.count_read_hits
+	dc[2] = data_cache.count_read_misses
+	dc[3] = data_cache.count_writes
 
 	if prog_end:
 		processor.write_data_memory()
@@ -381,12 +373,12 @@ if __name__ == '__main__':
 		statfile.writelines(stats)
 
 		statfile.write("\nInstruction Cache: \n")
-		for i in range(3):
+		for i in range(4):
 			instruction_cache_stats[i] += str(ic[i]) + '\n'
 		statfile.writelines(instruction_cache_stats)
 
 		statfile.write("\nData Cache: \n")
-		for i in range(3):
+		for i in range(4):
 			data_cache_stats[i] += str(dc[i]) + '\n'
 		statfile.writelines(data_cache_stats)
 

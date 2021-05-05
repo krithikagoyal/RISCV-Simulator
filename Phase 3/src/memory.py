@@ -9,10 +9,12 @@ class Memory:
 		self.sets = 0
 		self.number_of_index_bits = 0
 		self.number_of_block_offset_bits = int(math.ceil(math.log(block_size, 2)))
-		#
-		self.count_accesses = 0
-		self.count_hits = 0
-		self.count_misses = 0
+		# For Reads
+		self.count_reads = 0
+		self.count_read_hits = 0
+		self.count_read_misses = 0
+		# For writes
+		self.count_writes = 0
 		#
 		self.set()
 
@@ -73,9 +75,16 @@ class Memory:
 			self.cache[index][tag][0] += MEM[address + i]
 
 	def read(self, address, MEM):
+		self.count_reads += 1
 		index = self.get_index(address)
 		tag = self.get_tag(address)
 		block_offset = self.get_block_offset(address)
+
+		if tag not in self.cache[index].keys():
+			self.count_read_misses += 1
+		else:
+			self.count_read_hits += 1
+
 		if tag not in self.cache[index].keys():
 			if len(self.cache[index]) != self.ways:
 				self.add_block(address, MEM)
@@ -92,9 +101,11 @@ class Memory:
 	# Write Through and No-write Allocate
 	# Data word at lower address first
 	def write(self, address, data, MEM, type):
-		self.count_accesses += 1 # Hits? Misses?
+		self.count_writes += 1
+
 		index = self.get_index(address)
 		tag = self.get_tag(address)
+
 		if tag in self.cache[index].keys():
 			offset = self.get_block_offset(address)
 			if type == 3:

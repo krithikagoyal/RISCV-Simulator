@@ -211,8 +211,7 @@ class Processor:
 
 		data = self.instruction_cache.read(state.PC, self.MEM)
 		state.instruction_word = '0x' + data[6:8] + data[4:6] + data[2:4] + data[0:2]
-		# state.instruction_word = '0x' + self.MEM[state.PC + 3] + self.MEM[state.PC + 2] + self.MEM[state.PC + 1] + self.MEM[state.PC]
-  
+
 		if not self.pipelining_enabled:
 			return
 
@@ -567,26 +566,18 @@ class Processor:
 		elif state.is_mem[0] == 0:
 			state.register_data = '0x'
 			data = self.data_cache.read(state.memory_address, self.MEM)
+
 			if state.is_mem[1] == 0:
-				state.register_data += data[0:2] # self.MEM[state.memory_address]
+				state.register_data += data[0:2]
 			elif state.is_mem[1] == 1:
-				state.register_data += data[2:4] + data[0:2] # (self.MEM[state.memory_address + 1] + self.MEM[state.memory_address])
+				state.register_data += data[2:4] + data[0:2]
 			else:
-				state.register_data += data[6:8] + data[4:6] + data[2:4] + data[0:2] # (self.MEM[state.memory_address + 3] + self.MEM[state.memory_address + 2] + self.MEM[state.memory_address + 1] + self.MEM[state.memory_address])
+				state.register_data += data[6:8] + data[4:6] + data[2:4] + data[0:2]
 
 			state.register_data = sign_extend(state.register_data)
 
 		else:
 			self.data_cache.write(state.memory_address, state.register_data, self.MEM, state.is_mem[1])
-			# if state.is_mem[1] >= 3:
-			# 	self.MEM[state.memory_address + 3] = state.register_data[2:4]
-			# 	self.MEM[state.memory_address + 2] = state.register_data[4:6]
-			# if state.is_mem[1] >= 1:
-			# 	self.MEM[state.memory_address + 1] = state.register_data[6:8]
-			# if state.is_mem[1] >= 0:
-			# 	self.MEM[state.memory_address] = state.register_data[8:10]
-
-		# print(state.instruction_word)
 
 	# Writes the results back to the register file
 	def write_back(self, state):
