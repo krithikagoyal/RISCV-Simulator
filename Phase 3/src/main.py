@@ -456,4 +456,5 @@ if __name__ == '__main__':
 			mem_gui.append(tmp)
 
 		# control_hazard_signals is a list on integers 0=> nothing; 1=> red ; 2 => yellow; 3=> green
+		#mem_gui is list of list of 3 elemetnts [fetch message, mem message, [1,0]] 1=>hit 0=> miss
 		display(l, control_hazard_signals, l_dash)
