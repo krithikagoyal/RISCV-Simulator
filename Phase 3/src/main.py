@@ -408,22 +408,27 @@ if __name__ == '__main__':
 
 		mem_gui = []		
 		for i in range(len(memory_table)):
-			tmp = ["",""]
+			tmp = ["","",[]]
 			if memory_table[i][0]:
 				d = memory_table[i][0]
 				if d['action'] == 'read':
 					s = "tried reading data from set: " +  str(d['index'] ) + " with block-offset: " + str(d['block_offset']) + "\n"
 					if d['status'] == 'found':
+						tmp[2].append(1)
 						s += 'READ HIT'
 					elif d['status'] == 'added':
+						tmp[2].append(0)
 						s += 'READ MISS: added from main memory'
 					else:
+						tmp[2].append(0)
 						s += 'READ MISS: replaced victim of tag: ' + str(d['victim'])
 				elif d['action'] == 'write':
 					s = "tried writing data in set: " +  str(d['index'] ) + " with block-offset: " + str(d['block_offset']) + "\n"
 					if d['status'] == 'found':
 						s += 'WRITE HIT'
+						tmp[2].append(1)
 					else:
+						tmp[2].append(0)
 						s += 'WRITE MISS: writing through in main memory '
 				tmp[0] = s
 			if memory_table[i][1]:
@@ -431,16 +436,21 @@ if __name__ == '__main__':
 				if d['action'] == 'read':
 					s = "tried reading data from set: " +  str(d['index'] ) + " with block-offset: " + str(d['block_offset']) + "\n"
 					if d['status'] == 'found':
+						tmp[2].append(1)
 						s += 'READ HIT'
 					elif d['status'] == 'added':
+						tmp[2].append(0)
 						s += 'READ MISS: added from main memory'
 					else:
+						tmp[2].append(0)
 						s += 'READ MISS: replaced victim of tag: ' + str(d['victim'])
 				elif d['action'] == 'write':
 					s = "tried writing data in set: " +  str(d['index'] ) + " with block-offset: " + str(d['block_offset']) + "\n"
 					if d['status'] == 'found':
+						tmp[2].append(1)
 						s += 'WRITE HIT'
 					else:
+						tmp[2].append(0)
 						s += 'WRITE MISS: writing through in main memory '
 				tmp[1] = s
 			mem_gui.append(tmp)
