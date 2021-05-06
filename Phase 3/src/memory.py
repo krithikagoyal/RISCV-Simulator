@@ -33,7 +33,6 @@ class Memory:
 		self.count_read_misses = 0
 		# For writes
 		self.count_writes = 0
-		self.count_accesses = 0
 		#
 		self.set()
 
@@ -132,7 +131,6 @@ class Memory:
 	# Write Through and No-write Allocate
 	# Data word at lower address first
 	def write(self, address, data, MEM, type):
-		self.count_accesses += 1 # Hits? Misses?
 		gui_data = {}
 		index = self.get_index(address)
 		tag = self.get_tag(address)
@@ -161,7 +159,7 @@ class Memory:
 		if type >= 0:
 			MEM[address] = data[8:10]
 		return gui_data
-	
+
 	def make_table(self):
 		table = []
 		# for row_no in range(self.sets):
@@ -170,7 +168,7 @@ class Memory:
 		# 		row += [tag, 1, self.cache[row_no][tag][1], self.cache[row_no][tag][0]]
 		# 	row += [""]*(self.ways*4 - len(row))
 		# 	table.append(row)
-		
+
 		for row_no in range(self.sets):
 			row = []
 			for tag in self.cache[row_no].keys():
@@ -183,7 +181,7 @@ class Memory:
 				address = int(tag1 + index + block_offset,2)
 				row.append([str(hex(address)) , "0x" + str(self.cache[row_no][tag][0]), 1, self.cache[row_no][tag][1], bin(int(self.cache[row_no][tag][0],16))])
 			for i in range(self.ways - len(row)):
-				row.append([0,0,0,0,0]) 
+				row.append([0,0,0,0,0])
 			table.append(row)
-		
+
 		return table

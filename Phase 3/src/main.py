@@ -94,7 +94,6 @@ if __name__ == '__main__':
 	# print_pipeline_registers = False    			  # Knob4
 	# print_specific_pipeline_registers = [False, 10] # Knob5
 
-	# Give error if no value specified in the input or GUI
 	# Data cache inputs
 	data_cache_size = int(cache_in[0])
 	data_cache_block_size = int(cache_in[1]) # Word is 4B
