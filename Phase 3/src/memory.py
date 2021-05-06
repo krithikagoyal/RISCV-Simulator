@@ -181,7 +181,8 @@ class Memory:
 				tag1 = "0"*(32 - self.number_of_block_offset_bits - self.number_of_index_bits) + tag1
 				block_offset = "0"*self.number_of_block_offset_bits
 				row.append([tag1 + index + block_offset , str(self.cache[row_no][tag][0]), self.cache[row_no][tag][1], str(bin(int(self.cache[row_no][tag][0],16))[2:])])
-			row.append([0,0,0,0]*(self.ways - len(row)))
+			for i in range(self.ways - len(row)):
+				row.append([0,0,0,0]) 
 			table.append(row)
 		
 		return table
