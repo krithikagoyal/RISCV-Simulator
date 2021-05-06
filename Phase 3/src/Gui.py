@@ -18,7 +18,7 @@ Project Name: Functional Simulator for subset of RISC-V Processor
 
 import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtWidgets import QInputDialog, QFileDialog
+from PyQt5.QtWidgets import QInputDialog, QFileDialog, QWidget
 import time
 import os
 
@@ -1105,22 +1105,26 @@ class display_data_cache(object):
         self.control_hazard_button.setText(_translate("MainWindow", "Control Hazard"))
         self.hit_miss_button.setText(_translate("MainWindow", "Hits/Misses"))
         self.data_cache_button.setText(_translate("MainWindow", "Data Cache"))
+        QtWidgets.QToolTip.setFont(QtGui.QFont('SansSerif', 12))
+        self.centralwidget.setStyleSheet('''QToolTip { background-color: #8ad4ff; color: black; border: #8ad4ff solid 1px}''')
+
         for i in range(len(l[0])):
             item = QtWidgets.QTableWidgetItem()
             self.tableWidget.setHorizontalHeaderItem(i, item)
-            self.tableWidget.setColumnWidth(i, int(MainWindow.width / len(l[0]) - 120 / len(l[0])))
+            self.tableWidget.setColumnWidth(i, int(MainWindow.width / len(l[0]) - 90 / len(l[0])))
             item = self.tableWidget.horizontalHeaderItem(i)
             item.setText(_translate("MainWindow", "Way " + str(i + 1)))
 
         for i in range(len(l)):
-            for j in range(len(l[0])):
+            for j in range(len(l[i])):
                 item = QtWidgets.QTableWidgetItem()
                 item.setTextAlignment(QtCore.Qt.AlignCenter)
-                self.tableWidget.setItem(i, 0, item)
+                self.tableWidget.setItem(i, j, item)
                 item.setTextAlignment(QtCore.Qt.AlignCenter)
                 if l[i][j][2]:
                     item.setText(_translate("MainWindow", str(l[i][j][3])))
                     item.setToolTip(f"Block Address: {l[i][j][0]}\nHex Data: {l[i][j][1]}\nBinary Data: {l[i][j][4]}")
+                else: item.setBackground(QtGui.QColor(247, 255, 94))
 # 0: Address, 1: Hex Data, 2: dirty bit, 3: Recency, 4: binary data
 def display(l, control_hazard_signals, l_for, cache_hit_miss, data_cache):
     MainWindow2 = QtWidgets.QWidget()
