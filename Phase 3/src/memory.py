@@ -178,9 +178,9 @@ class Memory:
 				index = "0"*(self.number_of_index_bits-len(index)) + index
 				index = index[:self.number_of_index_bits]
 				tag1 = bin(tag)[2:]
-				tag1 = "0"*(32 - self.number_of_block_offset_bits - number_of_index_bits) + tag1
+				tag1 = "0"*(32 - self.number_of_block_offset_bits - self.number_of_index_bits) + tag1
 				block_offset = "0"*self.number_of_block_offset_bits
-				row.append([tag1 + index + block_offset , str(self.cache[row_no][tag][0]), self.cache[row_no][tag][1], str(bin(int(self.cache[row_no][tag][0]),16)[2:])])
+				row.append([tag1 + index + block_offset , str(self.cache[row_no][tag][0]), self.cache[row_no][tag][1], str(bin(int(self.cache[row_no][tag][0],16))[2:])])
 			row.append([0,0,0,0]*(self.ways - len(row)))
 			table.append(row)
 		
