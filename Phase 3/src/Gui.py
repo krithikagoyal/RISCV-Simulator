@@ -1123,7 +1123,7 @@ class display_data_cache(object):
                 item.setTextAlignment(QtCore.Qt.AlignCenter)
                 if l[i][j][2]:
                     item.setText(_translate("MainWindow", str(l[i][j][3])))
-                    item.setToolTip(f"Block Address: 0x{l[i][j][0]}\nHex Data: 0x{l[i][j][1]}\nBinary Data: b{l[i][j][4]}")
+                    item.setToolTip(f"Block Address: {l[i][j][0]}\nHex Data: 0x{l[i][j][1]}\nBinary Data: b{l[i][j][4]}")
                 else: item.setBackground(QtGui.QColor(247, 255, 94))
 # 0: Address, 1: Hex Data, 2: dirty bit, 3: Recency, 4: binary data
 def display(l, control_hazard_signals, l_for, cache_hit_miss, data_cache):
