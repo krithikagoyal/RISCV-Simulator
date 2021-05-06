@@ -1,3 +1,21 @@
+"""
+The project is developed as part of Computer Architecture class.
+Project Name: Functional Simulator for subset of RISC-V Processor
+
+-------------------------------------------------
+| Developer's Name   | Developer's Email ID     |
+|-----------------------------------------------|
+| Akhil Arya         | 2019csb1066@iitrpr.ac.in |
+| Harshwardhan Kumar | 2019csb1089@iitrpr.ac.in |
+| Krithika Goyal     | 2019csb1094@iitrpr.ac.in |
+| Rhythm Jain        | 2019csb1111@iitrpr.ac.in |
+| Tarun Singla       | 2019csb1126@iitrpr.ac.in |
+-------------------------------------------------
+"""
+
+# main.py
+# Purpose of this file: This file controls the cache functionality.
+
 import math
 
 class Memory:
@@ -8,11 +26,13 @@ class Memory:
 		self.ways = ways
 		self.sets = 0
 		self.number_of_index_bits = 0
-		self.number_of_block_offset_bits = int(math.log(block_size, 2))
-		#
-		self.count_accesses = 0
-		self.count_hits = 0
-		self.count_misses = 0
+		self.number_of_block_offset_bits = int(math.ceil(math.log(block_size, 2)))
+		# For Reads
+		self.count_reads = 0
+		self.count_read_hits = 0
+		self.count_read_misses = 0
+		# For writes
+		self.count_writes = 0
 		#
 		self.set()
 
@@ -21,11 +41,11 @@ class Memory:
 			self.sets = 1
 		elif self.associativity == 1:
 			self.sets = self.cache_size // self.block_size
-			self.number_of_index_bits = int(math.log(self.sets, 2))
+			self.number_of_index_bits = int(math.ceil(math.log(self.sets, 2)))
 		else:
 			self.sets = self.cache_size // self.block_size
 			self.sets = self.sets // self.ways
-			self.number_of_index_bits = int(math.log(self.sets, 2))
+			self.number_of_index_bits = int(math.ceil(math.log(self.sets, 2)))
 
 		self.cache = [dict() for i in range(self.sets)] # {tag: (block, recency)}
 
@@ -81,6 +101,16 @@ class Memory:
 		gui_data['index'] = index
 		gui_data['block_offset'] = block_offset
 		gui_data['status'] = "found"
+		self.count_reads += 1
+		index = self.get_index(address)
+		tag = self.get_tag(address)
+		block_offset = self.get_block_offset(address)
+
+		if tag not in self.cache[index].keys():
+			self.count_read_misses += 1
+		else:
+			self.count_read_hits += 1
+
 		if tag not in self.cache[index].keys():
 			if len(self.cache[index]) != self.ways:
 				self.add_block(address, MEM)
@@ -109,6 +139,7 @@ class Memory:
 		gui_data['status'] = 'not found'
 		offset = self.get_block_offset(address)
 		gui_data['block_offset'] = offset
+		self.count_writes += 1
 		if tag in self.cache[index].keys():
 			gui_data['status'] = "found"
 			# offset = self.get_block_offset(address)

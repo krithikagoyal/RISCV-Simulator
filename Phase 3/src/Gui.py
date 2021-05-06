@@ -1,9 +1,28 @@
+"""
+The project is developed as part of Computer Architecture class.
+Project Name: Functional Simulator for subset of RISC-V Processor
+
+-------------------------------------------------
+| Developer's Name   | Developer's Email ID     |
+|-----------------------------------------------|
+| Akhil Arya         | 2019csb1066@iitrpr.ac.in |
+| Harshwardhan Kumar | 2019csb1089@iitrpr.ac.in |
+| Krithika Goyal     | 2019csb1094@iitrpr.ac.in |
+| Rhythm Jain        | 2019csb1111@iitrpr.ac.in |
+| Tarun Singla       | 2019csb1126@iitrpr.ac.in |
+-------------------------------------------------
+"""
+
+# main.py
+# Purpose of this file: This file controls the Graphical User Interface(GUI).
+
 import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QInputDialog, QFileDialog
 import time
 import os
 
+# Knobs
 pipelining_enabled = False
 forwarding_enabled = False
 print_registers_each_cycle = False
@@ -11,17 +30,28 @@ print_specific_pipeline_registers = False
 print_pipeline_registers = False
 number = -1
 
+# Data cache parameters
+data_cache_size = 128
+data_cache_block_size = 4 # Word is 4B
+data_cache_associativity = 1 # 0/1/2[FA/DM/SA]
+data_cache_ways = 1
+
+# Instruction cache parameters
+instruction_cache_size = 128
+instruction_cache_block_size = 4 # Word is 4B
+instruction_cache_associativity = 1 # 0/1/2[FA/DM/SA]
+instruction_cache_ways = 1
+
 class Ui_takeInput(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(807, 637)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.pushButton = QtWidgets.QPushButton(self.centralwidget)
-        self.pushButton.setGeometry(QtCore.QRect(295, 140, 161, 61))
+        self.pushButton.setGeometry(QtCore.QRect(345, 140, 161, 61))
         self.pushButton.setObjectName("pushButton")
         self.run = QtWidgets.QPushButton(self.centralwidget)
-        self.run.setGeometry(QtCore.QRect(295, 470, 161, 61))
+        self.run.setGeometry(QtCore.QRect(345, 470, 161, 61))
         self.run.setObjectName("pushButton_run")
         font = QtGui.QFont()
         font.setPointSize(16)
@@ -29,27 +59,27 @@ class Ui_takeInput(object):
         font2.setPointSize(12)
 
         self.pipelining_enabled = QtWidgets.QCheckBox(self.centralwidget)
-        self.pipelining_enabled.setGeometry(QtCore.QRect(170, 245, 500, 30))
+        self.pipelining_enabled.setGeometry(QtCore.QRect(180, 245, 500, 30))
         self.pipelining_enabled.setFont(font2)
 
         self.forwarding_enabled = QtWidgets.QCheckBox(self.centralwidget)
-        self.forwarding_enabled.setGeometry(QtCore.QRect(170, 275, 500, 30))
+        self.forwarding_enabled.setGeometry(QtCore.QRect(180, 275, 500, 30))
         self.forwarding_enabled.setFont(font2)
 
         self.print_registers_each_cycle = QtWidgets.QCheckBox(self.centralwidget)
-        self.print_registers_each_cycle.setGeometry(QtCore.QRect(170, 305, 500, 30))
+        self.print_registers_each_cycle.setGeometry(QtCore.QRect(180, 305, 500, 30))
         self.print_registers_each_cycle.setFont(font2)
 
         self.print_pipeline_registers = QtWidgets.QCheckBox(self.centralwidget)
-        self.print_pipeline_registers.setGeometry(QtCore.QRect(170, 335, 500, 30))
+        self.print_pipeline_registers.setGeometry(QtCore.QRect(180, 335, 500, 30))
         self.print_pipeline_registers.setFont(font2)
 
         self.print_specific_pipeline_registers = QtWidgets.QCheckBox(self.centralwidget)
-        self.print_specific_pipeline_registers.setGeometry(QtCore.QRect(170, 365, 500, 30))
+        self.print_specific_pipeline_registers.setGeometry(QtCore.QRect(180, 365, 500, 30))
         self.print_specific_pipeline_registers.setFont(font2)
 
         self.label = QtWidgets.QLabel(self.centralwidget)
-        self.label.setGeometry(QtCore.QRect(250, 80, 301, 41))
+        self.label.setGeometry(QtCore.QRect(300, 80, 301, 41))
         self.label.setFont(font)
         self.label.setObjectName("label")
         MainWindow.setCentralWidget(self.centralwidget)
@@ -68,11 +98,11 @@ class Ui_takeInput(object):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "RISC-V Simulator"))
         self.pushButton.setText(_translate("MainWindow", "Choose File"))
-        self.run.setText(_translate("MainWindow", "Run"))
+        self.run.setText(_translate("MainWindow", "Next"))
 
         self.label.setText(_translate("MainWindow", "Choose the input file "))
         self.pushButton.clicked.connect(lambda: self.pushButton_handler(MainWindow))
-        self.run.clicked.connect(lambda: self.run_handler(MainWindow))
+        self.run.clicked.connect(self.run_handler)
 
         self.pipelining_enabled.setText(_translate("MainWindow", "Enable pipelining"))
         self.forwarding_enabled.setText(_translate("MainWindow", "Enable forwarding"))
@@ -120,8 +150,198 @@ class Ui_takeInput(object):
         path = os.path.join(path, 'test')
         filename = QFileDialog.getOpenFileName(MainWindow, 'Open file', path, "*.mc")
 
-    def run_handler(self, MainWindow):
-        MainWindow.close()
+    def run_handler(self):
+        w.setCurrentIndex(w.currentIndex() + 1)
+
+
+class Ui_takeCacheInput(object):
+    def setupUi(self, MainWindow):
+        MainWindow.setObjectName("MainWindow")
+        self.centralwidget = QtWidgets.QWidget(MainWindow)
+        self.centralwidget.setObjectName("centralwidget")
+        self.label = QtWidgets.QLabel(self.centralwidget)
+        self.label.setGeometry(QtCore.QRect(255, 80, 371, 41))
+        font = QtGui.QFont()
+        font.setPointSize(16)
+        self.label.setFont(font)
+        self.label.setObjectName("label")
+        self.label_2 = QtWidgets.QLabel(self.centralwidget)
+        self.label_2.setGeometry(QtCore.QRect(170, 180, 121, 19))
+        font = QtGui.QFont()
+        font.setPointSize(11)
+        self.label_2.setFont(font)
+        self.label_2.setObjectName("label_2")
+        self.label_3 = QtWidgets.QLabel(self.centralwidget)
+        self.label_3.setGeometry(QtCore.QRect(540, 180, 171, 20))
+        font = QtGui.QFont()
+        font.setPointSize(11)
+        self.label_3.setFont(font)
+        self.label_3.setObjectName("label_3")
+        self.label_4 = QtWidgets.QLabel(self.centralwidget)
+        self.label_4.setGeometry(QtCore.QRect(100, 230, 111, 19))
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        self.label_4.setFont(font)
+        self.label_4.setObjectName("label_4")
+        self.label_5 = QtWidgets.QLabel(self.centralwidget)
+        self.label_5.setGeometry(QtCore.QRect(50, 270, 151, 19))
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        self.label_5.setFont(font)
+        self.label_5.setObjectName("label_5")
+        self.label_6 = QtWidgets.QLabel(self.centralwidget)
+        self.label_6.setGeometry(QtCore.QRect(85, 310, 121, 21))
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        self.label_6.setFont(font)
+        self.label_6.setObjectName("label_6")
+        self.lineEdit = QtWidgets.QLineEdit(self.centralwidget)
+        self.lineEdit.setGeometry(QtCore.QRect(220, 230, 113, 25))
+        self.lineEdit.setObjectName("lineEdit")
+        self.lineEdit_2 = QtWidgets.QLineEdit(self.centralwidget)
+        self.lineEdit_2.setGeometry(QtCore.QRect(220, 270, 113, 25))
+        self.lineEdit_2.setObjectName("lineEdit_2")
+        self.lineEdit_3 = QtWidgets.QLineEdit(self.centralwidget)
+        self.lineEdit_3.setGeometry(QtCore.QRect(660, 230, 113, 25))
+        self.lineEdit_3.setObjectName("lineEdit_3")
+        self.lineEdit_4 = QtWidgets.QLineEdit(self.centralwidget)
+        self.lineEdit_4.setGeometry(QtCore.QRect(660, 270, 113, 25))
+        self.lineEdit_4.setObjectName("lineEdit_4")
+        self.comboBox = QtWidgets.QComboBox(self.centralwidget)
+        self.comboBox.setGeometry(QtCore.QRect(220, 310, 111, 31))
+        self.comboBox.setObjectName("comboBox")
+        self.comboBox.addItem("")
+        self.comboBox.addItem("")
+        self.comboBox.addItem("")
+        self.pushButton = QtWidgets.QPushButton(self.centralwidget)
+        self.pushButton.setGeometry(QtCore.QRect(310, 480, 131, 61))
+        self.pushButton.setObjectName("pushButton")
+        self.pushButton_2 = QtWidgets.QPushButton(self.centralwidget)
+        self.pushButton_2.setGeometry(QtCore.QRect(450, 480, 131, 61))
+        self.pushButton_2.setObjectName("pushButton_2")
+        self.comboBox_2 = QtWidgets.QComboBox(self.centralwidget)
+        self.comboBox_2.setGeometry(QtCore.QRect(660, 310, 111, 31))
+        self.comboBox_2.setObjectName("comboBox_2")
+        self.comboBox_2.addItem("")
+        self.comboBox_2.addItem("")
+        self.comboBox_2.addItem("")
+        self.label_7 = QtWidgets.QLabel(self.centralwidget)
+        self.label_7.setGeometry(QtCore.QRect(540, 230, 111, 19))
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        self.label_7.setFont(font)
+        self.label_7.setObjectName("label_7")
+        self.label_8 = QtWidgets.QLabel(self.centralwidget)
+        self.label_8.setGeometry(QtCore.QRect(490, 270, 151, 19))
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        self.label_8.setFont(font)
+        self.label_8.setObjectName("label_8")
+        self.label_9 = QtWidgets.QLabel(self.centralwidget)
+        self.label_9.setGeometry(QtCore.QRect(525, 310, 121, 21))
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        self.label_9.setFont(font)
+        self.label_9.setObjectName("label_9")
+        self.label_10 = QtWidgets.QLabel(self.centralwidget)
+        self.label_10.setGeometry(QtCore.QRect(50, 350, 161, 31))
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        self.label_10.setFont(font)
+        self.label_10.setObjectName("label_10")
+        self.lineEdit_5 = QtWidgets.QLineEdit(self.centralwidget)
+        self.lineEdit_5.setGeometry(QtCore.QRect(220, 355, 113, 25))
+        self.lineEdit_5.setObjectName("lineEdit_5")
+        self.lineEdit_6 = QtWidgets.QLineEdit(self.centralwidget)
+        self.lineEdit_6.setGeometry(QtCore.QRect(660, 355, 113, 25))
+        self.lineEdit_6.setObjectName("lineEdit_6")
+        self.label_11 = QtWidgets.QLabel(self.centralwidget)
+        self.label_11.setGeometry(QtCore.QRect(490, 350, 161, 31))
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        self.label_11.setFont(font)
+        self.label_11.setObjectName("label_11")
+        MainWindow.setCentralWidget(self.centralwidget)
+        self.menubar = QtWidgets.QMenuBar(MainWindow)
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 874, 31))
+        self.menubar.setObjectName("menubar")
+        MainWindow.setMenuBar(self.menubar)
+        self.statusbar = QtWidgets.QStatusBar(MainWindow)
+        self.statusbar.setObjectName("statusbar")
+        MainWindow.setStatusBar(self.statusbar)
+
+        self.retranslateUi(MainWindow)
+        QtCore.QMetaObject.connectSlotsByName(MainWindow)
+
+    def retranslateUi(self, MainWindow):
+        _translate = QtCore.QCoreApplication.translate
+        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
+        self.label.setText(_translate("MainWindow", "Enter Cache specifications"))
+        self.label_2.setText(_translate("MainWindow", "Data Cache"))
+        self.label_3.setText(_translate("MainWindow", "Instruction Cache"))
+        self.label_4.setText(_translate("MainWindow", "Cache Size:"))
+        self.label_5.setText(_translate("MainWindow", "Cache block size:"))
+        self.label_6.setText(_translate("MainWindow", "Associativity:"))
+        self.comboBox.setItemText(0, _translate("MainWindow", "Set Associative"))
+        self.comboBox.setItemText(1, _translate("MainWindow", "Fully Associative"))
+        self.comboBox.setItemText(2, _translate("MainWindow", "Direct Mapped"))
+        self.pushButton.setText(_translate("MainWindow", "Back"))
+        self.pushButton.clicked.connect(self.go_back)
+        self.pushButton_2.setText(_translate("MainWindow", "Run"))
+        self.pushButton_2.clicked.connect(self.run)
+        self.comboBox_2.setItemText(0, _translate("MainWindow", "Set Associative"))
+        self.comboBox_2.setItemText(1, _translate("MainWindow", "Direct Mapped"))
+        self.comboBox_2.setItemText(2, _translate("MainWindow", "Fully Associative"))
+        self.label_7.setText(_translate("MainWindow", "Cache Size:"))
+        self.label_8.setText(_translate("MainWindow", "Cache block size:"))
+        self.label_9.setText(_translate("MainWindow", "Associativity:"))
+        self.label_10.setText(_translate("MainWindow", "Number of Ways:"))
+        self.label_11.setText(_translate("MainWindow", "Number of Ways:"))
+           
+    def go_back(self):
+        global instruction_cache_size, instruction_cache_block_size, data_cache_size, data_cache_block_size, data_cache_ways, instruction_cache_ways, data_cache_associativity, instruction_cache_associativity
+        if self.lineEdit_3.text() != '': instruction_cache_size = self.lineEdit_3.text()
+        if self.lineEdit_4.text() != '': instruction_cache_block_size = self.lineEdit_4.text() # Word is 4B
+        if self.lineEdit.text() != '': data_cache_size = self.lineEdit.text()
+        if self.lineEdit_2.text() != '': data_cache_block_size = self.lineEdit_2.text() # Word is 4B
+        if self.lineEdit_5.text() != '': data_cache_ways = self.lineEdit_5.text()
+        if self.lineEdit_6.text() != '': instruction_cache_ways = self.lineEdit_6.text()
+        if self.comboBox.currentText() == 'Set Associative':
+            data_cache_associativity = 2 # 0/1/2[FA/DM/SA]
+        elif self.comboBox.currentText() == 'Direct Mapped':
+            data_cache_associativity = 1
+        elif self.comboBox.currentText() == 'Fully Associative':
+            data_cache_associativity = 0
+        if self.comboBox_2.currentText() == 'Set Associative':
+            instruction_cache_associativity = 2 # 0/1/2[FA/DM/SA]
+        elif self.comboBox_2.currentText() == 'Direct Mapped':
+            instruction_cache_associativity = 1
+        elif self.comboBox_2.currentText() == 'Fully Associative':
+            instruction_cache_associativity = 0        
+
+        w.setCurrentIndex(w.currentIndex() - 1)
+    
+    def run(self):
+        global instruction_cache_size, instruction_cache_block_size, data_cache_size, data_cache_block_size, data_cache_ways, instruction_cache_ways, data_cache_associativity, instruction_cache_associativity
+        if self.lineEdit_3.text() != '': instruction_cache_size = self.lineEdit_3.text()
+        if self.lineEdit_4.text() != '': instruction_cache_block_size = self.lineEdit_4.text() # Word is 4B
+        if self.lineEdit.text() != '': data_cache_size = self.lineEdit.text()
+        if self.lineEdit_2.text() != '': data_cache_block_size = self.lineEdit_2.text() # Word is 4B
+        if self.lineEdit_5.text() != '': data_cache_ways = self.lineEdit_5.text()
+        if self.lineEdit_6.text() != '': instruction_cache_ways = self.lineEdit_6.text()
+        if self.comboBox.currentText() == 'Set Associative':
+            data_cache_associativity = 2 # 0/1/2[FA/DM/SA]
+        elif self.comboBox.currentText() == 'Direct Mapped':
+            data_cache_associativity = 1
+        elif self.comboBox.currentText() == 'Fully Associative':
+            data_cache_associativity = 0
+        if self.comboBox_2.currentText() == 'Set Associative':
+            instruction_cache_associativity = 2 # 0/1/2[FA/DM/SA]
+        elif self.comboBox_2.currentText() == 'Direct Mapped':
+            instruction_cache_associativity = 1
+        elif self.comboBox_2.currentText() == 'Fully Associative':
+            instruction_cache_associativity = 0        
+        w.close()
 
 class display_data(object):
     def setupUi(self, MainWindow, filename):
@@ -670,9 +890,19 @@ def display(l, control_hazard_signals, l_for):
 def take_input():
     global app
     app = QtWidgets.QApplication(sys.argv)
-    MainWindow = QtWidgets.QMainWindow()
-    ui = Ui_takeInput()
-    ui.setupUi(MainWindow)
-    MainWindow.show()
+    MainWindow1 = QtWidgets.QMainWindow()
+    ui1 = Ui_takeInput()
+    ui1.setupUi(MainWindow1)
+    MainWindow2 = QtWidgets.QMainWindow()
+    ui2 = Ui_takeCacheInput()
+    ui2.setupUi(MainWindow2)
+    global w
+    w = QtWidgets.QStackedWidget()
+    w.setFixedHeight(660)
+    w.setFixedWidth(875)
+    w.addWidget(MainWindow1)
+    w.addWidget(MainWindow2)
+    w.show()
     app.exec_()
-    return filename[0], pipelining_enabled, forwarding_enabled, print_registers_each_cycle, print_pipeline_registers, [print_specific_pipeline_registers, number]
+    l = [data_cache_size, data_cache_block_size, data_cache_associativity, data_cache_ways, instruction_cache_size, instruction_cache_block_size, instruction_cache_associativity, instruction_cache_ways]
+    return filename[0], pipelining_enabled, forwarding_enabled, print_registers_each_cycle, print_pipeline_registers, [print_specific_pipeline_registers, number], l

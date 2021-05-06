@@ -126,6 +126,7 @@ class Processor:
 		# gui variable
 		self.get_code = defaultdict(lambda: -1)
 
+
 	def reset(self, *args):
 		if len(args) > 0:
 			state = args[0]
@@ -139,6 +140,7 @@ class Processor:
 			self.pc_select = 0
 			self.pc_offset = 0
 			self.return_address = 0
+
 
 	# load_program_memory reads the input memory, and populates the instruction memory
 	def load_program_memory(self, file_name):
@@ -154,6 +156,7 @@ class Processor:
 			print("ERROR: Error opening input .mc file\n")
 			exit(1)
 
+
 	# Memory write
 	def write_word(self, address, instruction):
 		idx = int(address[2:], 16)
@@ -161,6 +164,7 @@ class Processor:
 		self.MEM[idx + 1] = instruction[6:8]
 		self.MEM[idx + 2] = instruction[4:6]
 		self.MEM[idx + 3] = instruction[2:4]
+
 
 	# Creates a "data_out.mc" file and writes the data memory in it. It also creates
 	# a reg_out.mc file and writes the contents of registers in it.
@@ -188,6 +192,7 @@ class Processor:
 			print("ERROR: Error opening reg_out.mc file for writing\n")
 			exit(1)
 
+
 	# Instruction address generator
 	def IAG(self, state):
 		if state.pc_select:
@@ -200,6 +205,7 @@ class Processor:
 		state.pc_select = 0
 		state.inc_select = 0
 
+
 	# Reads from the instruction memory and updates the instruction register
 	def fetch(self, state, *args):
 		if state.is_dummy:
@@ -211,8 +217,7 @@ class Processor:
 
 		data, gui_read = self.instruction_cache.read(state.PC, self.MEM)
 		state.instruction_word = '0x' + data[6:8] + data[4:6] + data[2:4] + data[0:2]
-		# state.instruction_word = '0x' + self.MEM[state.PC + 3] + self.MEM[state.PC + 2] + self.MEM[state.PC + 1] + self.MEM[state.PC]
-
+    
 		if not self.pipelining_enabled:
 			return gui_read
 
@@ -371,6 +376,7 @@ class Processor:
 					return True, orig_pc, entering, 1
 				else:
 					return False, 0, entering, 3 # 0: no_pred, 1: wrong, 3: correct
+
 
 	# Executes the ALU operation based on ALUop
 	def execute(self, state):
@@ -554,6 +560,7 @@ class Processor:
 		state.register_data = state.register_data[:2] + \
 			(10 - len(state.register_data)) * '0' + state.register_data[2::]
 
+
 	# Performs the memory operations
 	def mem(self, state):
 		if not self.pipelining_enabled:
@@ -568,12 +575,13 @@ class Processor:
 		elif state.is_mem[0] == 0:
 			state.register_data = '0x'
 			data, gui_read = self.data_cache.read(state.memory_address, self.MEM)
+
 			if state.is_mem[1] == 0:
-				state.register_data += data[0:2] # self.MEM[state.memory_address]
+				state.register_data += data[0:2]
 			elif state.is_mem[1] == 1:
-				state.register_data += data[2:4] + data[0:2] # (self.MEM[state.memory_address + 1] + self.MEM[state.memory_address])
+				state.register_data += data[2:4] + data[0:2]
 			else:
-				state.register_data += data[6:8] + data[4:6] + data[2:4] + data[0:2] # (self.MEM[state.memory_address + 3] + self.MEM[state.memory_address + 2] + self.MEM[state.memory_address + 1] + self.MEM[state.memory_address])
+				state.register_data += data[6:8] + data[4:6] + data[2:4] + data[0:2]
 
 			state.register_data = sign_extend(state.register_data)
 			return gui_read
@@ -581,15 +589,7 @@ class Processor:
 		else:
 			gui_write = self.data_cache.write(state.memory_address, state.register_data, self.MEM, state.is_mem[1])
 			return gui_write
-			# if state.is_mem[1] >= 3:
-			# 	self.MEM[state.memory_address + 3] = state.register_data[2:4]
-			# 	self.MEM[state.memory_address + 2] = state.register_data[4:6]
-			# if state.is_mem[1] >= 1:
-			# 	self.MEM[state.memory_address + 1] = state.register_data[6:8]
-			# if state.is_mem[1] >= 0:
-			# 	self.MEM[state.memory_address] = state.register_data[8:10]
 
-		# print(state.instruction_word)
 
 	# Writes the results back to the register file
 	def write_back(self, state):
