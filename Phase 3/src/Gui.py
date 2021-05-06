@@ -33,14 +33,14 @@ number = -1
 # Data cache parameters
 data_cache_size = 128
 data_cache_block_size = 4 # Word is 4B
-data_cache_associativity = 1 # 0/1/2[FA/DM/SA]
-data_cache_ways = 1
+data_cache_associativity = 2 # 0/1/2[FA/DM/SA]
+data_cache_ways = 2
 
 # Instruction cache parameters
 instruction_cache_size = 128
 instruction_cache_block_size = 4 # Word is 4B
-instruction_cache_associativity = 1 # 0/1/2[FA/DM/SA]
-instruction_cache_ways = 1
+instruction_cache_associativity = 2 # 0/1/2[FA/DM/SA]
+instruction_cache_ways = 2
 
 class Ui_takeInput(object):
     def setupUi(self, MainWindow):
