@@ -128,3 +128,12 @@ class Memory:
 		if type >= 0:
 			MEM[address] = data[8:10]
 		return gui_data
+	
+	def make_table(self):
+		table = []
+		for row_no in range(self.sets):
+			row = []
+			for tag in self.cache[row_no].keys():
+				row += [tag, 1, self.cache[row_no][tag][0], self.cache[row_no][tag][0]]
+			row += [""]*(self.ways*4 - len(row))
+			table.append(row)
