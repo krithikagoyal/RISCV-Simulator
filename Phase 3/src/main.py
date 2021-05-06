@@ -159,6 +159,7 @@ if __name__ == '__main__':
 			if processor.terminate:
 				prog_end = True
 				break
+			memory_table.append([False,False])
 
 			processor.execute(instruction)
 			pc_tmp.append([-1, -1, instruction.PC, -1, -1])
@@ -170,6 +171,7 @@ if __name__ == '__main__':
 				for i in range(32):
 					print("R" + str(i) + ":", processor.R[i], end=" ")
 				print("\n")
+			memory_table.append([False,False])
 
 			gui_data = processor.mem(instruction)
 			pc_tmp.append([-1, instruction.PC, -1, -1, -1])
@@ -181,7 +183,7 @@ if __name__ == '__main__':
 				for i in range(32):
 					print("R" + str(i) + ":", processor.R[i], end=" ")
 				print("\n")
-			memory_table.append(["",gui_data])
+			memory_table.append([False,gui_data])
 
 			processor.write_back(instruction)
 			pc_tmp.append([instruction.PC, -1, -1, -1, -1])
@@ -196,6 +198,7 @@ if __name__ == '__main__':
 				print("\n")
 
 			PC = processor.next_PC
+			memory_table.append([False,False])
 
 	else:
 		processor.pipelining_enabled = True
@@ -412,50 +415,50 @@ if __name__ == '__main__':
 
 		mem_gui = []
 		for i in range(len(memory_table)):
-			tmp = ["","",[]]
+			tmp = ["","",[1,1]]
 			if memory_table[i][0]:
 				d = memory_table[i][0]
 				if d['action'] == 'read':
-					s = "tried reading data from set: " +  str(d['index'] ) + " with block-offset: " + str(d['block_offset']) + "\n"
+					s = "reading from set: " +  str(d['index'] ) + "   victim: " + str(d.get('victim', "-1"))
 					if d['status'] == 'found':
-						tmp[2].append(1)
-						s += 'READ HIT'
-					elif d['status'] == 'added':
-						tmp[2].append(0)
-						s += 'READ MISS: added from main memory'
+						tmp[2][0] = 1
+					# 	s += 'READ HIT'
+					# elif d['status'] == 'added':
+					# 	tmp[2][0] = 0
+					# 	s += 'READ MISS: added from main memory'
 					else:
-						tmp[2].append(0)
-						s += 'READ MISS: replaced victim of tag: ' + str(d['victim'])
+						tmp[2][0] = 0
+					# 	s += 'READ MISS: replaced victim of tag: ' + str(d['victim'])
 				elif d['action'] == 'write':
-					s = "tried writing data in set: " +  str(d['index'] ) + " with block-offset: " + str(d['block_offset']) + "\n"
+					s = "writing in set: " +  str(d['index'] ) + "   victim: " + str(d.get('victim', "-1"))
 					if d['status'] == 'found':
-						s += 'WRITE HIT'
-						tmp[2].append(1)
+						# s += 'WRITE HIT'
+						tmp[2][0] = 1
 					else:
-						tmp[2].append(0)
-						s += 'WRITE MISS: writing through in main memory '
+						tmp[2][0] = 0
+						# s += 'WRITE MISS: writing through in main memory '
 				tmp[0] = s
 			if memory_table[i][1]:
 				d = memory_table[i][1]
 				if d['action'] == 'read':
-					s = "tried reading data from set: " +  str(d['index'] ) + " with block-offset: " + str(d['block_offset']) + "\n"
+					s = "reading from set: " +  str(d['index'] ) + "   victim: " + str(d.get('victim', "-1"))
 					if d['status'] == 'found':
-						tmp[2].append(1)
-						s += 'READ HIT'
-					elif d['status'] == 'added':
-						tmp[2].append(0)
-						s += 'READ MISS: added from main memory'
+						tmp[2][1] = 1
+						# s += 'READ HIT'
+					# elif d['status'] == 'added':
+					# 	tmp[2][1] = 0
+					# 	s += 'READ MISS: added from main memory'
 					else:
-						tmp[2].append(0)
-						s += 'READ MISS: replaced victim of tag: ' + str(d['victim'])
+						tmp[2][1] = 0
+						# s += 'READ MISS: replaced victim of tag: ' + str(d['victim'])
 				elif d['action'] == 'write':
-					s = "tried writing data in set: " +  str(d['index'] ) + " with block-offset: " + str(d['block_offset']) + "\n"
+					s = "writing in set: " +  str(d['index'] ) + "   victim: " + str(d.get('victim', "-1"))
 					if d['status'] == 'found':
-						tmp[2].append(1)
-						s += 'WRITE HIT'
+						tmp[2][1] = 1
+						# s += 'WRITE HIT'
 					else:
-						tmp[2].append(0)
-						s += 'WRITE MISS: writing through in main memory '
+						tmp[2][1] = 0
+						# s += 'WRITE MISS: writing through in main memory '
 				tmp[1] = s
 			mem_gui.append(tmp)
 
