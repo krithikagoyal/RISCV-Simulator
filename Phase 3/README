@@ -89,17 +89,20 @@ instructions continues till it reaches the instruction “subw x1, x1, x1”.
 In other words, the instruction “0x401080BB” tells the simulator that the
 program has ended.
 
-The user need to select the input knobs, cache input parameters and the input
-file from the GUI.
+The user need to select the input file, the input knobs, and the cache input
+parameters from the GUI.
 
 
 Output Format:
 --------------
-1. As an output, the simulator writes the updated memory contents in a "data_out.mc" file.
-2. A "reg_out.mc" file is also produced containing the contents of the registers.
-3. Further, the simulator prints various insightful statistics in a "stats.txt" file.
-4. Additionally, the simulator also prints register files, pipeline registers for all
-or a specific instruction as per the knobs.
+1. As an output, the simulator writes the updated memory contents in a
+    "data_out.mc" file.
+2. A "reg_out.mc" file is also produced containing the contents of the
+    registers.
+3. Further, the simulator prints various insightful statistics in a "stats.txt"
+    file.
+4. Additionally, the simulator also prints register file, pipeline registers
+    for all or a specific instruction as per the knobs.
 
 
 Project requirements / Libraries Used:
@@ -115,12 +118,13 @@ the requirements of the project after installing python.
 How to run ?
 ------------
 1. Place your input .mc file(new ones if any) in the test directory.
-2. Run the following command on the terminal in the src directory:
+2. Run the following command on the terminal in the "src" directory:
 *python main.py*
 
-A GUI window opens. Select the input file, cache input parameters and knobs in
-the GUI and press the "run" button. The program runs and the GUI window opens
-again to show data corresponding to the input program execution.
+A GUI window opens. Select the input file, the input knobs, and the cache input
+parameters in the GUI and press the "run" button. The program runs and the GUI
+window opens again to show various data corresponding to the input program
+execution.
 
 
 Individual contributions:
@@ -129,23 +133,26 @@ There is no discrete classification as to who coded what. We helped each other
 in completing the whole project and debugging. The below table broadly specifies
 as to who contributed in which part.
 
------------------------------------------------------------
-| Student            | Contributed to                     |
-|---------------------------------------------------------|
-| Akhil Arya         | myRISCVSim.py, Design Doc          |
-| Harshwardhan Kumar | myRISCVSim.py, Design Doc, GUI     |
-| Krithika Goyal     | myRISCVSim.py, main.py, GUI        |
-| Rhythm Jain        | myRISCVSim.py, Design Doc          |
-| Tarun Singla       | myRISCVSim.py, main.py, Design Doc |
------------------------------------------------------------
+----------------------------------------
+| Student            | Contributed to  |
+|--------------------------------------|
+| Akhil Arya         | Design Doc      |
+| Harshwardhan Kumar | GUI             |
+| Krithika Goyal     | Main code, GUI  |
+| Rhythm Jain        | Design Doc      |
+| Tarun Singla       | Main code       |
+----------------------------------------
 
 
 GUI:
 ----
-The first GUI window gives user the option to select the input .mc file from the
-test directory and the input knobs.
-The second GUI window contains 4 buttons showing different data corresponding to
-input program execution like updated data memory, updated register file, data
-hazards, forwarding, control hazards and branch predictions.
+The initial GUI windows allow user to select the input .mc file from the test
+directory, input knobs and the cache input parameters. The program can then be
+executed by pressing the "run" button.
+
+Further GUI windows shows different data corresponding to input program
+execution like updated data memory, updated register file, data hazards,
+forwarding, control hazards, branch predictions, hits/misses for
+instruction/data caches, and updated instruction/data caches.
 
 A detailed explanation of GUI is given in the Design Doc.

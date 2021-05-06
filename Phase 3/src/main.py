@@ -60,8 +60,8 @@ pc_tmp = []
 data_hazard_pairs = []
 control_hazard_signals = []
 stage = {1: "fetch", 2: "decode", 3: "execute", 4: "memory", 5: "write_back"}
-#phase 3
 
+# phase 3
 memory_table = []
 
 # Function for pipelined execution
@@ -410,7 +410,7 @@ if __name__ == '__main__':
 			if data_hazard_pairs[i]['who'] == 3:
 				control_hazard_signals[i] = 0
 
-		mem_gui = []		
+		mem_gui = []
 		for i in range(len(memory_table)):
 			tmp = ["","",[]]
 			if memory_table[i][0]:
@@ -460,5 +460,5 @@ if __name__ == '__main__':
 			mem_gui.append(tmp)
 
 		# control_hazard_signals is a list on integers 0=> nothing; 1=> red ; 2 => yellow; 3=> green
-		#mem_gui is list of list of 3 elemetnts [fetch message, mem message, [1,0]] 1=>hit 0=> miss
+		# mem_gui is list of list of 3 elemetnts [fetch message, mem message, [1,0]] 1=>hit 0=> miss
 		display(l, control_hazard_signals, l_dash, mem_gui)
