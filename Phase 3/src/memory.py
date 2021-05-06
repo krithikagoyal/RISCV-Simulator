@@ -165,6 +165,7 @@ class Memory:
 		for row_no in range(self.sets):
 			row = []
 			for tag in self.cache[row_no].keys():
-				row += [tag, 1, self.cache[row_no][tag][0], self.cache[row_no][tag][0]]
+				row += [tag, 1, self.cache[row_no][tag][1], self.cache[row_no][tag][0]]
 			row += [""]*(self.ways*4 - len(row))
 			table.append(row)
+		return table
