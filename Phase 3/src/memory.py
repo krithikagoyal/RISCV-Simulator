@@ -33,6 +33,7 @@ class Memory:
 		self.count_read_misses = 0
 		# For writes
 		self.count_writes = 0
+		self.count_accesses = 0
 		#
 		self.set()
 

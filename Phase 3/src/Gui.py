@@ -153,7 +153,6 @@ class Ui_takeInput(object):
     def run_handler(self):
         w.setCurrentIndex(w.currentIndex() + 1)
 
-
 class Ui_takeCacheInput(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -366,10 +365,14 @@ class display_data(object):
         self.control_hazard_button = QtWidgets.QPushButton(self.centralwidget)
         self.control_hazard_button.setGeometry(QtCore.QRect(1050, 3, 125, 40))
         self.control_hazard_button.setObjectName("control_hazrad")
+        self.hit_miss_button = QtWidgets.QPushButton(self.centralwidget)
+        self.hit_miss_button.setGeometry(QtCore.QRect(1180, 3, 125, 40))
+        self.hit_miss_button.setObjectName("hit_miss")
 
         self.register_button.clicked.connect(self.show_register_data)
         self.control_hazard_button.clicked.connect(self.show_control_hazard)
         self.data_hazard_button.clicked.connect(self.show_data_hazard)
+        self.hit_miss_button.clicked.connect(self.show_hit_miss)
 
         font = QtGui.QFont()
         font.setPointSize(12)
@@ -406,6 +409,9 @@ class display_data(object):
 
     def show_control_hazard(self):
         widgets.setCurrentIndex(widgets.currentIndex() + 3)
+        
+    def show_hit_miss(self):
+        widgets.setCurrentIndex(widgets.currentIndex() + 4)
 
     def retranslateUi(self, MainWindow, filename):
         _translate = QtCore.QCoreApplication.translate
@@ -415,6 +421,7 @@ class display_data(object):
         self.register_button.setText(_translate("MainWindow", "Register"))
         self.data_hazard_button.setText(_translate("MainWindow", "Data Hazard"))
         self.control_hazard_button.setText(_translate("MainWindow", "Control Hazard"))
+        self.hit_miss_button.setText(_translate("MainWindow", "Hits/Misses"))
         item = self.tableWidget.horizontalHeaderItem(0)
         item.setText(_translate("MainWindow", "ADDRESS"))
         item = self.tableWidget.horizontalHeaderItem(1)
@@ -473,10 +480,14 @@ class display_register(object):
         self.control_hazard_button = QtWidgets.QPushButton(self.centralwidget)
         self.control_hazard_button.setGeometry(QtCore.QRect(1050, 3, 125, 40))
         self.control_hazard_button.setObjectName("control_hazrad")
+        self.hit_miss_button = QtWidgets.QPushButton(self.centralwidget)
+        self.hit_miss_button.setGeometry(QtCore.QRect(1180, 3, 125, 40))
+        self.hit_miss_button.setObjectName("hit_miss")
 
         self.memory_button.clicked.connect(self.show_memory_data)
         self.data_hazard_button.clicked.connect(self.show_data_hazard)
         self.control_hazard_button.clicked.connect(self.show_control_hazard)
+        self.hit_miss_button.clicked.connect(self.show_hit_miss)
 
         font = QtGui.QFont()
         font.setPointSize(12)
@@ -513,6 +524,10 @@ class display_register(object):
 
     def show_control_hazard(self):
         widgets.setCurrentIndex(widgets.currentIndex() + 2)
+    
+    def show_hit_miss(self):
+        widgets.setCurrentIndex(widgets.currentIndex() + 3)
+
 
     def retranslateUi(self, MainWindow, filename):
         _translate = QtCore.QCoreApplication.translate
@@ -522,6 +537,7 @@ class display_register(object):
         self.register_button.setText(_translate("MainWindow", "Register"))
         self.data_hazard_button.setText(_translate("MainWindow", "Data Hazard"))
         self.control_hazard_button.setText(_translate("MainWindow", "Control Hazard"))
+        self.hit_miss_button.setText(_translate("MainWindow", "Hits/Misses"))
         item = self.tableWidget.horizontalHeaderItem(0)
         item.setText(_translate("MainWindow", "ADDRESS"))
         item = self.tableWidget.horizontalHeaderItem(1)
@@ -580,10 +596,14 @@ class display_data_hazard(object):
         self.control_hazard_button = QtWidgets.QPushButton(self.centralwidget)
         self.control_hazard_button.setGeometry(QtCore.QRect(1050, 3, 125, 40))
         self.control_hazard_button.setObjectName("control_hazrad")
+        self.hit_miss_button = QtWidgets.QPushButton(self.centralwidget)
+        self.hit_miss_button.setGeometry(QtCore.QRect(1180, 3, 125, 40))
+        self.hit_miss_button.setObjectName("hit_miss")
 
         self.memory_button.clicked.connect(self.show_memory_data)
         self.register_button.clicked.connect(self.show_register_data)
         self.control_hazard_button.clicked.connect(self.show_control_hazard)
+        self.hit_miss_button.clicked.connect(self.show_hit_miss)
 
         font = QtGui.QFont()
         font.setPointSize(10)
@@ -642,6 +662,9 @@ class display_data_hazard(object):
 
     def show_control_hazard(self):
         widgets.setCurrentIndex(widgets.currentIndex() + 1)
+        
+    def show_hit_miss(self):
+        widgets.setCurrentIndex(widgets.currentIndex() + 2)
 
     def retranslateUi(self, MainWindow, l):
         _translate = QtCore.QCoreApplication.translate
@@ -651,6 +674,7 @@ class display_data_hazard(object):
         self.register_button.setText(_translate("MainWindow", "Register"))
         self.data_hazard_button.setText(_translate("MainWindow", "Data Hazard"))
         self.control_hazard_button.setText(_translate("MainWindow", "Control Hazard"))
+        self.hit_miss_button.setText(_translate("MainWindow", "Hits/Misses"))
         self.plainTextEdit.setPlainText(_translate("MainWindow", "Stall happened because it was dependent on some previous instruction"))
         self.plainTextEdit_4.setPlainText(_translate("MainWindow", "Stall happened beacuse some next instruction was dependent on it"))
         item = self.tableWidget.horizontalHeaderItem(4)
@@ -730,10 +754,14 @@ class display_control_hazard(object):
         self.control_hazard_button = QtWidgets.QPushButton(self.centralwidget)
         self.control_hazard_button.setGeometry(QtCore.QRect(1050, 3, 125, 40))
         self.control_hazard_button.setObjectName("control_hazrad")
+        self.hit_miss_button = QtWidgets.QPushButton(self.centralwidget)
+        self.hit_miss_button.setGeometry(QtCore.QRect(1180, 3, 125, 40))
+        self.hit_miss_button.setObjectName("hit_miss")
 
         self.memory_button.clicked.connect(self.show_memory_data)
         self.register_button.clicked.connect(self.show_register_data)
         self.data_hazard_button.clicked.connect(self.show_data_hazard)
+        self.hit_miss_button.clicked.connect(self.show_hit_miss)
 
         # representing colors
         font = QtGui.QFont()
@@ -801,6 +829,9 @@ class display_control_hazard(object):
 
     def show_data_hazard(self):
         widgets.setCurrentIndex(widgets.currentIndex() - 1)
+        
+    def show_hit_miss(self):
+        widgets.setCurrentIndex(widgets.currentIndex() + 1)
 
     def retranslateUi(self, MainWindow, l, control_hazard_signals):
         _translate = QtCore.QCoreApplication.translate
@@ -810,6 +841,7 @@ class display_control_hazard(object):
         self.register_button.setText(_translate("MainWindow", "Register"))
         self.data_hazard_button.setText(_translate("MainWindow", "Data Hazard"))
         self.control_hazard_button.setText(_translate("MainWindow", "Control Hazard"))
+        self.hit_miss_button.setText(_translate("MainWindow", "Hits/Misses"))
         item = self.tableWidget.horizontalHeaderItem(4)
         item.setText(_translate("MainWindow", "Fetch"))
         item = self.tableWidget.horizontalHeaderItem(3)
@@ -863,11 +895,107 @@ class display_control_hazard(object):
             item.setTextAlignment(QtCore.Qt.AlignCenter)
             item.setText(_translate("MainWindow", f[i][4]))
 
-def display(l, control_hazard_signals, l_for):
+class display_miss_data(object):
+    def setupUi(self, MainWindow, l):
+        MainWindow.width = 1900
+        MainWindow.height = 970
+        MainWindow.setObjectName("MainWindow")
+        MainWindow.setGeometry(0, 0, MainWindow.width, MainWindow.height)
+        self.centralwidget = QtWidgets.QWidget(MainWindow)
+        self.centralwidget.setObjectName("centralwidget")
+        self.label = QtWidgets.QLabel(self.centralwidget)
+        self.label.setGeometry(QtCore.QRect(840, 50, 300, 35))
+
+        self.memory_button = QtWidgets.QPushButton(self.centralwidget)
+        self.memory_button.setGeometry(QtCore.QRect(660, 3, 125, 40))
+        self.memory_button.setObjectName("memory")
+        self.register_button = QtWidgets.QPushButton(self.centralwidget)
+        self.register_button.setGeometry(QtCore.QRect(790, 3, 125, 40))
+        self.register_button.setObjectName("register")
+        self.data_hazard_button = QtWidgets.QPushButton(self.centralwidget)
+        self.data_hazard_button.setGeometry(QtCore.QRect(920, 3, 125, 40))
+        self.data_hazard_button.setObjectName("data_hazrad")
+        self.control_hazard_button = QtWidgets.QPushButton(self.centralwidget)
+        self.control_hazard_button.setGeometry(QtCore.QRect(1050, 3, 125, 40))
+        self.control_hazard_button.setObjectName("control_hazrad")
+        self.hit_miss_button = QtWidgets.QPushButton(self.centralwidget)
+        self.hit_miss_button.setGeometry(QtCore.QRect(1180, 3, 125, 40))
+        self.hit_miss_button.setObjectName("hit_miss")
+
+        self.memory_button.clicked.connect(self.show_memory_data)
+        self.register_button.clicked.connect(self.show_register_data)
+        self.control_hazard_button.clicked.connect(self.show_control_hazard)
+        self.data_hazard_button.clicked.connect(self.show_data_hazard)
+
+        font = QtGui.QFont()
+        font.setPointSize(12)
+        self.label.setFont(font)
+        self.label.setObjectName("label")
+        self.tableWidget = QtWidgets.QTableWidget(self.centralwidget)
+        self.tableWidget.setGeometry(QtCore.QRect(0, 95, MainWindow.width, MainWindow.height - 100))
+        self.tableWidget.setObjectName("tableWidget")
+        self.tableWidget.setColumnCount(2)
+        self.tableWidget.setRowCount(len(l)) # changed
+        font = QtGui.QFont()
+        font.setPointSize(12)
+        self.tableWidget.setFont(font)
+        item = QtWidgets.QTableWidgetItem()
+        self.tableWidget.setHorizontalHeaderItem(0, item)
+        item = QtWidgets.QTableWidgetItem()
+        self.tableWidget.setHorizontalHeaderItem(1, item)
+        self.tableWidget.setColumnWidth(0, int(MainWindow.width / 2) - 50)
+        self.tableWidget.setColumnWidth(1, int(MainWindow.width / 2) - 50)
+        self.retranslateUi(MainWindow, l)
+        QtCore.QMetaObject.connectSlotsByName(MainWindow)
+
+    def show_memory_data(self):
+        widgets.setCurrentIndex(widgets.currentIndex() - 4)
+
+    def show_register_data(self):
+        widgets.setCurrentIndex(widgets.currentIndex() - 3)
+
+    def show_data_hazard(self):
+        widgets.setCurrentIndex(widgets.currentIndex() - 2)
+
+    def show_control_hazard(self):
+        widgets.setCurrentIndex(widgets.currentIndex() - 1)
+        
+    def retranslateUi(self, MainWindow, l):
+        _translate = QtCore.QCoreApplication.translate
+        MainWindow.setWindowTitle(_translate("MainWindow", "RISC-V Simulator"))
+        self.label.setText(_translate("MainWindow", "Hits / Misses in Cache"))
+        self.memory_button.setText(_translate("MainWindow", "Data"))
+        self.register_button.setText(_translate("MainWindow", "Register"))
+        self.data_hazard_button.setText(_translate("MainWindow", "Data Hazard"))
+        self.control_hazard_button.setText(_translate("MainWindow", "Control Hazard"))
+        self.hit_miss_button.setText(_translate("MainWindow", "Hits/Misses"))
+        item = self.tableWidget.horizontalHeaderItem(0)
+        item.setText(_translate("MainWindow", "Fetch"))
+        item = self.tableWidget.horizontalHeaderItem(1)
+        item.setText(_translate("MainWindow", "Memory"))
+
+        for i in range(len(l)):
+            item = QtWidgets.QTableWidgetItem()
+            item.setTextAlignment(QtCore.Qt.AlignCenter)
+            self.tableWidget.setItem(i, 0, item)
+            item.setTextAlignment(QtCore.Qt.AlignCenter)
+            item.setText(_translate("MainWindow", l[i][0]))
+            # if l[i][2][0]:
+            #     item.setBackground(QtGui.QColor(255, 94, 94))
+            item = QtWidgets.QTableWidgetItem()
+            item.setTextAlignment(QtCore.Qt.AlignCenter)
+            self.tableWidget.setItem(i, 1, item)
+            item.setTextAlignment(QtCore.Qt.AlignCenter)
+            item.setText(_translate("MainWindow", l[i][1]))
+            # if l[i][2][1]:
+            #     item.setBackground(QtGui.QColor(255, 94, 94))
+
+def display(l, control_hazard_signals, l_for, cache_hit_miss):
     MainWindow2 = QtWidgets.QWidget()
     MainWindow3 = QtWidgets.QWidget()
     MainWindow4 = QtWidgets.QWidget()
     MainWindow5 = QtWidgets.QWidget()
+    MainWindow6 = QtWidgets.QWidget()
     ui1 = display_data()
     ui1.setupUi(MainWindow2, "data_out.mc")
     ui2 = display_register()
@@ -876,6 +1004,8 @@ def display(l, control_hazard_signals, l_for):
     ui3.setupUi(MainWindow4, l_for)
     ui4 = display_control_hazard()
     ui4.setupUi(MainWindow5, l, control_hazard_signals)
+    ui5 = display_miss_data()
+    ui5.setupUi(MainWindow6, cache_hit_miss)
     global widgets
     widgets = QtWidgets.QStackedWidget()
     widgets.setFixedHeight(970)
@@ -884,6 +1014,7 @@ def display(l, control_hazard_signals, l_for):
     widgets.addWidget(MainWindow3)
     widgets.addWidget(MainWindow4)
     widgets.addWidget(MainWindow5)
+    widgets.addWidget(MainWindow6)    
     widgets.show()
     sys.exit(app.exec_())
 
