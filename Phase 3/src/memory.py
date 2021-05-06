@@ -144,8 +144,7 @@ class Memory:
 		self.count_writes += 1
 		if tag in self.cache[index].keys():
 			gui_data['status'] = "found"
-			# offset = self.get_block_offset(address)
-			# gui_data['block_offset'] = offset
+			
 			if type == 3:
 				self.cache[index][tag][0] = self.cache[index][tag][0][:2 * offset] + data[8:10] + data[6:8] + data[4:6] + data[2:4] + self.cache[index][tag][0][2 * offset + 8:]
 			elif type == 1:
@@ -164,12 +163,6 @@ class Memory:
 	
 	def make_table(self):
 		table = []
-		# for row_no in range(self.sets):
-		# 	row = []
-		# 	for tag in self.cache[row_no].keys():
-		# 		row += [tag, 1, self.cache[row_no][tag][1], self.cache[row_no][tag][0]]
-		# 	row += [""]*(self.ways*4 - len(row))
-		# 	table.append(row)
 		
 		for row_no in range(self.sets):
 			row = []
