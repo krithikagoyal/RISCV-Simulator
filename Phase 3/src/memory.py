@@ -162,10 +162,18 @@ class Memory:
 	
 	def make_table(self):
 		table = []
-		for row_no in range(self.sets):
+		'''for row_no in range(self.sets):
 			row = []
 			for tag in self.cache[row_no].keys():
 				row += [tag, 1, self.cache[row_no][tag][1], self.cache[row_no][tag][0]]
 			row += [""]*(self.ways*4 - len(row))
+			table.append(row)'''
+		
+		for row_no in range(self.sets):
+			row = []
+			for tag in self.cache[row_no].keys():
+				row.append([tag, self.cache[row_no][tag][1], self.cache[row_no][tag][0]])
+			row.append([""]*(self.ways*3 - len(row)))
 			table.append(row)
+		
 		return table
