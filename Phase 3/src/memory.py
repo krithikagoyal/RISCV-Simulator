@@ -180,9 +180,10 @@ class Memory:
 				tag1 = bin(tag)[2:]
 				tag1 = "0"*(32 - self.number_of_block_offset_bits - self.number_of_index_bits) + tag1
 				block_offset = "0"*self.number_of_block_offset_bits
-				row.append([tag1 + index + block_offset , str(self.cache[row_no][tag][0]), 1, self.cache[row_no][tag][1], str(bin(int(self.cache[row_no][tag][0],16))[2:])])
+				address = int(tag1 + index + block_offset,2)
+				row.append([hex(address) , str(self.cache[row_no][tag][0]), 1, self.cache[row_no][tag][1], str(bin(int(self.cache[row_no][tag][0],16))[2:])])
 			for i in range(self.ways - len(row)):
-				row.append([0,0,0,0, 0]) 
+				row.append([0,0,0,0,0]) 
 			table.append(row)
 		
 		return table
