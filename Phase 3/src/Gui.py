@@ -32,15 +32,15 @@ number = -1
 
 # Data cache parameters
 data_cache_size = 128
-data_cache_block_size = 16 # Word is 4B
-data_cache_associativity = 2 # 0/1/2[FA/DM/SA]
-data_cache_ways = 2
+data_cache_block_size = 4 # Word is 4B
+data_cache_associativity = 1 # 0/1/2[FA/DM/SA]
+data_cache_ways = 1
 
 # Instruction cache parameters
 instruction_cache_size = 128
-instruction_cache_block_size = 16 # Word is 4B
-instruction_cache_associativity = 2 # 0/1/2[FA/DM/SA]
-instruction_cache_ways = 2
+instruction_cache_block_size = 4 # Word is 4B
+instruction_cache_associativity = 1 # 0/1/2[FA/DM/SA]
+instruction_cache_ways = 1
 
 class Ui_takeInput(object):
     def setupUi(self, MainWindow):
@@ -300,12 +300,12 @@ class Ui_takeCacheInput(object):
            
     def go_back(self):
         global instruction_cache_size, instruction_cache_block_size, data_cache_size, data_cache_block_size, data_cache_ways, instruction_cache_ways, data_cache_associativity, instruction_cache_associativity
-        instruction_cache_size = self.lineEdit_3.text()
-        instruction_cache_block_size = self.lineEdit_4.text() # Word is 4B
-        data_cache_size = self.lineEdit.text()
-        data_cache_block_size = self.lineEdit_2.text() # Word is 4B
-        data_cache_ways = self.lineEdit_5.text()
-        instruction_cache_ways = self.lineEdit_6.text()
+        if self.lineEdit_3.text() != '': instruction_cache_size = self.lineEdit_3.text()
+        if self.lineEdit_4.text() != '': instruction_cache_block_size = self.lineEdit_4.text() # Word is 4B
+        if self.lineEdit.text() != '': data_cache_size = self.lineEdit.text()
+        if self.lineEdit_2.text() != '': data_cache_block_size = self.lineEdit_2.text() # Word is 4B
+        if self.lineEdit_5.text() != '': data_cache_ways = self.lineEdit_5.text()
+        if self.lineEdit_6.text() != '': instruction_cache_ways = self.lineEdit_6.text()
         if self.comboBox.currentText() == 'Set Associative':
             data_cache_associativity = 2 # 0/1/2[FA/DM/SA]
         elif self.comboBox.currentText() == 'Direct Mapped':
@@ -323,12 +323,12 @@ class Ui_takeCacheInput(object):
     
     def run(self):
         global instruction_cache_size, instruction_cache_block_size, data_cache_size, data_cache_block_size, data_cache_ways, instruction_cache_ways, data_cache_associativity, instruction_cache_associativity
-        instruction_cache_size = self.lineEdit_3.text()
-        instruction_cache_block_size = self.lineEdit_4.text() # Word is 4B
-        data_cache_size = self.lineEdit.text()
-        data_cache_block_size = self.lineEdit_2.text() # Word is 4B
-        data_cache_ways = self.lineEdit_5.text()
-        instruction_cache_ways = self.lineEdit_6.text()
+        if self.lineEdit_3.text() != '': instruction_cache_size = self.lineEdit_3.text()
+        if self.lineEdit_4.text() != '': instruction_cache_block_size = self.lineEdit_4.text() # Word is 4B
+        if self.lineEdit.text() != '': data_cache_size = self.lineEdit.text()
+        if self.lineEdit_2.text() != '': data_cache_block_size = self.lineEdit_2.text() # Word is 4B
+        if self.lineEdit_5.text() != '': data_cache_ways = self.lineEdit_5.text()
+        if self.lineEdit_6.text() != '': instruction_cache_ways = self.lineEdit_6.text()
         if self.comboBox.currentText() == 'Set Associative':
             data_cache_associativity = 2 # 0/1/2[FA/DM/SA]
         elif self.comboBox.currentText() == 'Direct Mapped':
