@@ -39,9 +39,11 @@ class Memory:
 	def set(self):
 		if self.associativity == 0:
 			self.sets = 1
+			self.ways = self.cache_size // self.block_size
 		elif self.associativity == 1:
 			self.sets = self.cache_size // self.block_size
 			self.number_of_index_bits = int(math.ceil(math.log(self.sets, 2)))
+			self.ways = 1
 		else:
 			self.sets = self.cache_size // self.block_size
 			self.sets = self.sets // self.ways
