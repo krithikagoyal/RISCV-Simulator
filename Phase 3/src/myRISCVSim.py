@@ -215,11 +215,11 @@ class Processor:
 			state.is_dummy = True
 			return
 
-		data = self.instruction_cache.read(state.PC, self.MEM)
+		data, gui_read = self.instruction_cache.read(state.PC, self.MEM)
 		state.instruction_word = '0x' + data[6:8] + data[4:6] + data[2:4] + data[0:2]
-
+    
 		if not self.pipelining_enabled:
-			return
+			return gui_read
 
 		btb = args[0]
 
@@ -229,6 +229,7 @@ class Processor:
 				state.next_pc = btb.getTarget(state.PC)
 			else:
 				state.next_pc = state.PC + 4
+		return gui_read
 
 
 	# Decodes the instruction and decides the operation to be performed in the execute stage; reads the operands from the register file.
@@ -566,14 +567,14 @@ class Processor:
 			self.IAG(state)
 
 		if state.is_dummy:
-			return
+			return False
 
 		if state.is_mem[0] == -1:
-			return
+			return False
 
 		elif state.is_mem[0] == 0:
 			state.register_data = '0x'
-			data = self.data_cache.read(state.memory_address, self.MEM)
+			data, gui_read = self.data_cache.read(state.memory_address, self.MEM)
 
 			if state.is_mem[1] == 0:
 				state.register_data += data[0:2]
@@ -583,9 +584,11 @@ class Processor:
 				state.register_data += data[6:8] + data[4:6] + data[2:4] + data[0:2]
 
 			state.register_data = sign_extend(state.register_data)
+			return gui_read
 
 		else:
-			self.data_cache.write(state.memory_address, state.register_data, self.MEM, state.is_mem[1])
+			gui_write = self.data_cache.write(state.memory_address, state.register_data, self.MEM, state.is_mem[1])
+			return gui_write
 
 
 	# Writes the results back to the register file
