@@ -452,7 +452,7 @@ if __name__ == '__main__':
 						tmp[2][1] = 0
 						# s += 'READ MISS: replaced victim of tag: ' + str(d['victim'])
 				elif d['action'] == 'write':
-					s = "writing in set: " +  str(d['index'] ) + "   victim: " + str(d.get('victim', "-1"))
+					s = "writing in set: " +  str(d['index'] ) # + "   victim: " + str(d.get('victim', "-1"))
 					if d['status'] == 'found':
 						tmp[2][1] = 1
 						# s += 'WRITE HIT'

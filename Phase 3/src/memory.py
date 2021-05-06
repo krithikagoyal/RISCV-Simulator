@@ -120,6 +120,7 @@ class Memory:
 				for cache_tag in self.cache[index].keys():
 					if self.cache[index][cache_tag][1] == 0:
 						self.replace_block(index, cache_tag, address, MEM)
+						# print("REPLACED")
 						gui_data['status'] = "replaced"
 						gui_data['victim'] = cache_tag
 						break
