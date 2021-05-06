@@ -183,13 +183,13 @@ class Ui_takeCacheInput(object):
         self.label_4.setFont(font)
         self.label_4.setObjectName("label_4")
         self.label_5 = QtWidgets.QLabel(self.centralwidget)
-        self.label_5.setGeometry(QtCore.QRect(10, 270, 251, 20))
+        self.label_5.setGeometry(QtCore.QRect(17, 270, 251, 20))
         font = QtGui.QFont()
         font.setPointSize(10)
         self.label_5.setFont(font)
         self.label_5.setObjectName("label_5")
         self.label_6 = QtWidgets.QLabel(self.centralwidget)
-        self.label_6.setGeometry(QtCore.QRect(135, 310, 121, 21))
+        self.label_6.setGeometry(QtCore.QRect(122, 310, 121, 21))
         font = QtGui.QFont()
         font.setPointSize(10)
         self.label_6.setFont(font)
@@ -231,19 +231,19 @@ class Ui_takeCacheInput(object):
         self.label_7.setFont(font)
         self.label_7.setObjectName("label_7")
         self.label_8 = QtWidgets.QLabel(self.centralwidget)
-        self.label_8.setGeometry(QtCore.QRect(400, 270, 251, 29))
+        self.label_8.setGeometry(QtCore.QRect(407, 270, 251, 29))
         font = QtGui.QFont()
         font.setPointSize(10)
         self.label_8.setFont(font)
         self.label_8.setObjectName("label_8")
         self.label_9 = QtWidgets.QLabel(self.centralwidget)
-        self.label_9.setGeometry(QtCore.QRect(525, 310, 121, 21))
+        self.label_9.setGeometry(QtCore.QRect(514, 310, 121, 21))
         font = QtGui.QFont()
         font.setPointSize(10)
         self.label_9.setFont(font)
         self.label_9.setObjectName("label_9")
         self.label_10 = QtWidgets.QLabel(self.centralwidget)
-        self.label_10.setGeometry(QtCore.QRect(100, 350, 161, 31))
+        self.label_10.setGeometry(QtCore.QRect(92, 350, 161, 31))
         font = QtGui.QFont()
         font.setPointSize(10)
         self.label_10.setFont(font)
@@ -255,7 +255,7 @@ class Ui_takeCacheInput(object):
         self.lineEdit_6.setGeometry(QtCore.QRect(660, 355, 113, 25))
         self.lineEdit_6.setObjectName("lineEdit_6")
         self.label_11 = QtWidgets.QLabel(self.centralwidget)
-        self.label_11.setGeometry(QtCore.QRect(490, 350, 161, 31))
+        self.label_11.setGeometry(QtCore.QRect(483, 350, 161, 31))
         font = QtGui.QFont()
         font.setPointSize(10)
         self.label_11.setFont(font)
@@ -296,7 +296,7 @@ class Ui_takeCacheInput(object):
         self.label_9.setText(_translate("MainWindow", "Associativity:"))
         self.label_10.setText(_translate("MainWindow", "Number of Ways:"))
         self.label_11.setText(_translate("MainWindow", "Number of Ways:"))
-           
+
     def go_back(self):
         global instruction_cache_size, instruction_cache_block_size, data_cache_size, data_cache_block_size, data_cache_ways, instruction_cache_ways, data_cache_associativity, instruction_cache_associativity
         if self.lineEdit_3.text() != '': instruction_cache_size = self.lineEdit_3.text()
@@ -316,10 +316,10 @@ class Ui_takeCacheInput(object):
         elif self.comboBox_2.currentText() == 'Direct Mapped':
             instruction_cache_associativity = 1
         elif self.comboBox_2.currentText() == 'Fully Associative':
-            instruction_cache_associativity = 0        
+            instruction_cache_associativity = 0
 
         w.setCurrentIndex(w.currentIndex() - 1)
-    
+
     def run(self):
         global instruction_cache_size, instruction_cache_block_size, data_cache_size, data_cache_block_size, data_cache_ways, instruction_cache_ways, data_cache_associativity, instruction_cache_associativity
         if self.lineEdit_3.text() != '': instruction_cache_size = self.lineEdit_3.text()
@@ -339,7 +339,7 @@ class Ui_takeCacheInput(object):
         elif self.comboBox_2.currentText() == 'Direct Mapped':
             instruction_cache_associativity = 1
         elif self.comboBox_2.currentText() == 'Fully Associative':
-            instruction_cache_associativity = 0        
+            instruction_cache_associativity = 0
         w.close()
 
 class display_data(object):
@@ -417,13 +417,13 @@ class display_data(object):
 
     def show_control_hazard(self):
         widgets.setCurrentIndex(widgets.currentIndex() + 3)
-        
+
     def show_hit_miss(self):
         widgets.setCurrentIndex(widgets.currentIndex() + 4)
-    
+
     def show_data_cache(self):
         widgets.setCurrentIndex(widgets.currentIndex() + 5)
-        
+
     def show_instruction_cache(self):
         widgets.setCurrentIndex(widgets.currentIndex() + 6)
 
@@ -548,13 +548,13 @@ class display_register(object):
 
     def show_control_hazard(self):
         widgets.setCurrentIndex(widgets.currentIndex() + 2)
-    
+
     def show_hit_miss(self):
         widgets.setCurrentIndex(widgets.currentIndex() + 3)
-        
+
     def show_data_cache(self):
         widgets.setCurrentIndex(widgets.currentIndex() + 4)
-        
+
     def show_instruction_cache(self):
         widgets.setCurrentIndex(widgets.currentIndex() + 5)
 
@@ -701,13 +701,13 @@ class display_data_hazard(object):
 
     def show_control_hazard(self):
         widgets.setCurrentIndex(widgets.currentIndex() + 1)
-        
+
     def show_hit_miss(self):
         widgets.setCurrentIndex(widgets.currentIndex() + 2)
-    
+
     def show_data_cache(self):
         widgets.setCurrentIndex(widgets.currentIndex() + 3)
-        
+
     def show_instruction_cache(self):
         widgets.setCurrentIndex(widgets.currentIndex() + 4)
 
@@ -817,7 +817,7 @@ class display_control_hazard(object):
         self.hit_miss_button.clicked.connect(self.show_hit_miss)
         self.data_cache_button.clicked.connect(self.show_data_cache)
         self.instrction_cache_button.clicked.connect(self.show_instruction_cache)
-        
+
         # representing colors
         font = QtGui.QFont()
         font.setPointSize(10)
@@ -884,13 +884,13 @@ class display_control_hazard(object):
 
     def show_data_hazard(self):
         widgets.setCurrentIndex(widgets.currentIndex() - 1)
-        
+
     def show_hit_miss(self):
         widgets.setCurrentIndex(widgets.currentIndex() + 1)
-        
+
     def show_data_cache(self):
         widgets.setCurrentIndex(widgets.currentIndex() + 2)
-        
+
     def show_instruction_cache(self):
         widgets.setCurrentIndex(widgets.currentIndex() + 3)
 
@@ -1030,13 +1030,13 @@ class display_miss_data(object):
 
     def show_control_hazard(self):
         widgets.setCurrentIndex(widgets.currentIndex() - 1)
-    
+
     def show_data_cache(self):
         widgets.setCurrentIndex(widgets.currentIndex() + 1)
-        
+
     def show_instruction_cache(self):
         widgets.setCurrentIndex(widgets.currentIndex() + 2)
-        
+
     def retranslateUi(self, MainWindow, l):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "RISC-V Simulator"))
@@ -1135,10 +1135,10 @@ class display_data_cache(object):
 
     def show_control_hazard(self):
         widgets.setCurrentIndex(widgets.currentIndex() - 2)
-        
+
     def show_hit_miss(self):
         widgets.setCurrentIndex(widgets.currentIndex() - 1)
-    
+
     def show_instruction_cache(self):
         widgets.setCurrentIndex(widgets.currentIndex() + 1)
 
@@ -1240,13 +1240,13 @@ class display_instruction_cache(object):
 
     def show_control_hazard(self):
         widgets.setCurrentIndex(widgets.currentIndex() - 3)
-        
+
     def show_hit_miss(self):
         widgets.setCurrentIndex(widgets.currentIndex() - 2)
-        
+
     def show_data_cache(self):
         widgets.setCurrentIndex(widgets.currentIndex() - 1)
-        
+
     def retranslateUi(self, MainWindow, l):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "RISC-V Simulator"))
@@ -1309,9 +1309,9 @@ def display(l, control_hazard_signals, l_for, cache_hit_miss, data_cache, instru
     widgets.addWidget(MainWindow3)
     widgets.addWidget(MainWindow4)
     widgets.addWidget(MainWindow5)
-    widgets.addWidget(MainWindow6)   
-    widgets.addWidget(MainWindow7) 
-    widgets.addWidget(MainWindow8) 
+    widgets.addWidget(MainWindow6)
+    widgets.addWidget(MainWindow7)
+    widgets.addWidget(MainWindow8)
     widgets.show()
     sys.exit(app.exec_())
 
