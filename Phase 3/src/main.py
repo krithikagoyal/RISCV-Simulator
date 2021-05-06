@@ -465,4 +465,8 @@ if __name__ == '__main__':
 		# control_hazard_signals is a list on integers 0=> nothing; 1=> red ; 2 => yellow; 3=> green
 		# mem_gui is list of list of 3 elemetnts [fetch message, mem message, [1,0]] 1=>hit 0=> miss
 		# data_cache = [[['111111', '00000', 0, 3, '1111111'], ['111111', '00000', 1, 3, '1111111'], ['111111', '00000', 1, 3, '1111111']]]
-		display(l, control_hazard_signals, l_dash, mem_gui, data_cache)
+# 		display(l, control_hazard_signals, l_dash, mem_gui, data_cache)
+		# icache and dcashe is list of list of list, [address, hexdata, dirtybit, recency, binary data]
+		icache = instruction_cache.make_table()
+		dcashe = data_cache.make_table()
+		display(l, control_hazard_signals, l_dash, mem_gui)
