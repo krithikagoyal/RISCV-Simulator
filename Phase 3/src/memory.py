@@ -174,8 +174,14 @@ class Memory:
 		for row_no in range(self.sets):
 			row = []
 			for tag in self.cache[row_no].keys():
-				row.append([tag, self.cache[row_no][tag][1], self.cache[row_no][tag][0]])
-			row.append([""]*(self.ways*3 - len(row)))
+				index = bin(row_no)[2:]
+				index = "0"*(self.number_of_index_bits-len(index)) + index
+				index = index[:self.number_of_index_bits]
+				tag1 = bin(tag)[2:]
+				tag1 = "0"*(32 - self.number_of_block_offset_bits - number_of_index_bits) + tag1
+				block_offset = "0"*self.number_of_block_offset_bits
+				row.append([tag1 + index + block_offset , str(self.cache[row_no][tag][0]), self.cache[row_no][tag][1], str(bin(int(self.cache[row_no][tag][0]),16)[2:])])
+			row.append([0]*(self.ways*3 - len(row)))
 			table.append(row)
 		
 		return table
